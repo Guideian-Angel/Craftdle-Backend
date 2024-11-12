@@ -13,10 +13,10 @@ craftdle-backend/
 │   │   └── utilities/              # Összes olyan function, amit több modul is használ
 │   │       └── shared.function.ts
 │   │
-│   ├── users/                      # User modul és kapcsolódó fájlok
-│   │   ├── users.module.ts
-│   │   ├── users.controller.ts     # User modul összes végpontja
-│   │   ├── users.service.ts        # User modul fő komponense
+│   ├── user/                      # User modul és kapcsolódó fájlok
+│   │   ├── user.module.ts
+│   │   ├── user.controller.ts     # User modul összes végpontja
+│   │   ├── user.service.ts        # User modul fő komponense
 │   │   ├── interfaces/
 │   │   │   └── user.interface.ts
 │   │   ├── entities/
@@ -42,7 +42,20 @@ craftdle-backend/
 │   │   │   ├── game-hardcore.ts
 │   │   │   └── game-pocket.ts
 │   │   └── utilities/
-│   │       └── game.function.ts    # Segédfüggvények
+│   │       └── game.function.ts
+│   │
+│   ├── riddle/                      # Riddle modul és kapcsolódó fájlok
+│   │   ├── users.module.ts
+│   │   ├── users.controller.ts     # Riddle modul összes végpontja
+│   │   ├── users.service.ts        # Riddle modul fő komponense
+│   │   ├── interfaces/
+│   │   │   └── riddle.interface.ts
+│   │   ├── entities/
+│   │   │   └── riddle.entity.ts
+│   │   ├── classes/
+│   │   │   └── riddle.class.ts
+│   │   └── utilities/
+│   │       └── riddle.function.ts# Segédfüggvények
 │   │
 │   ├── admin/                      # Admin modul és kapcsolódó fájlok
 │   │   ├── admin.module.ts
