@@ -1,9 +1,30 @@
+import {UnauthorizedException, HttpException, HttpStatus} from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class TokenValidationService {
     constructor(private readonly prisma: PrismaService) {}
+
+    async bearerTokenValidation(authorization: string){
+        try{
+            if (!authorization){
+                throw new UnauthorizedException('Authorization header is required');
+            }
+            const token = authorization.replace('Bearer ', '')
+            if (!token) {
+                throw new UnauthorizedException('Token is missing');
+            }
+            console.log(token);
+            const user = this.validateToken(token);
+            if (!user) {
+                throw new HttpException("Invalid token.", HttpStatus.UNAUTHORIZED);
+            }
+            return user;
+        }catch(e){
+            throw new Error(e);
+        }
+    }
 
     async getUserById(userId: number) {
         try {
@@ -43,7 +64,6 @@ export class TokenValidationService {
 
             return await this.getUserById(tokenQuery.user);
         } catch (error) {
-            console.error("Error in validateToken:", error);
             throw new Error("Failed to validate token.");
         }
     }

@@ -1,23 +1,21 @@
 import { Controller, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { GameService } from './game.service';
+import { TokenValidationService } from '../shared/utilities/token-validation.service';
 
 @Controller('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) {}
+  constructor(private readonly gameService: GameService,
+              private readonly tokenValidation: TokenValidationService
+  ) {}
 
   @Get('singleplayer')
   async getGameModesWithLastUnsolvedGame(@Headers('authorization') authorization: string) {
-    if (!authorization) {
-      throw new UnauthorizedException('Authorization header is required');
+    try{
+      const user = await this.tokenValidation.bearerTokenValidation(authorization);
+      
+      return await this.gameService.getGameModesWithLastUnsolvedGame(user.id);
+    }catch(err){
+      throw new UnauthorizedException();
     }
-
-    const token = authorization.replace('Bearer ', '');
-    if (!token) {
-      throw new UnauthorizedException('Token is missing');
-    }
-
-    const response = await this.gameService.getGameModesWithLastUnsolvedGame(token);
-    console.log(response);
-    return response;
   }
 }
