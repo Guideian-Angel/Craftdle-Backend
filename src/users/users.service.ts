@@ -1,42 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from './classes/user'
+import { IUser } from './interfaces/UserData.interface'
+import { createGuestAccount } from './utilities/guestAccountCreation.util'
+import { pairTokenWithUser } from './utilities/TokenPairingWithUser.util'
+import { IUserData } from './interfaces/UserData.interface';
 
 @Injectable()
 export class UsersService {
     constructor(private prisma: PrismaService) {}
-    // I just put this here just in case someone needs it
-    /*
-    async getTokens() {
-        return await this.prisma.tokens.findMany();
-    }
-    */
 
-    // returns the user data associated with a user id
-    async getUserById(userId: number) {
-        return await this.prisma.users.findUnique({
-            where: {
-                id: userId
-            }
-        });
-    }
-    
-    // returns EVERY token associated with a user
-    async getTokensByUserId(userId: number) {
-        return await this.prisma.tokens.findMany({
-            where: {
-                user: userId
-            }
-        });
+    users: User[] = [];
+
+    async createGuestAccount(): Promise<IUserData>{
+        const newGuest = await createGuestAccount(this.prisma);
+        this.createNewUser(newGuest, true);
+        const { id, ...userData } = newGuest; // A destruktúrálással eltávolítjuk az `id`-t
+        return userData as IUserData; // Az `id` nélküli objektum visszatérése
     }
 
-    // returns the user data associated a token if it's present in the database
-    async validateToken(token: string) {
-        let tokenQuery = await this.prisma.tokens.findFirst({
-            where: {
-                login_token: token
-            }
-        });
-        console.log(tokenQuery);
-        return await this.getUserById(tokenQuery.user);
+    async createNewUser(newUser: IUser, isExpire: boolean) {
+        try {
+            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
+            // További logika, pl. User objektum létrehozása
+        } catch (error) {
+            console.error("Error in createNewUser:", error);
+            throw new Error("Failed to pair token with user in createNewUser.");
+        }
     }
 }
