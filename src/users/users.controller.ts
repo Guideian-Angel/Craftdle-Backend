@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Headers, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Headers, Body, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiResponse } from '../shared/interfaces/APIResponse'
 import { LoginDataDto } from './dtos/LoginData.dto';
@@ -10,10 +10,22 @@ export class UsersController {
     @Get('login')
     async createGuestAccount(): Promise<ApiResponse> {
         try {
-            const result = await this.usersService.createGuestAccount();
+            const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
         } catch (err) {
             return { message: err.message };
+        }
+    }
+
+    @Post('login')
+    async login(
+        @Headers('authorization') authorization: string,
+        @Body() body: LoginDataDto
+    ) {
+        try {
+            this.usersService.loginUser(authorization, body);
+        } catch (err) {
+            throw new UnauthorizedException();
         }
     }
 

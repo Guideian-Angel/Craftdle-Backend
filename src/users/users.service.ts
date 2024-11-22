@@ -1,13 +1,14 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './classes/user'
-import { IUser, IUserData } from './interfaces/UserData.interface'
-import { createGuestAccount } from './utilities/guestAccountCreation.util'
-import { pairTokenWithUser } from './utilities/TokenPairingWithUser.util'
+import { IUser, IUserData } from './interfaces/IUserData'
+import { createGuestAccount } from './utilities/guestAccountCreation'
+import { pairTokenWithUser } from './utilities/TokenPairingWithUser'
 import { LoginDataDto } from './dtos/LoginData.dto';
-import tokenValidation from '../shared/utilities/tokenValidation.util';
+import tokenValidation from '../shared/utilities/tokenValidation';
 import userAuthorization from './utilities/userAuthorization.util'
-import { createToken } from 'src/shared/utilities/tokenCreation.util';
+import { createToken } from 'src/shared/utilities/tokenCreation';
+import { deleteToken } from './utilities/TokenDeletion';
 
 @Injectable()
 export class UsersService {
