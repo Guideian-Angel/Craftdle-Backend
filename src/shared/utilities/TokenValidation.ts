@@ -22,9 +22,12 @@ async function validateBasicToken(authorization: string, prisma: PrismaService) 
     return user;
 }
 
-async function validateBearerToken(authorization: string, prisma: PrismaService) {
+async function validateBearerToken(authorization: string, prisma: PrismaService, forUserLogin: boolean = false) {
     if (!authorization) {
-        throw new UnauthorizedException('Authorization header is required');
+        if (forUserLogin) {
+            return null;  // Ha User-t loginoltatunk, nem dobunk hibát, csak null-t adunk vissza, mivel megpróbáljuk a body tartalmával is bejelentkeztetni
+        }
+        throw new UnauthorizedException("Token not found.");
     }
 
     const token = authorization.replace('Bearer ', '');
