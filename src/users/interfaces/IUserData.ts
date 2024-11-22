@@ -1,4 +1,4 @@
-import { IAccessory } from "./Accessory.interface";
+import { IAccessory } from "./IAccessory";
 
 export interface IUserData{
     loginToken: string;

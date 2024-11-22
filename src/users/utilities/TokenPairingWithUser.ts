@@ -1,4 +1,5 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import tokenEncryption from '../../shared/utilities/encryptingAndDecodingToken'
 
 export async function pairTokenWithUser(
     prisma: PrismaService,
@@ -20,7 +21,7 @@ export async function pairTokenWithUser(
         await prisma.tokens.create({
             data: {
                 user: userId,
-                login_token: token,
+                login_token: tokenEncryption.encryptUuid(token),
                 is_expire: isExpire,
             },
         });

@@ -1,7 +1,7 @@
 import { PrismaService } from '../../prisma/prisma.service';
-import { IUser } from '../interfaces/UserData.interface';
-import { createToken } from '../../shared/utilities/tokenCreation.util';
-import tokenEncryption from '../../shared/utilities/encryptingAndDecodingToken.util'
+import { IUser } from '../interfaces/IUserData';
+import { createToken } from '../../shared/utilities/tokenCreation';
+import tokenEncryption from '../../shared/utilities/encryptingAndDecodingToken'
 
 export async function createGuestAccount(prisma: PrismaService): Promise<IUser> {
     try {
@@ -11,7 +11,7 @@ export async function createGuestAccount(prisma: PrismaService): Promise<IUser> 
         
         return {
             id: guestAccount.id,
-            loginToken: tokenEncryption.encryptUuid(await createToken(prisma)),
+            loginToken: await createToken(prisma),
             username: "Guest" + guestAccount.id,
             profilePicture: {
                 id: 0,

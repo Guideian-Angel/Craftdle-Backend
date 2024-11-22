@@ -1,6 +1,5 @@
 import { PrismaService } from '../../prisma/prisma.service';
-import { IGamemode, IGamemodeWithDifficulties } from '../interfaces/gamemode.interface';
-
+import { IGamemode, IGamemodeWithDifficulties } from '../interfaces/IGamemode';
 
 async function getGamemodes(prisma: PrismaService,): Promise<IGamemodeWithDifficulties[]> {
     return await prisma.gamemodes.findMany({

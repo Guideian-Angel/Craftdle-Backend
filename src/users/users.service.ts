@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './classes/user'
-import { IUser } from './interfaces/UserData.interface'
-import { createGuestAccount } from './utilities/guestAccountCreation.util'
-import { pairTokenWithUser } from './utilities/TokenPairingWithUser.util'
-import { IUserData } from './interfaces/UserData.interface';
+import { IUser } from './interfaces/IUserData'
+import { createGuestAccount } from './utilities/GuestAccountCreation'
+import { pairTokenWithUser } from './utilities/TokenPairingWithUser'
+import { IUserData } from './interfaces/IUserData';
+import tokenValidation from '../shared/utilities/TokenValidation';
+import { deleteToken } from './utilities/TokenDeletion'
 
 @Injectable()
 export class UsersService {
@@ -26,6 +28,20 @@ export class UsersService {
         } catch (error) {
             console.error("Error in createNewUser:", error);
             throw new Error("Failed to pair token with user in createNewUser.");
+        }
+    }
+
+    async logoutUser(authHeader: string){
+        try {
+            const user = await tokenValidation.validateBasicToken(authHeader, this.prisma);
+
+            if(await deleteToken(this.prisma, user.id)){
+                //törölni kell a faszhasználót a users listából
+            } else{
+                throw new Error("Failed to delete token");
+            }
+        } catch (error) {
+            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
         }
     }
 }

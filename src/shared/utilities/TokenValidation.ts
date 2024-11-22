@@ -1,6 +1,26 @@
 import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import tokenEncryption from './encryptingAndDecodingToken.util';
+import tokenEncryption from './encryptingAndDecodingToken';
+
+async function validateBasicToken(authorization: string, prisma: PrismaService) {
+    if (!authorization || !authorization.startsWith('Basic ')) {
+        throw new UnauthorizedException('Authorization header is missing or invalid.');
+    }
+    // Alap dekódolás
+    const base64Credentials = authorization.split(' ')[1]; // "Basic <base64(username:token)>"
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    const [username, token] = credentials.split(':');
+
+    if (!username || !token) {
+        throw new UnauthorizedException('Invalid Basic Auth credentials.');
+    }
+
+    const user = await validateToken(token, prisma);
+    if (!user) {
+        throw new HttpException("Invalid token.", HttpStatus.UNAUTHORIZED);
+    }
+    return user;
+}
 
 async function validateBearerToken(authorization: string, prisma: PrismaService) {
     if (!authorization) {
@@ -40,6 +60,7 @@ async function getTokensByUserId(userId: number, prisma: PrismaService) {
 }
 
 async function validateToken(token: string, prisma: PrismaService, forUuidGeneration: boolean = false) {
+    console.log(tokenEncryption.encryptUuid(token))
     const tokenQuery = await prisma.tokens.findFirst({
         where: { login_token: tokenEncryption.encryptUuid(token) }
     });
@@ -55,6 +76,7 @@ async function validateToken(token: string, prisma: PrismaService, forUuidGenera
 }
 
 const tokenValidation = {
+    validateBasicToken,
     validateBearerToken,
     validateToken
 }
