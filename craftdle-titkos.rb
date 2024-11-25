@@ -13,18 +13,18 @@ craftdle-backend/
 │   │   └── utilities/              # Összes olyan function, amit több modul is használ
 │   │       └── shared.function.ts
 │   │
-│   ├── user/                      # User modul és kapcsolódó fájlok
-│   │   ├── user.module.ts
-│   │   ├── user.controller.ts     # User modul összes végpontja
-│   │   ├── user.service.ts        # User modul fő komponense
+│   ├── users/                      # User modul és kapcsolódó fájlok
+│   │   ├── users.module.ts
+│   │   ├── users.controller.ts     # User modul összes végpontja
+│   │   ├── users.service.ts        # User modul fő komponense
 │   │   ├── interfaces/
-│   │   │   └── user.interface.ts
+│   │   │   └── users.interface.ts
 │   │   ├── entities/
-│   │   │   └── user.entity.ts
+│   │   │   └── users.entity.ts
 │   │   ├── classes/
-│   │   │   └── user.class.ts
+│   │   │   └── users.class.ts
 │   │   └── utilities/
-│   │       └── user.function.ts
+│   │       └── users.function.ts
 │   │
 │   ├── game/
 │   │   ├── game.module.ts          # Game modul konfiguráció

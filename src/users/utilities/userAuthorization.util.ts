@@ -2,16 +2,20 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import bcrypt from 'bcrypt';
 
 // Felhasználó keresése felhasználónév vagy email alapján.
-export async function findUserByUsernameOrEmail(prisma: PrismaService, usernameOrEmail: string) {
+export async function findUser(
+    prisma: PrismaService, 
+    criteria: { username?: string; email?: string }
+) {
     return await prisma.users.findFirst({
         where: {
             OR: [
-                { username: usernameOrEmail },
-                { email: usernameOrEmail },
-            ],
+                criteria.username ? { username: criteria.username } : undefined,
+                criteria.email ? { email: criteria.email } : undefined,
+            ].filter(Boolean), // Eltávolítja az `undefined` értékeket
         },
     });
 }
+
 
 // Jelszó validálása (hash összehasonlítás).
 export async function validatePassword(inputPassword: string, storedPassword: string): Promise<boolean> {
@@ -19,7 +23,7 @@ export async function validatePassword(inputPassword: string, storedPassword: st
 }
 
 const userAuthorization = {
-    findUserByUsernameOrEmail,
+    findUser,
     validatePassword
 }
 

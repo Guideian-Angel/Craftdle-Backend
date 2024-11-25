@@ -1,8 +1,8 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './classes/user'
 import { IUser, IUserData } from './interfaces/IUserData'
-import { createGuestAccount } from './utilities/guestAccountCreation'
+import { createAccount } from './utilities/AccountCreation'
 import { pairTokenWithUser } from './utilities/TokenPairingWithUser'
 import { LoginDataDto } from './dtos/LoginData.dto';
 import tokenValidation from '../shared/utilities/tokenValidation';
@@ -10,67 +10,47 @@ import userAuthorization from './utilities/userAuthorization.util'
 import { createToken } from 'src/shared/utilities/tokenCreation';
 import { deleteToken } from './utilities/TokenDeletion';
 import { RegistDataDto } from './dtos/RegistData.dto';
+import { findUser } from "./utilities/userAuthorization.util";
 
 @Injectable()
 export class UsersService {
     constructor(private prisma: PrismaService) { }
 
-    users: User[] = [];
+    users: { [key: string]: User } = {};
 
-    async register(userDto: RegisterUserDto): Promise<any> {
+    async register(userDto: RegistDataDto): Promise<IUserData | { [key: string]: string }> {
         const { username, email, password, stayLoggedIn } = userDto;
-    
+
         // 1. Ellenőrizzük, hogy a felhasználónév vagy e-mail már létezik-e
-        await this.checkIfUserExists(username, email);
-    
+        const existingUser = await findUser(this.prisma, { username, email });
+        const errors: { username?: string; email?: string } = {};
+
+        if (existingUser) {
+            // Ha a felhasználónév foglalt
+            if (existingUser.username === username) {
+                errors.username = 'Username already exists.';
+            }
+            // Ha az e-mail foglalt
+            if (existingUser.email === email) {
+                errors.email = 'Email already exists.';
+            }
+
+            // Ha van bármelyik hiba, dobjunk egy kivételt
+            if (Object.keys(errors).length > 0) {
+                return errors;
+            }
+        }
+
         // 2. Új felhasználó létrehozása
-        const newUser = await this.createNewUser(username, email, password);
-    
+        const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
+
         // 3. Válasz generálása
-        return this.generateResponse(newUser, stayLoggedIn);
-    }
-
-    async register(userDto: RegistDataDto): Promise<IUserData> {
-
-        // Felhasználó létrehozása
-        const newUser = await this.prisma.user.create({
-            data: {
-                username,
-                email,
-                password, // Használj jelszó hashelést, például bcrypttel
-                profilePicture: {
-                    create: { // Példa alapértelmezett profilkép generálásra
-                        name: 'Default Picture',
-                        src: 'https://example.com/default-profile-picture.png',
-                    },
-                },
-                profileBorder: {
-                    create: { // Példa alapértelmezett profilkeret generálásra
-                        name: 'Default Border',
-                        src: 'https://example.com/default-profile-border.png',
-                    },
-                },
-            },
-            include: {
-                profilePicture: true,
-                profileBorder: true,
-            },
-        });
-
-        // Token generálása
-        const loginToken = this.tokenService.generateToken(newUser.id, stayLoggedIn);
-
-        return {
-            loginToken,
-            username: newUser.username,
-            profilePicture: newUser.profilePicture,
-            profileBorder: newUser.profileBorder,
-            stayLoggedIn: stayLoggedIn
-        };
+        const { id, ...userData } = newUser; // A destruktúrálással eltávolítjuk az `id`-t
+        return userData as IUserData; // Az `id` nélküli objektum visszatérése
     }
 
     async loginWithGuestAccount(): Promise<IUserData> {
-        const newGuest = await createGuestAccount(this.prisma);
+        const newGuest = await createAccount(this.prisma);
         this.createNewUser(newGuest, true);
         const { id, ...userData } = newGuest; // A destruktúrálással eltávolítjuk az `id`-t
         return userData as IUserData; // Az `id` nélküli objektum visszatérése
@@ -88,9 +68,9 @@ export class UsersService {
         return await this.handleBodyLogin(userData);
     }
 
-    private async handleBodyLogin(userData: LoginDataDto){
+    private async handleBodyLogin(userData: LoginDataDto) {
         // Lekérdezzük a felhasználót felhasználónév, vagy emailcím alapján
-        const user = await userAuthorization.findUserByUsernameOrEmail(this.prisma, userData.usernameOrEmail);
+        const user = await userAuthorization.findUser(this.prisma, { username: userData.usernameOrEmail, email: userData.usernameOrEmail });
         if (!user) {
             throw new HttpException('Invalid username or email.', HttpStatus.UNAUTHORIZED);
         }
@@ -125,13 +105,13 @@ export class UsersService {
         }
     }
 
-    async logoutUser(authHeader: string){
+    async logoutUser(authHeader: string) {
         try {
             const user = await tokenValidation.validateBasicToken(authHeader, this.prisma);
 
-            if(await deleteToken(this.prisma, user.id)){
+            if (await deleteToken(this.prisma, user.id)) {
                 //törölni kell a faszhasználót a users listából
-            } else{
+            } else {
                 throw new Error("Failed to delete token");
             }
         } catch (error) {
