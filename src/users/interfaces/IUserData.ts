@@ -4,7 +4,7 @@ export interface IUserData{
     loginToken: string;
     username: string;
     profilePicture: IAccessory;
-    profileBoarder: IAccessory;
+    profileBorder: IAccessory;
     stayLoggedIn: boolean;
 }
 

@@ -9,6 +9,7 @@ import tokenValidation from '../shared/utilities/tokenValidation';
 import userAuthorization from './utilities/userAuthorization.util'
 import { createToken } from 'src/shared/utilities/tokenCreation';
 import { deleteToken } from './utilities/TokenDeletion';
+import { RegistDataDto } from './dtos/RegistData.dto';
 
 @Injectable()
 export class UsersService {
@@ -16,12 +17,65 @@ export class UsersService {
 
     users: User[] = [];
 
+    async register(userDto: RegisterUserDto): Promise<any> {
+        const { username, email, password, stayLoggedIn } = userDto;
+    
+        // 1. Ellenőrizzük, hogy a felhasználónév vagy e-mail már létezik-e
+        await this.checkIfUserExists(username, email);
+    
+        // 2. Új felhasználó létrehozása
+        const newUser = await this.createNewUser(username, email, password);
+    
+        // 3. Válasz generálása
+        return this.generateResponse(newUser, stayLoggedIn);
+    }
+
+    async register(userDto: RegistDataDto): Promise<IUserData> {
+
+        // Felhasználó létrehozása
+        const newUser = await this.prisma.user.create({
+            data: {
+                username,
+                email,
+                password, // Használj jelszó hashelést, például bcrypttel
+                profilePicture: {
+                    create: { // Példa alapértelmezett profilkép generálásra
+                        name: 'Default Picture',
+                        src: 'https://example.com/default-profile-picture.png',
+                    },
+                },
+                profileBorder: {
+                    create: { // Példa alapértelmezett profilkeret generálásra
+                        name: 'Default Border',
+                        src: 'https://example.com/default-profile-border.png',
+                    },
+                },
+            },
+            include: {
+                profilePicture: true,
+                profileBorder: true,
+            },
+        });
+
+        // Token generálása
+        const loginToken = this.tokenService.generateToken(newUser.id, stayLoggedIn);
+
+        return {
+            loginToken,
+            username: newUser.username,
+            profilePicture: newUser.profilePicture,
+            profileBorder: newUser.profileBorder,
+            stayLoggedIn: stayLoggedIn
+        };
+    }
+
     async loginWithGuestAccount(): Promise<IUserData> {
         const newGuest = await createGuestAccount(this.prisma);
         this.createNewUser(newGuest, true);
         const { id, ...userData } = newGuest; // A destruktúrálással eltávolítjuk az `id`-t
         return userData as IUserData; // Az `id` nélküli objektum visszatérése
     }
+
 
     async loginUser(authorization: string, userData: LoginDataDto) {
         // Ha van Bearer token a headerben, akkor azt validáljuk. és próbáljuk bejelentkeztetni a felhasználót

@@ -1,7 +1,6 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { IUser } from '../interfaces/IUserData';
 import { createToken } from '../../shared/utilities/tokenCreation';
-import tokenEncryption from '../../shared/utilities/encryptingAndDecodingToken'
 
 export async function createGuestAccount(prisma: PrismaService): Promise<IUser> {
     try {
@@ -18,7 +17,7 @@ export async function createGuestAccount(prisma: PrismaService): Promise<IUser> 
                 name: "Unemployed Villager",
                 src: "unemployed_villager.png"
             },
-            profileBoarder: {
+            profileBorder: {
                 id: 0,
                 name: "Grass Block",
                 src: "grass_block.png"
