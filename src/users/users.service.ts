@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { User } from './classes/user'
 import { IUser, IUserData } from './interfaces/IUserData'

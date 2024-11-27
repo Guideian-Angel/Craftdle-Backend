@@ -3,7 +3,6 @@ import { UsersService } from './users.service';
 import { ApiResponse } from '../shared/interfaces/APIResponse'
 import { LoginDataDto } from './dtos/LoginData.dto';
 import { RegistDataDto } from './dtos/RegistData.dto';
-import { IUserData } from './interfaces/IUserData';
 
 @Controller('users')
 export class UsersController {
