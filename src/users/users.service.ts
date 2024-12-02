@@ -1,22 +1,41 @@
+// *** NestJS könyvtárak ***
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { User } from './classes/user'
-import { IUser, IUserData } from './interfaces/IUserData'
-import { createAccount } from './utilities/AccountCreation'
-import { pairTokenWithUser } from './utilities/TokenPairingWithUser'
-import { LoginDataDto } from './dtos/LoginData.dto';
-import tokenValidation from '../shared/utilities/tokenValidation';
-import userAuthorization from './utilities/userAuthorization.util'
+
+// *** Shared modulok ***
+import tokenValidation from 'src/shared/utilities/tokenValidation';
 import { createToken } from 'src/shared/utilities/tokenCreation';
-import { deleteToken } from './utilities/TokenDeletion';
+
+// *** Prisma ***
+import { PrismaService } from 'src/prisma/prisma.service';
+
+// *** DTO-k ***
+import { LoginDataDto } from './dtos/LoginData.dto';
 import { RegistDataDto } from './dtos/RegistData.dto';
-import { findUser } from "./utilities/userAuthorization.util";
+import { UpdateSettingsDto } from './dtos/SettingsData.dto';
+
+// *** Interfészek és osztályok ***
+import { IUser, IUserData } from './interfaces/IUserData';
+import { ISettings } from './interfaces/ISettings';
+import { User } from './classes/user';
+
+// *** Utility funkciók ***
+import { createAccount } from './utilities/AccountCreation';
+import { pairTokenWithUser } from './utilities/TokenPairingWithUser';
+import { deleteToken } from './utilities/TokenDeletion';
+import userAuthorization, { findUser } from './utilities/userAuthorization.util';
+import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
+import { modifySettings } from './utilities/SettingsModification';
+import { geatherSettings } from './utilities/SettingsCollection';
+
 
 @Injectable()
 export class UsersService {
     constructor(private prisma: PrismaService) { }
 
     users: { [key: string]: User } = {};
+
+
+    //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
 
     async register(userDto: RegistDataDto): Promise<IUserData | { [key: string]: string }> {
         const { username, email, password, stayLoggedIn } = userDto;
@@ -35,7 +54,7 @@ export class UsersService {
                 errors.email = 'Email already exists.';
             }
 
-            // Ha van bármelyik hiba, dobjunk egy kivételt
+            // Ha van bármilyen hiba, dobjunk egy kivételt
             if (Object.keys(errors).length > 0) {
                 return errors;
             }
@@ -43,6 +62,8 @@ export class UsersService {
 
         // 2. Új felhasználó létrehozása
         const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
+
+        createDefaultSettings(this.prisma, newUser.id);
 
         // 3. Válasz generálása
         const { id, ...userData } = newUser; // A destruktúrálással eltávolítjuk az `id`-t
@@ -114,6 +135,29 @@ export class UsersService {
             } else {
                 throw new Error("Failed to delete token");
             }
+        } catch (error) {
+            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+
+    //######################################################### SETTINGS FUNCTIONS #########################################################
+
+    async collectSettings(authHeader: string): Promise<ISettings[]>{
+        try{
+            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
+
+            return geatherSettings(userId, this.prisma);
+        } catch (error) {
+            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    async updateSettings(settingsId: number, authHeader: string, settingsData: UpdateSettingsDto){
+        try{
+            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
+
+            modifySettings(settingsId, userId, settingsData, this.prisma);
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
         }
