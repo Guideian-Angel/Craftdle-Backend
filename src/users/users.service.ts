@@ -37,44 +37,51 @@ export class UsersService {
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
 
+    /**
+    * Új felhasználó regisztrálása.
+    * Ellenőrzi a meglévő felhasználókat, és új rekordot hoz létre az adatbázisban.
+    * @param userDto A regisztrációs adatok.
+    * @returns Az új felhasználó adatai, vagy hibaüzenetek.
+    */
     async register(userDto: RegistDataDto): Promise<IUserData | { [key: string]: string }> {
         const { username, email, password, stayLoggedIn } = userDto;
 
-        // 1. Ellenőrizzük, hogy a felhasználónév vagy e-mail már létezik-e
         const existingUser = await findUser(this.prisma, { username, email });
         const errors: { username?: string; email?: string } = {};
 
         if (existingUser) {
-            // Ha a felhasználónév foglalt
             if (existingUser.username === username) {
                 errors.username = 'Username already exists.';
             }
-            // Ha az e-mail foglalt
             if (existingUser.email === email) {
                 errors.email = 'Email already exists.';
             }
 
-            // Ha van bármilyen hiba, dobjunk egy kivételt
             if (Object.keys(errors).length > 0) {
-                return errors;
+                return errors; // Hiba esetén hibatömböt adunk vissza.
             }
         }
 
-        // 2. Új felhasználó létrehozása
         const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
+        await createDefaultSettings(this.prisma, newUser.id);
 
-        createDefaultSettings(this.prisma, newUser.id);
-
-        // 3. Válasz generálása
-        const { id, ...userData } = newUser; // A destruktúrálással eltávolítjuk az `id`-t
-        return userData as IUserData; // Az `id` nélküli objektum visszatérése
+        const { id, ...userData } = newUser;
+        return userData as IUserData;
     }
 
+    /**
+     * Guest account létrehozása és token párosítása átmeneti felhasználók számára.
+     * @returns {Promise<IUserData>} A guest account adatai azonosító nélkül.
+     */
     async loginWithGuestAccount(): Promise<IUserData> {
         const newGuest = await createAccount(this.prisma);
-        this.createNewUser(newGuest, true);
-        const { id, ...userData } = newGuest; // A destruktúrálással eltávolítjuk az `id`-t
-        return userData as IUserData; // Az `id` nélküli objektum visszatérése
+
+        // Token párosítása a felhasználóhoz, átmeneti státusszal
+        await this.createNewUser(newGuest, true);
+
+        // Id eltávolítása a válaszból
+        const { id, ...userData } = newGuest;
+        return userData as IUserData;
     }
 
 
@@ -116,13 +123,18 @@ export class UsersService {
     }
 
 
+    /**
+     * Új felhasználó létrehozása és token párosítása.
+     * @param newUser - Az újonnan létrehozott felhasználói objektum.
+     * @param isExpire - Megadja, hogy a token átmeneti-e.
+     */
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
             await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            // További logika, pl. User objektum létrehozása
+            // További logika, például felhasználói objektum inicializálása
         } catch (error) {
-            console.error("Error in createNewUser:", error);
-            throw new Error("Failed to pair token with user in createNewUser.");
+            console.error("An error occurred in the createNewUser function:", error);
+            throw new Error("Failed to pair token with user.");
         }
     }
 
@@ -143,8 +155,8 @@ export class UsersService {
 
     //######################################################### SETTINGS FUNCTIONS #########################################################
 
-    async collectSettings(authHeader: string): Promise<ISettings[]>{
-        try{
+    async collectSettings(authHeader: string): Promise<ISettings[]> {
+        try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
 
             return geatherSettings(userId, this.prisma);
@@ -153,8 +165,8 @@ export class UsersService {
         }
     }
 
-    async updateSettings(settingsId: number, authHeader: string, settingsData: UpdateSettingsDto){
-        try{
+    async updateSettings(settingsId: number, authHeader: string, settingsData: UpdateSettingsDto) {
+        try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
 
             modifySettings(settingsId, userId, settingsData, this.prisma);

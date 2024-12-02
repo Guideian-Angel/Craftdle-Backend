@@ -1,61 +1,59 @@
-import { Prisma } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 
+/**
+ * Létrehozza az alapértelmezett beállításokat egy felhasználó számára.
+ * @param prisma PrismaService példa.
+ * @param userId A felhasználó azonosítója.
+ */
 export async function createDefaultSettings(prisma: PrismaService, userId: number) {
     await prisma.$transaction(async (tx) => {
-        // 1. Létrehozzuk a 3 Settings rekordot
-        const settingsRecords = await generateSettingsRecords(tx, userId);
+        // Settings generálása
+        const settingsRecords = await generateRecords(tx.settings, [0, 1, 2], (isSetIndex) => ({
+            user: userId,
+            volume: 50,
+            image_size: 50,
+            is_set: isSetIndex === 0,
+        }));
 
-        // 2. Létrehozzuk a hozzájuk tartozó Controls rekordokat
-        const controlsRecords = await generateControlRecords(tx, settingsRecords);
+        // Controls generálása
+        const controlsRecords = await generateRecords(tx.controls, settingsRecords, (settings) => ({
+            settings: settings.id,
+            copy: "LMB",
+            remove: "RMB",
+            is_tap_mode: false,
+        }));
 
-        // 3. Létrehozzuk a TableMapping rekordokat (bár itt most nem kell visszavezetni az adatokat)
-        await generateTableMappingRecords(tx, controlsRecords);
+        // TableMappings generálása
+        await generateRecords(
+            tx.table_mappings,
+            controlsRecords.flatMap((control) =>
+                Array.from({ length: 9 }, (_, index) => ({
+                    control: control.id,
+                    slot: index,
+                    hot_key: (index + 1).toString(),
+                }))
+            ),
+            (mappingData) => mappingData
+        );
     });
 }
 
-async function generateSettingsRecords(tx: Prisma.TransactionClient, userId: number) {
+/**
+ * Általános rekord generáló függvény.
+ * @param model Prisma modell referencia.
+ * @param source Adatok a generáláshoz (tömb vagy egyedi elemek).
+ * @param mapper Térkép, amely a forrást adatokká alakítja.
+ * @returns A létrehozott rekordok, amelyek tartalmazzák az `id` mezőt.
+ */
+async function generateRecords<T, R>(
+    model: any,
+    source: T[],
+    mapper: (item: T) => R
+): Promise<Array<R & { id: number }>> {
     return Promise.all(
-        [0, 1, 2].map((isSetIndex) =>
-            tx.settings.create({
-                data: {
-                    user: userId,
-                    volume: 50,
-                    image_size: 50,
-                    is_set: isSetIndex === 0,
-                },
-            })
-        )
-    );
-}
-
-async function generateControlRecords(tx: Prisma.TransactionClient, settingsRecords) {
-    return Promise.all(
-        settingsRecords.map((settings) =>
-            tx.controls.create({
-                data: {
-                    settings: settings.id,
-                    copy: "LMB",
-                    remove: "RMB",
-                    is_tap_mode: false,
-                },
-            })
-        )
-    );
-}
-
-async function generateTableMappingRecords(tx: Prisma.TransactionClient, controlsRecords: any[]) {
-    return Promise.all(
-        controlsRecords.flatMap((control) =>
-            Array.from({ length: 9 }).map((_, index) =>
-                tx.table_mappings.create({
-                    data: {
-                        control: control.id,
-                        slot: index,
-                        hot_key: (index + 1).toString(),
-                    },
-                })
-            )
-        )
+        source.map(async (item) => {
+            const createdRecord = await model.create({ data: mapper(item) });
+            return createdRecord; // A Prisma automatikusan tartalmazza az `id` mezőt.
+        })
     );
 }
