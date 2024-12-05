@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsString, IsArray, Length, ValidateNested } from 'class-validator';
+import { IsBoolean, IsNumber, IsString, IsArray, Length, ValidateNested, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class UpdateControlsDto {
@@ -21,9 +21,13 @@ class UpdateControlsDto {
 
 export class UpdateSettingsDto {
     @IsNumber()
+    @Min(0)
+    @Max(100)
     volume: number;
 
     @IsNumber()
+    @Min(0)
+    @Max(100)
     imagesSize: number;
 
     @IsBoolean()

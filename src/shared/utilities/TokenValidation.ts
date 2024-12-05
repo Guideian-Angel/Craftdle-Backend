@@ -2,42 +2,61 @@ import { UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common
 import { PrismaService } from '../../prisma/prisma.service';
 import tokenEncryption from './encryptingAndDecodingToken';
 
+/**
+ * Alap (Basic Auth) token validálása.
+ * A token a következő formátumban érkezik: `Basic <base64(username:token)>`.
+ * A függvény a `username` és a hozzá tartozó `token` alapján azonosítja a felhasználót.
+ * @param authorization - Az `authorization` fejléc tartalma (Basic token).
+ * @param prisma - A Prisma szolgáltatás példánya.
+ * @returns Az érvényes tokenhez tartozó felhasználó adatai.
+ * @throws UnauthorizedException, ha a token érvénytelen vagy hiányzik.
+ */
 async function validateBasicToken(authorization: string, prisma: PrismaService) {
     if (!authorization || !authorization.startsWith('Basic ')) {
-        throw new UnauthorizedException('Authorization header is missing or invalid.');
+        throw new UnauthorizedException('Az Authorization fejléc hiányzik vagy érvénytelen.');
     }
-    // Alap dekódolás
-    const base64Credentials = authorization.split(' ')[1]; // "Basic <base64(username:token)>"
+
+    // Alap dekódolás: a "Basic" prefix eltávolítása és base64 dekódolás
+    const base64Credentials = authorization.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
     const [username, token] = credentials.split(':');
 
     if (!username || !token) {
-        throw new UnauthorizedException('Invalid Basic Auth credentials.');
+        throw new UnauthorizedException('Az Authorization fejlécben hiányosak a hitelesítési adatok.');
     }
 
+    // Token validálása
     const user = await validateToken(token, prisma);
     if (!user) {
-        throw new HttpException("Invalid token.", HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Érvénytelen token.', HttpStatus.UNAUTHORIZED);
     }
+
     return user;
 }
 
+/**
+ * Bearer token validálása.
+ * @param authorization - Az `authorization` header tartalma.
+ * @param prisma - A Prisma szolgáltatás példánya.
+ * @param forUserLogin - Flag, amely jelzi, hogy bejelentkezéskor fut-e.
+ * @returns Az érvényes tokenhez tartozó felhasználó adatai vagy `null`.
+ */
 async function validateBearerToken(authorization: string, prisma: PrismaService, forUserLogin: boolean = false) {
     if (!authorization) {
         if (forUserLogin) {
-            return null;  // Ha User-t loginoltatunk, nem dobunk hibát, csak null-t adunk vissza, mivel megpróbáljuk a body tartalmával is bejelentkeztetni
+            return null; // Ha a bejelentkezési folyamat része, nem dob hibát
         }
-        throw new UnauthorizedException("Token not found.");
+        throw new UnauthorizedException("Token nem található.");
     }
 
-    const token = authorization.replace('Bearer ', '');
+    const token = authorization.replace('Bearer ', ''); // Bearer prefix eltávolítása
     if (!token) {
-        throw new UnauthorizedException('Token is missing');
+        throw new UnauthorizedException('Token hiányzik.');
     }
 
     const user = await validateToken(token, prisma);
     if (!user) {
-        throw new HttpException("Invalid token.", HttpStatus.UNAUTHORIZED);
+        throw new HttpException("Érvénytelen token.", HttpStatus.UNAUTHORIZED);
     }
     return user;
 }

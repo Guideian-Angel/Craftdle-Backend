@@ -21,7 +21,7 @@ import { User } from './classes/user';
 // *** Utility funkciók ***
 import { createAccount } from './utilities/AccountCreation';
 import { pairTokenWithUser } from './utilities/TokenPairingWithUser';
-import { deleteToken } from './utilities/TokenDeletion';
+import { deleteToken } from '../shared/utilities/TokenDeletion';
 import userAuthorization, { findUser } from './utilities/userAuthorization.util';
 import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
 import { modifySettings } from './utilities/SettingsModification';
@@ -85,35 +85,48 @@ export class UsersService {
     }
 
 
+    /**
+     * Bejelentkezési folyamat kezelése Bearer tokennel vagy felhasználónév/jelszó párossal.
+     * @param authorization - A Bearer token, amely az `authorization` headerből érkezik.
+     * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
+     */
     async loginUser(authorization: string, userData: LoginDataDto) {
-        // Ha van Bearer token a headerben, akkor azt validáljuk. és próbáljuk bejelentkeztetni a felhasználót
-        const user = await tokenValidation.validateBearerToken(authorization, this.prisma); // Megnézzük van e token a headerben, majd validáljuk is
-        if (user) { //Ha érvényes tokent találtunk, bejelentkeztetjük a felhasználót, és visszatérünk az adataival
-            // további működés
+        // Próbálkozás token alapú bejelentkezéssel
+        const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
+        if (user) {
+            // return generateLoginResponse(user, 'Login successful with token'); // Token sikeres validációja
         }
 
-        // Ha nincs token, megpróbálunk a body tartalmával belépni
+        // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
         return await this.handleBodyLogin(userData);
     }
 
+    /**
+     * Bejelentkezés felhasználónév/jelszó párossal.
+     * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó adatait.
+     */
     private async handleBodyLogin(userData: LoginDataDto) {
-        // Lekérdezzük a felhasználót felhasználónév, vagy emailcím alapján
-        const user = await userAuthorization.findUser(this.prisma, { username: userData.usernameOrEmail, email: userData.usernameOrEmail });
+        // Felhasználó keresése felhasználónév vagy email alapján
+        const user = await userAuthorization.findUser(this.prisma, {
+            username: userData.usernameOrEmail,
+            email: userData.usernameOrEmail,
+        });
+
         if (!user) {
-            throw new HttpException('Invalid username or email.', HttpStatus.UNAUTHORIZED);
+            throw new HttpException('Érvénytelen felhasználónév vagy email.', HttpStatus.UNAUTHORIZED);
         }
 
-        // Jelszó validálása
+        // Jelszó ellenőrzése
         const isPasswordValid = await userAuthorization.validatePassword(userData.password, user.password);
         if (!isPasswordValid) {
-            throw new HttpException('Invalid password.', HttpStatus.UNAUTHORIZED);
+            throw new HttpException('Érvénytelen jelszó.', HttpStatus.UNAUTHORIZED);
         }
 
-        // // Token generálása és párosítása a felhasználóval
+        // Token generálása és párosítása
         const newToken = await createToken(this.prisma);
         await pairTokenWithUser(this.prisma, user.id, newToken, !userData.stayLoggedIn);
 
-        // // Válasz összeállítása
+        // Válasz generálása
         // return generateLoginResponse(user, 'Login successful with username and password', newToken);
     }
 
@@ -138,33 +151,60 @@ export class UsersService {
         }
     }
 
+    /**
+     * Kijelentkezési folyamatot kezelő függvény.
+     * 1. Validálja a felhasználót Basic Auth token alapján.
+     * 2. Törli a felhasználóhoz tartozó tokent az adatbázisból.
+     * A felhasználó rekordja a `users` táblában változatlan marad.
+     * @param authHeader - Az `authorization` fejléc tartalma.
+     * @throws HttpException, ha a token validálása vagy törlése nem sikerül.
+     */
     async logoutUser(authHeader: string) {
         try {
+            // Felhasználó validálása Basic tokennel
             const user = await tokenValidation.validateBasicToken(authHeader, this.prisma);
 
-            if (await deleteToken(this.prisma, user.id)) {
-                //törölni kell a faszhasználót a users listából
-            } else {
-                throw new Error("Failed to delete token");
+            // Token törlése az adatbázisból
+            const isDeleted = await deleteToken(this.prisma, user.id);
+            if (!isDeleted) {
+                throw new Error('A token törlése nem sikerült.');
             }
+
+            console.log(`Token törölve: Felhasználó ID = ${user.id}`);
         } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
+            console.error('LogoutUser error:', error.message);
+            throw new HttpException(error.message || 'Szerverhiba történt.', HttpStatus.UNAUTHORIZED);
         }
     }
 
 
     //######################################################### SETTINGS FUNCTIONS #########################################################
 
+    /**
+     * A felhasználó beállításainak összegyűjtése.
+     * @param {string} authHeader - Az Authorization fejléc tartalma.
+     * @returns {Promise<ISettings[]>} - A felhasználó beállításainak listája.
+     * @throws {HttpException} - Ha hiba történik az azonosítás vagy adatlekérdezés során.
+     */
     async collectSettings(authHeader: string): Promise<ISettings[]> {
         try {
+            // Felhasználó azonosítása Bearer token alapján
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
 
+            // Beállítások lekérdezése
             return geatherSettings(userId, this.prisma);
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
         }
     }
 
+    /**
+     * Felhasználói beállítások módosításása az azonosító alapján.
+     * @param {number} settingsId - A módosítandó beállítás egyedi azonosítója.
+     * @param {string} authHeader - Az autorizációs fejléc, amely tartalmazza a Bearer tokent.
+     * @param {UpdateSettingsDto} settingsData - Az új beállításokat tartalmazó adatok.
+     * @throws {HttpException} - Ha a token érvénytelen, vagy a beállítások nem találhatók.
+     */
     async updateSettings(settingsId: number, authHeader: string, settingsData: UpdateSettingsDto) {
         try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;

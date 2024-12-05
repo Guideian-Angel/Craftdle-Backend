@@ -55,25 +55,40 @@ export class UsersController {
         }
     }
 
+    /**
+     * Bejelentkezési végpont, amely vagy Bearer tokent, vagy felhasználónév/jelszó párost fogad.
+     * @param authorization - Az `authorization` header tartalma (opcionális).
+     * @param body - A `LoginDataDto` objektum, amely tartalmazza a bejelentkezési adatokat.
+     */
     @Post('login')
     async login(
         @Headers('authorization') authorization: string,
         @Body() body: LoginDataDto
     ) {
         try {
-            console.log(body)
-            this.usersService.loginUser(authorization, body);
+            console.log(body); // Debug: A body tartalmának naplózása
+            const result = await this.usersService.loginUser(authorization, body);
+            return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
         } catch (err) {
-            throw new UnauthorizedException();
+            console.error("Bejelentkezési hiba:", err.message);
+            throw new UnauthorizedException(); // Általános jogosultsági hiba dobása
         }
     }
 
+    /**
+     * Kijelentkezési végpont, amely Basic Auth stílusú `username:token` alapján validálja a felhasználót.
+     * A valid tokennel rendelkező felhasználók tokenje törlésre kerül az adatbázisból.
+     * A felhasználó adatai megmaradnak statisztikai célok miatt.
+     * @param authHeader - Az `authorization` fejléc tartalma.
+     * @returns Üzenet a kijelentkezési folyamat eredményéről.
+     */
     @Delete('login')
     async logoutUser(@Headers('authorization') authHeader: string): Promise<ApiResponse> {
         try {
             await this.usersService.logoutUser(authHeader);
             return { message: 'Logout successful' };
         } catch (err) {
+            console.error('Logout error:', err.message);
             return { message: err.message };
         }
     }
@@ -81,17 +96,29 @@ export class UsersController {
 
     //######################################################### SETTINGS ENDPOINTS #########################################################
 
+    /**
+     * Felhasználó beállításainak lekérdezése (settings).
+     * @param {string} authorization - A Bearer token azonosításhoz az Authorization fejlécben.
+     * @returns {Promise<ApiResponse>} - A felhasználó beállításai vagy hibaüzenet.
+     */
     @Get('settings')
-    async getSettings(@Headers('authorization') authorization: string,): Promise<ApiResponse> {
+    async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
             const result: ISettings[] = await this.usersService.collectSettings(authorization);
-
-            return { data: result };
+            return { data: result }; // Beállítások sikeres lekérdezése
         } catch (err) {
-            return { message: err.message }
+            return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
         }
     }
 
+    /**
+     * A felhasználói beállítások módosítása a beállítás azonosítója és az új adatok alapján.
+     * @param {number} settingsId - A módosítandó beállítások egyedi azonosítója.
+     * @param {string} authorization - Az autentikációs fejléc, amely tartalmazza a Bearer tokent.
+     * @param {UpdateSettingsDto} updateSettingsData - Az új beállításokat tartalmazó adatok.
+     * @returns {ApiResponse} - A sikeres művelet után egy üzenetet tartalmazó válasz.
+     * @throws {HttpException} - Ha a token érvénytelen, vagy ha valamilyen hiba történik a beállítások módosítása során.
+     */
     @Put('settings/:id')
     @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     async updateSettings(
