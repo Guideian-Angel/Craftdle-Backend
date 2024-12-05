@@ -4,7 +4,7 @@ interface ISuccessResponse<T = any> {
 }
 
 interface IErrorResponse {
-    message: any; // A hibás válasz mindig tartalmaz egy üzenetet
+    message: []; // A hibás válasz mindig tartalmaz egy üzenetet
 }
 
 // Union típus a visszatérési értékhez

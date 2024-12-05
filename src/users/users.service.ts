@@ -43,18 +43,18 @@ export class UsersService {
     * @param userDto A regisztrációs adatok.
     * @returns Az új felhasználó adatai, vagy hibaüzenetek.
     */
-    async register(userDto: RegistDataDto): Promise<IUserData | { [key: string]: string }> {
+    async register(userDto: RegistDataDto): Promise<IUserData | { [key: string]: string[] }> {
         const { username, email, password, stayLoggedIn } = userDto;
 
         const existingUser = await findUser(this.prisma, { username, email });
-        const errors: { username?: string; email?: string } = {};
+        const errors: { username?: string[]; email?: string[] } = {};
 
         if (existingUser) {
             if (existingUser.username === username) {
-                errors.username = 'Username already exists.';
+                errors.username = ['Username already exists.'];
             }
             if (existingUser.email === email) {
-                errors.email = 'Email already exists.';
+                errors.email = ['Email already exists.'];
             }
 
             if (Object.keys(errors).length > 0) {

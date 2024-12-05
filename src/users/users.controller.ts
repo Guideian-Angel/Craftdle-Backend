@@ -24,8 +24,9 @@ export class UsersController {
         try {
             const result = await this.usersService.register(userDto);
 
-            if ('username' in result || 'email' in result) {
-                // Ha van hiba (pl. foglalt felhasználónév vagy email), 400-as státusz.
+            console.log(result);
+            if (!('loginToken' in result)) {
+                // Ha nincs loginToken az adatban, hiba történt..
                 throw new HttpException({ errors: result }, HttpStatus.BAD_REQUEST);
             }
 
