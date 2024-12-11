@@ -13,6 +13,7 @@ export class GameService {
     async getGameModesWithLastUnsolvedGame(authorization: string): Promise<IGamemode[]> {
         try {
             const user = await tokenValidation.validateBearerToken(authorization, this.prisma);
+
             if(user){
                 throw new UnauthorizedException('Authorization header is required');
             }

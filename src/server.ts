@@ -8,6 +8,13 @@ async function init() {
   const server = express();
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
+  // CORS engedélyezése
+  app.enableCors({
+    origin: 'http://localhost:5173', // Csak erről a domainről érkező kéréseket engedélyezzük
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Engedélyezett HTTP metódusok
+    allowedHeaders: 'Content-Type, Authorization', // Engedélyezett fejléc típusok
+  });
+
   // Globális ValidationPipe hozzáadása
   app.useGlobalPipes(
     new ValidationPipe({

@@ -63,6 +63,7 @@ export class UsersService {
         }
 
         const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
+        this.createNewUser(newUser, !stayLoggedIn);
         await createDefaultSettings(this.prisma, newUser.id);
 
         const { id, ...userData } = newUser;
@@ -77,7 +78,7 @@ export class UsersService {
         const newGuest = await createAccount(this.prisma);
 
         // Token párosítása a felhasználóhoz, átmeneti státusszal
-        await this.createNewUser(newGuest, true);
+        await this.createNewUser(newGuest, false);
 
         // Id eltávolítása a válaszból
         const { id, ...userData } = newGuest;
@@ -208,7 +209,6 @@ export class UsersService {
     async updateSettings(settingsId: number, authHeader: string, settingsData: UpdateSettingsDto) {
         try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
-
             modifySettings(settingsId, userId, settingsData, this.prisma);
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
