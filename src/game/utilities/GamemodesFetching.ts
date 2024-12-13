@@ -1,7 +1,7 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { IGamemode, IGamemodeWithDifficulties } from '../interfaces/IGamemode';
 
-async function getGamemodes(prisma: PrismaService,): Promise<IGamemodeWithDifficulties[]> {
+async function getGamemodes(prisma: PrismaService): Promise<IGamemodeWithDifficulties[]> {
     return await prisma.gamemodes.findMany({
         include: {
             difficulties: true
@@ -9,19 +9,26 @@ async function getGamemodes(prisma: PrismaService,): Promise<IGamemodeWithDiffic
     });
 }
 
-async function getLastUnsolvedGame(prisma: PrismaService, userId: number) {
-    return await prisma.games.findFirst({
+async function getLastGameByGamemode(prisma: PrismaService, userId: number) {
+    const games = await prisma.games.findMany({
         where: {
-            player: userId,
-            is_solved: false
+            player: userId
         },
         orderBy: {
             date: 'desc'
         },
         select: {
-            type: true
+            type: true,
+            is_solved: true
         }
     });
+
+    return games.reduce((acc, game) => {
+        if (!acc[game.type]) {
+            acc[game.type] = game.is_solved;
+        }
+        return acc;
+    }, {} as Record<number, boolean>);
 }
 
 export async function fetchGameModesWithLastUnsolvedGame(
@@ -29,24 +36,26 @@ export async function fetchGameModesWithLastUnsolvedGame(
     userId: number
 ): Promise<IGamemode[]> {
     try {
-        const [gamemodes, lastUnsolvedGame] = await Promise.all([
+        const [gamemodes, lastGameStatusByGamemode] = await Promise.all([
             getGamemodes(prisma),
-            getLastUnsolvedGame(prisma, userId)
+            getLastGameByGamemode(prisma, userId)
         ]);
 
-        console.log(lastUnsolvedGame);
+        return gamemodes.map((gamemode) => {
+            const lastGameUnsolved = lastGameStatusByGamemode[gamemode.id] === false;
 
-        return gamemodes.map((gamemode) => ({
-            id: gamemode.id,
-            icon: gamemode.icon,
-            name: gamemode.name,
-            description: gamemode.description,
-            difficulty: {
-                name: gamemode.difficulties.name,
-                color_code: gamemode.difficulties.color_code
-            },
-            continueGame: lastUnsolvedGame ? lastUnsolvedGame.type === gamemode.difficulties.id : false
-        }));
+            return {
+                id: gamemode.id,
+                icon: gamemode.icon,
+                name: gamemode.name,
+                description: gamemode.description,
+                difficulty: {
+                    name: gamemode.difficulties.name,
+                    color_code: gamemode.difficulties.color_code
+                },
+                continueGame: lastGameUnsolved
+            };
+        });
     } catch (error) {
         console.error("Error in fetchGameModesWithLastUnsolvedGame:", error);
         throw new Error("Failed to fetch game modes with the last unsolved game.");

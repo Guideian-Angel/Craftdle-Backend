@@ -1,5 +1,5 @@
 import { PrismaService } from 'src/prisma/prisma.service';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 // Felhasználó keresése felhasználónév vagy email alapján.
 export async function findUser(

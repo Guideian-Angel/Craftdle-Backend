@@ -96,7 +96,7 @@ export class UsersService {
             // Próbálkozás token alapú bejelentkezéssel
             const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
             if (user) {
-                return this.generateLoginResponse(user, authorization, userData.stayLoggedIn); // Token sikeres validációja
+                return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), userData.stayLoggedIn); // Token sikeres validációja
             }
         } catch (error) {
             // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
@@ -105,7 +105,6 @@ export class UsersService {
     }
 
     generateLoginResponse(userData, token, stayLoggedIn) {
-        console.log(userData);
         return {
             id: userData.id,
             loginToken: token,
