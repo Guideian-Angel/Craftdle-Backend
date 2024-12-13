@@ -86,6 +86,8 @@ async function validateToken(token: string, prisma: PrismaService, forUuidGenera
     const tokenQuery = await prisma.tokens.findFirst({
         where: { login_token: tokenEncryption.encryptUuid(token) }
     });
+    console.log(tokenEncryption.encryptUuid(token))
+    console.log(tokenEncryption.encryptUuid(token))
 
     if (!tokenQuery) {
         if (forUuidGeneration) {
