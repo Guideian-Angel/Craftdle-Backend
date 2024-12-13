@@ -25,7 +25,7 @@ async function init() {
         const formattedErrors = validationErrors.reduce((acc, error) => {
           const { property, constraints } = error;
           acc[property] = Object.values(constraints);
-          return acc;
+          return {message: {errors: acc}};
         }, {});
         throw new BadRequestException(formattedErrors);
       },

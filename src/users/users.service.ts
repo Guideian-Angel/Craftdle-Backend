@@ -92,14 +92,35 @@ export class UsersService {
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
      */
     async loginUser(authorization: string, userData: LoginDataDto) {
-        // Próbálkozás token alapú bejelentkezéssel
-        const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
-        if (user) {
-            // return generateLoginResponse(user, 'Login successful with token'); // Token sikeres validációja
+        try {
+            // Próbálkozás token alapú bejelentkezéssel
+            const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
+            if (user) {
+                return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), userData.stayLoggedIn); // Token sikeres validációja
+            }
+        } catch (error) {
+            // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
+            return await this.handleBodyLogin(userData);
         }
+    }
 
-        // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
-        return await this.handleBodyLogin(userData);
+    generateLoginResponse(userData, token, stayLoggedIn) {
+        return {
+            id: userData.id,
+            loginToken: token,
+            username: userData.username,
+            profilePicture: {
+                id: 0,
+                name: "Unemployed Villager",
+                src: "unemployed_villager.png"
+            },
+            profileBorder: {
+                id: 0,
+                name: "Grass Block",
+                src: "grass_block.png"
+            },
+            stayLoggedIn: stayLoggedIn
+        };
     }
 
     /**
@@ -128,7 +149,7 @@ export class UsersService {
         await pairTokenWithUser(this.prisma, user.id, newToken, !userData.stayLoggedIn);
 
         // Válasz generálása
-        // return generateLoginResponse(user, 'Login successful with username and password', newToken);
+        return this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
     }
 
     private sanitizeUser(user: any): Partial<IUserData> {

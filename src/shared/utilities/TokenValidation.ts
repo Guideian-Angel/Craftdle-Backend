@@ -82,11 +82,10 @@ async function getTokensByUserId(userId: number, prisma: PrismaService) {
 }
 
 async function validateToken(token: string, prisma: PrismaService, forUuidGeneration: boolean = false) {
-    console.log(tokenEncryption.encryptUuid(token))
     const tokenQuery = await prisma.tokens.findFirst({
         where: { login_token: tokenEncryption.encryptUuid(token) }
     });
-
+    
     if (!tokenQuery) {
         if (forUuidGeneration) {
             return null;  // Ha UUID generálunk, nem dobunk hibát, csak null-t adunk vissza
