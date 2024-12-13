@@ -6,6 +6,7 @@ export interface IUserData{
     profilePicture: IAccessory;
     profileBorder: IAccessory;
     stayLoggedIn: boolean;
+    isGuest: boolean
 }
 
 export interface IUser extends IUserData{

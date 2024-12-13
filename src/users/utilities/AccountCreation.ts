@@ -38,14 +38,15 @@ export async function createAccount(
             loginToken: await createToken(prisma),
             username: isGuest ? `Guest${createdUser.id}` : createdUser.username,
             profilePicture: {
-                id: 0,
-                name: "Unemployed Villager",
-                src: "unemployed_villager.png"
+                id: 15,
+                name: "Desert Villager Base",
+                src: "Desert_Villager_Base.png"
             },
+            isGuest: isGuest,
             profileBorder: {
-                id: 0,
-                name: "Grass Block",
-                src: "grass_block.png"
+                id: 7,
+                name: "Grass",
+                src: "Grass.png"
             },
             stayLoggedIn: isGuest ? false : !!accountData?.stayLoggedIn,
         };
