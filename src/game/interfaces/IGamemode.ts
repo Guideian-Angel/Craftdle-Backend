@@ -8,7 +8,7 @@ interface IBaseGamemode{
 interface IDifficulty{
     id: number;
     name: string;
-    color_code: string;
+    color: string;
 };
 
 export interface IGamemode extends IBaseGamemode {

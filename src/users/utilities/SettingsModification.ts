@@ -47,8 +47,8 @@ async function getSettings(settingsId: number, userId: number, prisma: PrismaSer
  * @param {UpdateSettingsDto} settingsData - Az új beállításokat tartalmazó adatok.
  * @param {PrismaService} prisma - A Prisma ORM példánya az adatbázis műveletekhez.
  */
-function updateSettings(settingsId: number, settingsData: UpdateSettingsDto, prisma: PrismaService) {
-    prisma.settings.update({
+async function updateSettings(settingsId: number, settingsData: UpdateSettingsDto, prisma: PrismaService) {
+    await prisma.settings.update({
         where: { id: settingsId },
         data: {
             volume: settingsData.volume,

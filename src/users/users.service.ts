@@ -92,16 +92,13 @@ export class UsersService {
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
      */
     async loginUser(authorization: string, userData: LoginDataDto) {
-        try {
-            // Próbálkozás token alapú bejelentkezéssel
-            const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
-            if (user) {
-                return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), userData.stayLoggedIn); // Token sikeres validációja
-            }
-        } catch (error) {
-            // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
-            return await this.handleBodyLogin(userData);
+        // Próbálkozás token alapú bejelentkezéssel
+        const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
+        if (user) {
+            return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true); // Token sikeres validációja
         }
+        // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
+        return await this.handleBodyLogin(userData);
     }
 
     generateLoginResponse(userData, token, stayLoggedIn) {
@@ -110,15 +107,16 @@ export class UsersService {
             loginToken: token,
             username: userData.username,
             profilePicture: {
-                id: 0,
-                name: "Unemployed Villager",
-                src: "unemployed_villager.png"
+                id: 15,
+                name: "Desert Villager Base",
+                src: "Desert_Villager_Base.png"
             },
             profileBorder: {
-                id: 0,
-                name: "Grass Block",
-                src: "grass_block.png"
+                id: 7,
+                name: "Grass",
+                src: "Grass.png"
             },
+            isGuest: false,
             stayLoggedIn: stayLoggedIn
         };
     }

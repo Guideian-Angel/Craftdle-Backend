@@ -45,6 +45,7 @@ export class UsersController {
      */
     @Get('login')
     async createGuestAccount(): Promise<ApiResponse> {
+        console.log("asd")
         try {
             const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
@@ -66,8 +67,9 @@ export class UsersController {
         @Body() body: LoginDataDto
     ) {
         try {
-            console.log(body); // Debug: A body tartalmának naplózása
+            console.log("asd",body); // Debug: A body tartalmának naplózása
             const result = await this.usersService.loginUser(authorization, body);
+            console.log(result)
             return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
         } catch (err) {
             console.error("Bejelentkezési hiba:", err.message);
@@ -105,6 +107,7 @@ export class UsersController {
     async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
             const result: ISettings[] = await this.usersService.collectSettings(authorization);
+            console.log(result)
             return { data: result }; // Beállítások sikeres lekérdezése
         } catch (err) {
             return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
@@ -127,6 +130,7 @@ export class UsersController {
         @Body() updateSettingsData: UpdateSettingsDto,
     ) {
         try {
+            console.log("pingelve")
             await this.usersService.updateSettings(settingsId, authorization, updateSettingsData);
         } catch (err) {
             return { message: err.message }

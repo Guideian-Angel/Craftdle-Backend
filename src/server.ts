@@ -23,9 +23,13 @@ async function init() {
       transform: true, // DTO-kba alakítja az adatokat
       exceptionFactory: (validationErrors) => {
         const formattedErrors = validationErrors.reduce((acc, error) => {
+          console.log(error)
           const { property, constraints } = error;
-          acc[property] = Object.values(constraints);
-          return {message: {errors: acc}};
+          if(constraints){
+            acc[property] = Object.values(constraints);
+            return {message: {errors: acc}};
+          }
+          return null;
         }, {});
         throw new BadRequestException(formattedErrors);
       },
