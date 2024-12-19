@@ -24,23 +24,25 @@ async function fetchJSONFile(src) {
     } catch (err) {
         console.error("Error reading or parsing the file:", err.message);
         throw err;
-    },
+    };
 };
 
-function collectMaterialsForGraph(materials, recipes){
+function collectMaterialsForGraph(materials, recipes) {
     let graph = new Set(materials);
     let elementAdded = true;
-    while(elementAdded && graph.size < 20){
+    while (elementAdded && graph.size < 20) {
+        elementAdded = false;
         Object.keys(recipes).forEach(group => {
             recipes[group].forEach(recipe => {
                 let mats;
-                if(recipe.shapeless){
+                if (recipe.shapeless) {
                     mats = recipe.recipe.required;
-                }else{
+                } else {
                     mats = recipe.recipe;
                 }
-                if(checkForSameMaterial(graph, mats)){
+                if (checkForSameMaterial(graph, mats)) {
                     graph = addMaterialsToSet(graph, mats)
+                    elementAdded = true;
                 }
             });
         });
@@ -48,17 +50,17 @@ function collectMaterialsForGraph(materials, recipes){
     return graph.size >= 20;
 };
 
-function checkForSameMaterial(set, mats){
+function checkForSameMaterial(set, mats) {
     mats.forEach(mat => {
-        if(mat != null){
-            if(Array.isArray(mat)){
+        if (mat != null) {
+            if (Array.isArray(mat)) {
                 mat.forEach(element => {
-                    if(set.includes(element)){
+                    if (set.has(element)) {
                         return true;
                     };
                 });
-            } else{
-                if(set.includes(mat)){
+            } else {
+                if (set.has(mat)) {
                     return true;
                 };
             };
@@ -67,13 +69,13 @@ function checkForSameMaterial(set, mats){
     return false;
 };
 
-function addMaterialsToSet(set, mats){
+function addMaterialsToSet(set, mats) {
     let result = set;
     mats.forEach(mat => {
-        if(mat != null){
-            if(Array.isArray(mat)){
-                result.add(mat[Math.floor(Math.random()*mat.length)]);
-            } else{
+        if (mat) {
+            if (Array.isArray(mat)) {
+                result.add(mat[Math.floor(Math.random() * mat.length)]);
+            } else {
                 result.add(mat)
             }
         };
@@ -81,29 +83,114 @@ function addMaterialsToSet(set, mats){
     return result;
 };
 
-function geatherDataAboutRecipe(recipes, recipe){
-    const hasGraphScore20 = collectMaterialsForGraph(recipes);
+function getMaterialsForRecipe(recipe) {
+    let materials = [];
+    if (recipe.shapeless) {
+        return recipe.recipe.required;
+    };
+    recipe.recipe.forEach(slot => {
+        if (slot) {
+            if (Array.isArray(slot)) {
+                materials.push(slot[Math.floor(Math.random() * slot.length)]);
+            } else {
+                materials.push(slot)
+            };
+        };
+    });
+    return materials;
 };
 
-function analyzeRecipes(recipes){
-    Object.keys(recipes).forEach(group => {
-        recipes[group].forEach(recipe => {
-            console.log(recipe);
-        })
+function checkRightGridSizeOfRecipe(recipe) {
+    if (recipe.shapeless) {
+        return recipe.recipe.required.length <= 4;
+    }
+    const matrix = converRecipeGridToMatrix(recipe.recipe);
+    let rightSizeMatrix = matrix.length < 3;
+    matrix.forEach(row => {
+        if (row.length > 2) {
+            rightSizeMatrix = false;
+        };
     });
-    return true;
+    return rightSizeMatrix;
 };
+
+function converRecipeGridToMatrix(grid) {
+    let matrix = [];
+    for (let i = 0; i < grid.length; i += 3) {
+        let subArray = [];
+        for (let j = 0; j < 3; j++) {
+            subArray.push(grid[i + j]);
+        };
+        matrix.push(subArray);
+    };
+    return matrix;
+}
+
+function geatherDataAboutRecipe(recipes, recipe) {
+    const materialsOfRecipe = getMaterialsForRecipe(recipe);
+    const hasGraphScore20 = collectMaterialsForGraph(materialsOfRecipe, recipes);
+    const validMatrixForPocketMode = checkRightGridSizeOfRecipe(recipe);
+    const hasMoreThanOneTypeOfMaterial = new Set(materialsOfRecipe).size > 1;
+    const isSelfCraftRecipe = materialsOfRecipe.includes(recipe.id)
+    const enabledGamemodesForRecipe = [4];
+    if (hasMoreThanOneTypeOfMaterial && !isSelfCraftRecipe) {
+        enabledGamemodesForRecipe.push(2);
+        enabledGamemodesForRecipe.push(3);
+        enabledGamemodesForRecipe.push(7);
+        if (hasGraphScore20) {
+            enabledGamemodesForRecipe.push(6);
+        }
+        if (validMatrixForPocketMode) {
+            enabledGamemodesForRecipe.push(5);
+        }
+    }
+    return enabledGamemodesForRecipe;
+};
+
+function convertDictToValidArray(dict) {
+    let result = [];
+    const slots = Object.keys(dict);
+    for (let i = 0; i <= Number(slots[slots.length - 1]); i++) {
+        const key = i.toString();
+        if (slots.includes(key)) {
+            result.push(dict[key]);
+        } else {
+            result.push(null);
+        };
+    };
+    return result;
+};
+
+function analyzeRecipes(data) {
+    let recipes = data
+    Object.keys(recipes).forEach(group => {
+        let availableGamemodes = geatherDataAboutRecipe(recipes, recipes[group][0])
+        recipes[group].forEach(recipe => {
+            recipe["enabledGamemodes"] = availableGamemodes;
+        });
+    });
+    return recipes;
+};
+
+function convertEveryRecipeToArray(data) {
+    let recipes = data
+    Object.keys(recipes).forEach(group => {
+        if (!recipes[group][0].shapeless && !Array.isArray(recipes[group][0].recipe)) {
+            recipes[group].forEach(recipe => {
+                recipe.recipe = convertDictToValidArray(recipe.recipe);
+            });
+        };
+    });
+    return recipes;
+}
 
 async function main() {
-    try {
-        //const filePath = await getFilePath();
-        const filePath = "./newRecipes.json";
-        const recipes = await fetchJSONFile(filePath);
-        const analyzedData = analyzeRecipes(recipes.data);
-        console.log(analyzedData);
-    } catch (err) {
-        console.error("An error occurred:", err.message);
-    };
+    //const filePath = await getFilePath();
+    const filePath = "./newRecipes.json";
+    let recipes = await fetchJSONFile(filePath);
+    recipes = convertEveryRecipeToArray(recipes.data);
+    const analyzedData = analyzeRecipes(recipes);
+    console.log(analyzedData);
 };
 
 main();
