@@ -87,7 +87,7 @@ function collectMaterialsForGraph(materials, recipes) {
                 const mats = recipe.shapeless ? recipe.recipe.required : recipe.recipe;
                 if (checkForSameMaterial(graph, mats)) {
                     let tempGraph = addMaterialsToSet(graph, mats);
-                    if(tempGraph.size > graph.size){
+                    if (tempGraph.size > graph.size) {
                         elementAdded = true;
                     }
                     graph = tempGraph;
@@ -140,6 +140,15 @@ function convertDictToValidArray(dict) {
     return Array.from({ length: maxIndex + 1 }, (_, i) => dict[i.toString()] || null);
 }
 
+function convertCellsToList(recipe) {
+    let result = [];
+    recipe.forEach(element => {
+        let cell = element && !Array.isArray(element) ? [element] : element;
+        result.push(cell);
+    });
+    return result;
+}
+
 function analyzeRecipes(data) {
     Object.keys(data).forEach(group => {
         const availableGamemodes = geatherDataAboutRecipe(data, data[group][0]);
@@ -152,11 +161,15 @@ function analyzeRecipes(data) {
 
 function convertEveryRecipeToArray(data) {
     Object.keys(data).forEach(group => {
-        if (!data[group][0].shapeless && !Array.isArray(data[group][0].recipe)) {
-            data[group].forEach(recipe => {
-                recipe.recipe = convertDictToValidArray(recipe.recipe);
-            });
-        }
+        data[group].forEach(recipe => {
+            if(!data[group][0].shapeless){
+                if(!Array.isArray(data[group][0].recipe)){
+                    recipe.recipe = convertDictToValidArray(recipe.recipe);
+                };
+                recipe.recipe = convertCellsToList(recipe.recipe);
+                console.log(recipe.recipe)
+            };
+        });
     });
     return data;
 }
