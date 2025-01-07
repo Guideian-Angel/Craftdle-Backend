@@ -8,11 +8,16 @@ export class CacheService implements OnModuleInit {
     private cache = new NodeCache();
 
     async onModuleInit() {
-        const jsonFilePath = path.join(__dirname, './newRecipes.json');
+        const jsonFilePath = path.join(__dirname, '../../public/newRecipes.json');
         const jsonData = await this.loadJsonFile(jsonFilePath);
-        this.cache.set('recipes', jsonData);
-        console.log('JSON adatok betöltve a cache-be');
+    
+        const convertedData = this.convertRecipe(jsonData.data);
+        this.cache.set('recipes', convertedData);
+    
+        console.log(convertedData);
+        console.log("JSON sikeresen cachelve");
     }
+    
 
     private async loadJsonFile(filePath: string): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -25,9 +30,34 @@ export class CacheService implements OnModuleInit {
         });
     };
 
-    private convertRecipe(data){
-        console.log(data)
+    private convertRecipe(data) {
+        const convertedData = {};
+    
+        Object.keys(data).forEach(group => {
+            if (!data[group][0].shapeless) {
+                convertedData[group] = data[group].map(recipe => {
+                    let matrix = [];
+                    let row = [];
+    
+                    recipe.recipe.forEach((item, index) => {
+                        row.push(item);
+    
+                        if ((index + 1) % 3 === 0 || index === recipe.recipe.length - 1) {
+                            matrix.push(row);
+                            row = [];
+                        }
+                    });
+    
+                    return matrix;
+                });
+            } else {
+                convertedData[group] = data[group];
+            }
+        });
+    
+        return convertedData;
     }
+    
 
     getCachedData(key: string): any {
         return this.cache.get(key);
