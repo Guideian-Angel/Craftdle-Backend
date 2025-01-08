@@ -13,7 +13,6 @@ export class Riddle {
         this.guessedRecipes = [];
 
         if (newGame) {
-            // Válassz egy random groupot, amely támogatja a megadott gamemode-ot
             const validGroups = Object.keys(allGroups).filter(groupKey => {
                 return allGroups[groupKey].some(recipe => recipe.enableGamemodes.includes(gamemode));
             });

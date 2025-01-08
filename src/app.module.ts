@@ -7,10 +7,11 @@ import { SharedModule } from './shared/shared.module';
 import { RiddleModule } from './riddle/riddle.module';
 import { AssetsModule } from './assets/assets.module';
 import { CacheService } from './cache/cache.service';
+import { SocketGateway } from './socket/socket.gateway';
 
 @Module({
   imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule],
   controllers: [AppController],
-  providers: [AppService, CacheService],
+  providers: [AppService, CacheService, SocketGateway],
 })
 export class AppModule {}

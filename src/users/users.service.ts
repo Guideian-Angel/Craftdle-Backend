@@ -32,7 +32,52 @@ import { geatherSettings } from './utilities/SettingsCollection';
 export class UsersService {
     constructor(private prisma: PrismaService) { }
 
-    users: { [key: string]: User } = {};
+    tokenToUser: Map<string, User> = new Map();
+    socketIdToUser: Map<string, User> = new Map();
+
+    /**
+    * Új felhasználó létrehozása és token párosítása.
+    * @param newUser - Az újonnan létrehozott felhasználói objektum.
+    * @param isExpire - Megadja, hogy a token átmeneti-e.
+    */
+    private async createNewUser(newUser: IUser, isExpire: boolean) {
+        try {
+            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
+            this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+        } catch (error) {
+            console.error("An error occurred in the createNewUser function:", error);
+            throw new Error("Failed to pair token with user.");
+        };
+    };
+
+    // Handshake-nél
+    associateSocketId(token: string, socketId: string) {
+        const user = this.tokenToUser.get(token);
+        if (user) {
+            user.socketId = socketId;
+            this.socketIdToUser.set(socketId, user);
+        };
+    };
+
+    removeUserBySocketId(socketId: string): void {
+        const user = this.socketIdToUser.get(socketId);
+        if (user) {
+            this.tokenToUser.delete(user.token);
+            this.socketIdToUser.delete(socketId);
+        };
+    };
+
+    // User keresése token alapján
+    getUserByToken(token: string): User | undefined {
+        tokenValidation.validateToken(token, this.prisma);
+        return this.tokenToUser.get(token);
+    }
+
+    // User keresése socket ID alapján
+    getUserBySocketId(socketId: string): User | undefined {
+        return this.socketIdToUser.get(socketId);
+    }
+
 
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
@@ -148,27 +193,6 @@ export class UsersService {
 
         // Válasz generálása
         return this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
-    }
-
-    private sanitizeUser(user: any): Partial<IUserData> {
-        const { password, ...sanitizedUser } = user;
-        return sanitizedUser;
-    }
-
-
-    /**
-     * Új felhasználó létrehozása és token párosítása.
-     * @param newUser - Az újonnan létrehozott felhasználói objektum.
-     * @param isExpire - Megadja, hogy a token átmeneti-e.
-     */
-    private async createNewUser(newUser: IUser, isExpire: boolean) {
-        try {
-            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            // További logika, például felhasználói objektum inicializálása
-        } catch (error) {
-            console.error("An error occurred in the createNewUser function:", error);
-            throw new Error("Failed to pair token with user.");
-        }
     }
 
     /**
