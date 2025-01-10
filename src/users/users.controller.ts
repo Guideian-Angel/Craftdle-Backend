@@ -1,4 +1,139 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Headers, Body, UnauthorizedException, UsePipes, ValidationPipe, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { ApiResponse } from '../shared/interfaces/APIResponse'
+import { LoginDataDto } from './dtos/LoginData.dto';
+import { RegistDataDto } from './dtos/RegistData.dto';
+import { UpdateSettingsDto } from './dtos/SettingsData.dto';
+import { ISettings } from './interfaces/ISettings';
 
 @Controller('users')
-export class UsersController {}
+export class UsersController {
+    constructor(private readonly usersService: UsersService) { }
+
+
+    //######################################################### USER LOGIN/REGIST ENDPOINTS #########################################################
+
+    @Post('register')
+    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    /**
+     * Regisztrációs végpont, amely új felhasználót hoz létre, vagy hibaüzenetet ad vissza.
+     * @param userDto Az új felhasználó adatai (DTO formában).
+     * @returns API válasz: siker esetén az új felhasználó adatai, hiba esetén az üzenet.
+     */
+    async register(@Body() userDto: RegistDataDto): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.register(userDto);
+
+            console.log(result);
+            if (!('loginToken' in result)) {
+                // Ha nincs loginToken az adatban, hiba történt..
+                throw new HttpException({ errors: result }, HttpStatus.BAD_REQUEST);
+            }
+
+            return { data: result }; // Sikeres regisztráció válasza.
+        } catch (err) {
+            throw new HttpException(
+                { message: err.response || err.message },
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * Guest account létrehozása olyan felhasználók számára, akik nem rendelkeznek állandó fiókkal.
+     * @returns {Promise<ApiResponse>} Guest account adatai vagy hibaüzenet.
+     */
+    @Get('login')
+    async createGuestAccount(): Promise<ApiResponse> {
+        console.log("asd")
+        try {
+            const result = await this.usersService.loginWithGuestAccount();
+            return { data: result };
+        } catch (err) {
+            // Hiba kezelése, a részletek megjelenítése naplózásban
+            console.error("Hiba történt vendégfiók létrehozásakor:", err.message);
+            return { message: err.message };
+        }
+    }
+
+    /**
+     * Bejelentkezési végpont, amely vagy Bearer tokent, vagy felhasználónév/jelszó párost fogad.
+     * @param authorization - Az `authorization` header tartalma (opcionális).
+     * @param body - A `LoginDataDto` objektum, amely tartalmazza a bejelentkezési adatokat.
+     */
+    @Post('login')
+    async login(
+        @Headers('authorization') authorization: string,
+        @Body() body: LoginDataDto
+    ) {
+        try {
+            console.log("asd",body); // Debug: A body tartalmának naplózása
+            const result = await this.usersService.loginUser(authorization, body);
+            console.log(result)
+            return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
+        } catch (err) {
+            console.error("Bejelentkezési hiba:", err.message);
+            throw new UnauthorizedException(); // Általános jogosultsági hiba dobása
+        }
+    }
+
+    /**
+     * Kijelentkezési végpont, amely Basic Auth stílusú `username:token` alapján validálja a felhasználót.
+     * A valid tokennel rendelkező felhasználók tokenje törlésre kerül az adatbázisból.
+     * A felhasználó adatai megmaradnak statisztikai célok miatt.
+     * @param authHeader - Az `authorization` fejléc tartalma.
+     * @returns Üzenet a kijelentkezési folyamat eredményéről.
+     */
+    @Delete('login')
+    async logoutUser(@Headers('authorization') authHeader: string): Promise<ApiResponse> {
+        try {
+            await this.usersService.logoutUser(authHeader);
+            return { message: 'Logout successful' };
+        } catch (err) {
+            console.error('Logout error:', err.message);
+            return { message: err.message };
+        }
+    }
+
+
+    //######################################################### SETTINGS ENDPOINTS #########################################################
+
+    /**
+     * Felhasználó beállításainak lekérdezése (settings).
+     * @param {string} authorization - A Bearer token azonosításhoz az Authorization fejlécben.
+     * @returns {Promise<ApiResponse>} - A felhasználó beállításai vagy hibaüzenet.
+     */
+    @Get('settings')
+    async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+        try {
+            const result: ISettings[] = await this.usersService.collectSettings(authorization);
+            console.log(result)
+            return { data: result }; // Beállítások sikeres lekérdezése
+        } catch (err) {
+            return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
+        }
+    }
+
+    /**
+     * A felhasználói beállítások módosítása a beállítás azonosítója és az új adatok alapján.
+     * @param {number} settingsId - A módosítandó beállítások egyedi azonosítója.
+     * @param {string} authorization - Az autentikációs fejléc, amely tartalmazza a Bearer tokent.
+     * @param {UpdateSettingsDto} updateSettingsData - Az új beállításokat tartalmazó adatok.
+     * @returns {ApiResponse} - A sikeres művelet után egy üzenetet tartalmazó válasz.
+     * @throws {HttpException} - Ha a token érvénytelen, vagy ha valamilyen hiba történik a beállítások módosítása során.
+     */
+    @Put('settings/:id')
+    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    async updateSettings(
+        @Param('id') settingsId: number,
+        @Headers('authorization') authorization: string,
+        @Body() updateSettingsData: UpdateSettingsDto,
+    ) {
+        try {
+            console.log("pingelve")
+            await this.usersService.updateSettings(settingsId, authorization, updateSettingsData);
+        } catch (err) {
+            return { message: err.message }
+        }
+    }
+}

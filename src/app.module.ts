@@ -5,10 +5,15 @@ import { UsersModule } from './users/users.module';
 import { GameModule } from './game/game.module';
 import { SharedModule } from './shared/shared.module';
 import { RiddleModule } from './riddle/riddle.module';
+import { AssetsModule } from './assets/assets.module';
+import { CacheService } from './cache/cache.service';
+import { SocketGateway } from './socket/socket.gateway';
+import { CacheModule } from './cache/cache.module';
+import { UsersService } from './users/users.service';
 
 @Module({
-  imports: [UsersModule, GameModule, SharedModule, RiddleModule],
+  imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule, CacheModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, CacheService, SocketGateway, UsersService],
 })
 export class AppModule {}
