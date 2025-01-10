@@ -136,7 +136,7 @@ export class UsersService {
 
         // Token párosítása a felhasználóhoz, átmeneti státusszal
         console.log(newGuest)
-        await this.createNewUser(newGuest, false);
+        await this.createNewUser(newGuest, true);
 
         // Id eltávolítása a válaszból
         const { id, ...userData } = newGuest;
@@ -154,7 +154,7 @@ export class UsersService {
         const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
         if (user) { // Token sikeres validációja
             const formatedUser = this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true);
-            await this.createNewUser(formatedUser, userData.stayLoggedIn)
+            await this.createNewUser(formatedUser, false)
             return formatedUser
         }
         // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
