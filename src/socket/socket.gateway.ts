@@ -8,6 +8,10 @@ import {
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
+import { Game } from 'src/game/classes/Game';
+import { Riddle } from 'src/game/classes/Riddle';
+import { Recipe } from 'src/game/classes/Recipe';
+import { CacheService } from 'src/cache/cache.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -17,7 +21,7 @@ export class SocketGateway
   private server: Server;
 
   constructor(
-    private readonly usersService: UsersService, // UsersService injektálása
+    private readonly usersService: UsersService,
   ) {}
 
   afterInit(server: Server) {
@@ -61,17 +65,14 @@ export class SocketGateway
   }
 
   // Egyedi események kezelése
-  @SubscribeMessage('newGame')
-  handleMessage(client: Socket, payload: any): string {
-    const user = this.usersService.getUserBySocketId(client.id);
-    if (!user) {
-      this.logger.error(`Message received from unregistered client: ${client.id}`);
-      return 'Message ignored';
-    }
+  @SubscribeMessage('startGame')
+  handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }): void {
+    const cacheService = new CacheService();
+    const riddle = new Riddle(payload.newGame, payload.gamemode, cacheService);
+    const game = new Game(riddle, client.id, this.usersService);
 
-    this.logger.log(`Received message from ${user.username}: ${payload}`);
-    client.emit('response', 'Message received!');
-    return 'Message processed';
+    // Emit the game object back to the client or handle it as needed
+    client.emit('gameCreated', game);
   }
 
   // Broadcast üzenet küldése minden kliensnek

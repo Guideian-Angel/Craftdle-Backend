@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@n
 import { PrismaService } from '../prisma/prisma.service';
 import { fetchGameModesWithLastUnsolvedGame } from './utilities/GamemodesFetching';
 import { IGamemode } from './interfaces/IGamemode';
-import tokenValidation from '../shared/utilities/TokenValidation';
+import tokenValidation from '../shared/utilities/tokenValidation';
 
 @Injectable()
 export class GameService {

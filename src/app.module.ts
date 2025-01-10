@@ -8,9 +8,10 @@ import { RiddleModule } from './riddle/riddle.module';
 import { AssetsModule } from './assets/assets.module';
 import { CacheService } from './cache/cache.service';
 import { SocketGateway } from './socket/socket.gateway';
+import { CacheModule } from './cache/cache.module';
 
 @Module({
-  imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule],
+  imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule, CacheService, CacheModule],
   controllers: [AppController],
   providers: [AppService, CacheService, SocketGateway],
 })

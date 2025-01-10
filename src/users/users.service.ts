@@ -21,7 +21,7 @@ import { User } from './classes/user';
 // *** Utility funkciók ***
 import { createAccount } from './utilities/AccountCreation';
 import { pairTokenWithUser } from './utilities/TokenPairingWithUser';
-import { deleteToken } from '../shared/utilities/TokenDeletion';
+import { deleteToken } from '../shared/utilities/tokenDeletion';
 import userAuthorization, { findUser } from './utilities/userAuthorization.util';
 import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
 import { modifySettings } from './utilities/SettingsModification';
@@ -69,7 +69,6 @@ export class UsersService {
 
     // User keresése token alapján
     getUserByToken(token: string): User | undefined {
-        tokenValidation.validateToken(token, this.prisma);
         return this.tokenToUser.get(token);
     }
 
