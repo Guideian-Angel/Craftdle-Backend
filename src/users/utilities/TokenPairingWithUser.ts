@@ -16,10 +16,16 @@ export async function pairTokenWithUser(
     isExpire: boolean
 ): Promise<void> {
     try {
-        // Ellenőrizzük, hogy van-e már meglévő token a felhasználónál, és ha van töröljük is
-        await prisma.tokens.delete({
+        // Ellenőrizzük, hogy van-e már meglévő token a felhasználónál
+        const existingToken = await prisma.tokens.findFirst({
             where: { user: userId },
         });
+
+        if (existingToken) { // Ha van már tokenje, töröljük a tokent az adatbázisból
+            await prisma.tokens.delete({
+                where: { user: userId },
+            });
+        }
 
         // Új token párosítása a felhasználóhoz
         await prisma.tokens.create({

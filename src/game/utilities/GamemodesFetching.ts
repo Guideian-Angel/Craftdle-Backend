@@ -1,7 +1,7 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { IGamemode, IGamemodeWithDifficulties } from '../interfaces/IGamemode';
 
-async function getGamemodes(prisma: PrismaService): Promise<IGamemodeWithDifficulties[]> {
+async function getGamemodes(prisma: PrismaService) {
     return await prisma.gamemodes.findMany({
         include: {
             difficulties: true
@@ -51,11 +51,11 @@ export async function fetchGameModesWithLastUnsolvedGame(
                 description: gamemode.description,
                 difficulty: {
                     name: gamemode.difficulties.name,
-                    color_code: gamemode.difficulties.color_code
+                    color: gamemode.difficulties.color_code
                 },
                 continueGame: lastGameUnsolved
             };
-        });
+        })
     } catch (error) {
         console.error("Error in fetchGameModesWithLastUnsolvedGame:", error);
         throw new Error("Failed to fetch game modes with the last unsolved game.");

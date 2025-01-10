@@ -1,7 +1,13 @@
-import { User } from "src/users/classes/user";
-import { Riddle } from "./Riddle";
+import { User } from 'src/users/classes/user';
+import { Riddle } from './Riddle';
+import { UsersService } from 'src/users/users.service';
 
 export class Game {
-    user: User;
     riddle: Riddle;
+    user: User;
+
+    constructor(riddle: Riddle, userToken: string, usersService: UsersService) {
+        this.riddle = riddle;
+        this.user = usersService.getUserByToken(userToken);
+    }
 }

@@ -21,7 +21,7 @@ import { User } from './classes/user';
 // *** Utility funkciók ***
 import { createAccount } from './utilities/AccountCreation';
 import { pairTokenWithUser } from './utilities/TokenPairingWithUser';
-import { deleteToken } from '../shared/utilities/TokenDeletion';
+import { deleteToken } from '../shared/utilities/tokenDeletion';
 import userAuthorization, { findUser } from './utilities/userAuthorization.util';
 import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
 import { modifySettings } from './utilities/SettingsModification';
@@ -32,7 +32,67 @@ import { geatherSettings } from './utilities/SettingsCollection';
 export class UsersService {
     constructor(private prisma: PrismaService) { }
 
-    users: { [key: string]: User } = {};
+    tokenToUser: Map<string, User> = new Map();
+    socketIdToUser: Map<string, User> = new Map();
+
+    /**
+    * Új felhasználó létrehozása és token párosítása.
+    * @param newUser - Az újonnan létrehozott felhasználói objektum.
+    * @param isExpire - Megadja, hogy a token átmeneti-e.
+    */
+    private async createNewUser(newUser: IUser, isExpire: boolean) {
+        try {
+            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
+            this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+        } catch (error) {
+            console.error("An error occurred in the createNewUser function:", error);
+            throw new Error("Failed to pair token with user.");
+        };
+    };
+
+    /**
+     * Társítja a socket ID-t a felhasználóhoz a token alapján.
+     * @param token - A felhasználói token.
+     * @param socketId - A socket ID.
+     */
+    associateSocketId(token: string, socketId: string) {
+        const user = this.tokenToUser.get(token);
+        if (user) {
+            user.socketId = socketId;
+            this.socketIdToUser.set(socketId, user);
+        };
+    };
+
+    /**
+     * Eltávolítja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     */
+    removeUserBySocketId(socketId: string): void {
+        const user = this.socketIdToUser.get(socketId);
+        if (user) {
+            this.tokenToUser.delete(user.token);
+            this.socketIdToUser.delete(socketId);
+        };
+    };
+
+    /**
+     * Visszaadja a felhasználót a token alapján.
+     * @param token - A felhasználói token.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
+    getUserByToken(token: string): User | undefined {
+        return this.tokenToUser.get(token);
+    }
+
+    /**
+     * Visszaadja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
+    getUserBySocketId(socketId: string): User | undefined {
+        return this.socketIdToUser.get(socketId);
+    }
+
 
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
@@ -92,16 +152,13 @@ export class UsersService {
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
      */
     async loginUser(authorization: string, userData: LoginDataDto) {
-        try {
-            // Próbálkozás token alapú bejelentkezéssel
-            const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
-            if (user) {
-                return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), userData.stayLoggedIn); // Token sikeres validációja
-            }
-        } catch (error) {
-            // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
-            return await this.handleBodyLogin(userData);
+        // Próbálkozás token alapú bejelentkezéssel
+        const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
+        if (user) {
+            return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true); // Token sikeres validációja
         }
+        // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
+        return await this.handleBodyLogin(userData);
     }
 
     generateLoginResponse(userData, token, stayLoggedIn) {
@@ -110,15 +167,16 @@ export class UsersService {
             loginToken: token,
             username: userData.username,
             profilePicture: {
-                id: 0,
-                name: "Unemployed Villager",
-                src: "unemployed_villager.png"
+                id: 15,
+                name: "Desert Villager Base",
+                src: "Desert_Villager_Base.png"
             },
             profileBorder: {
-                id: 0,
-                name: "Grass Block",
-                src: "grass_block.png"
+                id: 7,
+                name: "Grass",
+                src: "Grass.png"
             },
+            isGuest: false,
             stayLoggedIn: stayLoggedIn
         };
     }
@@ -150,27 +208,6 @@ export class UsersService {
 
         // Válasz generálása
         return this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
-    }
-
-    private sanitizeUser(user: any): Partial<IUserData> {
-        const { password, ...sanitizedUser } = user;
-        return sanitizedUser;
-    }
-
-
-    /**
-     * Új felhasználó létrehozása és token párosítása.
-     * @param newUser - Az újonnan létrehozott felhasználói objektum.
-     * @param isExpire - Megadja, hogy a token átmeneti-e.
-     */
-    private async createNewUser(newUser: IUser, isExpire: boolean) {
-        try {
-            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            // További logika, például felhasználói objektum inicializálása
-        } catch (error) {
-            console.error("An error occurred in the createNewUser function:", error);
-            throw new Error("Failed to pair token with user.");
-        }
     }
 
     /**

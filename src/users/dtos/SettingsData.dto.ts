@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsString, IsArray, Length, ValidateNested, Min, Max, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsNumber, IsString, IsArray, Length, ValidateNested, Min, Max, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class UpdateControlsDto {
@@ -14,7 +14,8 @@ class UpdateControlsDto {
     remove: string;
 
     @IsArray({ message: 'TableMapping must be an array.' })
-    @Length(9, 9, { each: true, message: 'Each entry in TableMapping must have a length of 9 characters.' })
+    @ArrayMinSize(9, { message: 'TableMapping must have at least 9 entries.' })
+    @ArrayMaxSize(9, { message: 'TableMapping must have at most 9 entries.' })
     @IsString({ each: true, message: 'Each entry in TableMapping must be a string.' })
     tableMapping: string[];
 }

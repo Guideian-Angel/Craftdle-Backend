@@ -1,6 +1,6 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { v4 as uuidv4 } from 'uuid';
-import tokenValidation from 'src/shared/utilities/TokenValidation';
+import tokenValidation from 'src/shared/utilities/tokenValidation';
 
 
 export async function createToken(prisma: PrismaService): Promise<string> {
