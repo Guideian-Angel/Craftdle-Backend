@@ -20,15 +20,16 @@ export class Riddle {
         this.gamemode = gamemode;
 
         const recipes = this.cacheService.getCachedData('recipe');
+        const items = this.cacheService.getCachedData('items');
 
         if (newGame) {
-            this.initializeNewGame(recipes);
+            this.initializeNewGame(recipes, items);
         } else {
             //this.getLastGame();;
         }
     }
 
-    private initializeNewGame(recipes: Record<string, any>): void {
+    private initializeNewGame(recipes: Record<string, any>, items): void {
         const validGroups = this.getValidGroups(recipes);
 
         if (validGroups.length === 0) {
@@ -43,7 +44,7 @@ export class Riddle {
         this.recipeGroup = randomGroupKey;
 
         if(this.gamemode === 6){
-            this.inventory = [];
+            this.inventory = this.collectMaterialsForGraph(recipes, items);
         } else{
             this.inventory = this.cacheService.getCachedData('items')
         }
@@ -53,8 +54,68 @@ export class Riddle {
         }
     }
 
-    private createItemConnectionTree(){
+    private gatherItems(items ,itemIds: Set<string>){
+        let result = [];
+        items.data.forEach(item => {
+            if(itemIds.has(item.id)){
+                result.push(item);
+                itemIds.delete(item.id);
+            }
+        });
+        return result;
+    }
 
+    private collectMaterialsForGraph(recipes, items){
+        let graph = new Set(this.templateRecipe.materials);
+        let elementAdded = true;
+        while (elementAdded && graph.size < 20) {
+            elementAdded = false;
+            Object.keys(recipes).forEach(group => {
+                recipes[group].forEach(recipe => {
+                    const mats = recipe.shapeless ? recipe.recipe.required : recipe.recipe;
+                    if (this.checkForSameMaterial(graph, mats)) {
+                        let tempGraph = this.addMaterialsToSet(graph, mats);
+                        if (tempGraph.size > graph.size) {
+                            elementAdded = true;
+                        }
+                        graph = tempGraph;
+                    }
+                });
+            });
+        }
+        return this.gatherItems(items, graph);
+    }
+
+    private checkForSameMaterial(set, mats) {
+        return mats.some(mat =>
+            Array.isArray(mat)
+                ? mat.some(element => set.has(element))
+                : set.has(mat)
+        );
+    }
+
+    private addMaterialsToSet(set, mats) {
+        const processedMaterials = this.processMaterials(mats);
+        processedMaterials.forEach(mat => set.add(mat));
+        return set;
+    }
+
+    private isValidMaterial(material) {
+        return material !== null && material !== undefined;
+    }
+    
+    private processMaterials(materials, callback?) {
+        let result = [];
+        materials.forEach(material => {
+            if (this.isValidMaterial(material)) {
+                if (Array.isArray(material)) {
+                    result.push(material[Math.floor(Math.random() * material.length)]);
+                } else {
+                    result.push(material);
+                }
+            }
+        });
+        return callback ? callback(result) : result;
     }
 
     private getValidGroups(recipes: Record<string, any>): string[] {
