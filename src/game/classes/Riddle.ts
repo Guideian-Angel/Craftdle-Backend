@@ -1,6 +1,8 @@
 import { Recipe } from './Recipe';
 import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
+import { IItem } from '../interfaces/IItem';
+import { ITip } from '../interfaces/ITip';
 
 export class Riddle {
     recipeGroup: string;
@@ -9,8 +11,10 @@ export class Riddle {
     hints: string[] = [];
     numberOfGuesses: number = 0;
     guessedRecipes: string[] = [];
+    tips: ITip[] = [];
     gamemode: number;
-    inventory: string[] | null;
+    inventory: IItem[] | null;
+    solved: boolean = false;
 
     constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
         this.gamemode = gamemode;
@@ -113,7 +117,12 @@ export class Riddle {
 
     toJSON() {
         return {
-            // Add properties you want to include in the JSON representation
+            items: this.inventory,
+            recipes: this.cacheService.getCachedData('recipes'),
+            tips: this.tips,
+            hints: this.hints.map((hint, index) => (index * 5 <= this.numberOfGuesses ? hint : null)),
+            hearts: this.gamemode === 7 ? 10 : null,
+            result: this.solved
         };
     }
 }

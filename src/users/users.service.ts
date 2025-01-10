@@ -50,7 +50,11 @@ export class UsersService {
         };
     };
 
-    // Handshake-nél
+    /**
+     * Társítja a socket ID-t a felhasználóhoz a token alapján.
+     * @param token - A felhasználói token.
+     * @param socketId - A socket ID.
+     */
     associateSocketId(token: string, socketId: string) {
         const user = this.tokenToUser.get(token);
         if (user) {
@@ -59,6 +63,10 @@ export class UsersService {
         };
     };
 
+    /**
+     * Eltávolítja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     */
     removeUserBySocketId(socketId: string): void {
         const user = this.socketIdToUser.get(socketId);
         if (user) {
@@ -67,12 +75,20 @@ export class UsersService {
         };
     };
 
-    // User keresése token alapján
+    /**
+     * Visszaadja a felhasználót a token alapján.
+     * @param token - A felhasználói token.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
     getUserByToken(token: string): User | undefined {
         return this.tokenToUser.get(token);
     }
 
-    // User keresése socket ID alapján
+    /**
+     * Visszaadja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
     getUserBySocketId(socketId: string): User | undefined {
         return this.socketIdToUser.get(socketId);
     }
