@@ -9,10 +9,11 @@ import { AssetsModule } from './assets/assets.module';
 import { CacheService } from './cache/cache.service';
 import { SocketGateway } from './socket/socket.gateway';
 import { CacheModule } from './cache/cache.module';
+import { UsersService } from './users/users.service';
 
 @Module({
-  imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule, CacheService, CacheModule],
+  imports: [UsersModule, GameModule, SharedModule, RiddleModule, AssetsModule, CacheModule],
   controllers: [AppController],
-  providers: [AppService, CacheService, SocketGateway],
+  providers: [AppService, CacheService, SocketGateway, UsersService],
 })
 export class AppModule {}
