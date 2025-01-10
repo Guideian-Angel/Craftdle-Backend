@@ -42,9 +42,19 @@ export class Riddle {
         this.templateRecipe = this.getRandomItem(this.recipe);
         this.recipeGroup = randomGroupKey;
 
+        if(this.gamemode === 6){
+            this.inventory = [];
+        } else{
+            this.inventory = this.cacheService.getCachedData('items')
+        }
+
         if (this.gamemode !== 7) {
             this.hints = this.generateHints();
         }
+    }
+
+    private createItemConnectionTree(){
+
     }
 
     private getValidGroups(recipes: Record<string, any>): string[] {
