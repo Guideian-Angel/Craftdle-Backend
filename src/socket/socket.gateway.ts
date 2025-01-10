@@ -10,7 +10,6 @@ import { Socket, Server } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
 import { Game } from 'src/game/classes/Game';
 import { Riddle } from 'src/game/classes/Riddle';
-import { Recipe } from 'src/game/classes/Recipe';
 import { CacheService } from 'src/cache/cache.service';
 
 @WebSocketGateway({ cors: true })
@@ -72,7 +71,7 @@ export class SocketGateway
     const game = new Game(riddle, client.id, this.usersService);
 
     // Emit the game object back to the client or handle it as needed
-    client.emit('gameCreated', game);
+    client.emit('gameCreated', riddle.toJSON());
   }
 
   // Broadcast üzenet küldése minden kliensnek
