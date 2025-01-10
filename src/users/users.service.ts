@@ -1,5 +1,5 @@
 // *** NestJS könyvtárak ***
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Scope } from '@nestjs/common';
 
 // *** Shared modulok ***
 import tokenValidation from 'src/shared/utilities/tokenValidation';
@@ -30,24 +30,20 @@ import { geatherSettings } from './utilities/SettingsCollection';
 
 @Injectable()
 export class UsersService {
+    private static tokenToUser: Map<string, User> = new Map();
+    private static socketIdToUser: Map<string, User> = new Map();
+
     constructor(private prisma: PrismaService) { }
 
-    tokenToUser: Map<string, User> = new Map();
-    socketIdToUser: Map<string, User> = new Map();
-
-    /**
-    * Új felhasználó létrehozása és token párosítása.
-    * @param newUser - Az újonnan létrehozott felhasználói objektum.
-    * @param isExpire - Megadja, hogy a token átmeneti-e.
-    */
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
             await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+            console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
-            console.error("An error occurred in the createNewUser function:", error);
+            console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
-        };
+        }
     };
 
     /**
@@ -56,10 +52,10 @@ export class UsersService {
      * @param socketId - A socket ID.
      */
     associateSocketId(token: string, socketId: string) {
-        const user = this.tokenToUser.get(token);
+        const user = UsersService.tokenToUser.get(token);
         if (user) {
             user.socketId = socketId;
-            this.socketIdToUser.set(socketId, user);
+            UsersService.socketIdToUser.set(socketId, user);
         };
     };
 
@@ -68,10 +64,10 @@ export class UsersService {
      * @param socketId - A socket ID.
      */
     removeUserBySocketId(socketId: string): void {
-        const user = this.socketIdToUser.get(socketId);
+        const user = UsersService.socketIdToUser.get(socketId);
         if (user) {
-            this.tokenToUser.delete(user.token);
-            this.socketIdToUser.delete(socketId);
+            UsersService.tokenToUser.delete(user.token);
+            UsersService.socketIdToUser.delete(socketId);
         };
     };
 
@@ -81,7 +77,8 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserByToken(token: string): User | undefined {
-        return this.tokenToUser.get(token);
+        console.log("MAP TARTALMA (getUserByToken): ", UsersService.tokenToUser);
+        return UsersService.tokenToUser.get(token);
     }
 
     /**
@@ -90,7 +87,7 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserBySocketId(socketId: string): User | undefined {
-        return this.socketIdToUser.get(socketId);
+        return UsersService.socketIdToUser.get(socketId);
     }
 
 
@@ -123,7 +120,7 @@ export class UsersService {
         }
 
         const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
-        this.createNewUser(newUser, !stayLoggedIn);
+        await this.createNewUser(newUser, !stayLoggedIn);
         await createDefaultSettings(this.prisma, newUser.id);
 
         const { id, ...userData } = newUser;
@@ -138,6 +135,7 @@ export class UsersService {
         const newGuest = await createAccount(this.prisma);
 
         // Token párosítása a felhasználóhoz, átmeneti státusszal
+        console.log(newGuest)
         await this.createNewUser(newGuest, false);
 
         // Id eltávolítása a válaszból
@@ -154,8 +152,10 @@ export class UsersService {
     async loginUser(authorization: string, userData: LoginDataDto) {
         // Próbálkozás token alapú bejelentkezéssel
         const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
-        if (user) {
-            return this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true); // Token sikeres validációja
+        if (user) { // Token sikeres validációja
+            const formatedUser = this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true);
+            await this.createNewUser(formatedUser, userData.stayLoggedIn)
+            return formatedUser
         }
         // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
         return await this.handleBodyLogin(userData);
@@ -206,8 +206,10 @@ export class UsersService {
         const newToken = await createToken(this.prisma);
         await pairTokenWithUser(this.prisma, user.id, newToken, !userData.stayLoggedIn);
 
-        // Válasz generálása
-        return this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
+        // Válasz generálása, objektum generálása
+        const formatedUser = this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
+        await this.createNewUser(formatedUser, userData.stayLoggedIn);
+        return formatedUser;
     }
 
     /**
