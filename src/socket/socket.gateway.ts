@@ -67,12 +67,14 @@ export class SocketGateway
   // Egyedi események kezelése
   @SubscribeMessage('startGame')
   handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }): void {
+    console.log("asdasd")
     const cacheService = new CacheService();
     const riddle = new Riddle(payload.newGame, payload.gamemode, cacheService);
     const game = new Game(riddle, client.id, this.usersService);
 
     // Emit the game object back to the client or handle it as needed
-    client.emit('gameCreated', riddle.toJSON());
+    console.log(riddle.toJSON())
+    client.emit('guess', riddle.toJSON());
   }
 
   // Broadcast üzenet küldése minden kliensnek
