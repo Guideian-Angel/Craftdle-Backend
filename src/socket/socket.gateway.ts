@@ -19,6 +19,7 @@ export class SocketGateway
   private readonly logger = new Logger(SocketGateway.name);
 
   private server: Server;
+  private reporter: NodeJS.Timeout | null = null
 
   constructor(
     private readonly usersService: UsersService,
@@ -52,7 +53,14 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
-    client.emit("maintenance", await this.adminService.getCurrentMaintenance())
+    const maintenance = await this.adminService.getCurrentMaintenance()
+    client.emit("maintenance", maintenance)
+    if(maintenance.countdown != null){
+      clearTimeout(this.reporter)
+      this.reporter = setTimeout(async() => {
+        this.emitMaintenanceUpdate(await this.adminService.getCurrentMaintenance())
+      }, (maintenance.countdown + 1) * 1000);
+    }
   }
 
   // Kliens lecsatlakozása
@@ -91,5 +99,11 @@ export class SocketGateway
   }) {
     console.log(maintenance)
     this.broadcastEvent("maintenance", maintenance)
+    if(maintenance.countdown != null){
+      clearTimeout(this.reporter)
+      this.reporter = setTimeout(async() => {
+        this.emitMaintenanceUpdate(await this.adminService.getCurrentMaintenance())
+      }, (maintenance.countdown + 1) * 1000);
+    }
   }
 }

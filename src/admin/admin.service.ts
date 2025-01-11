@@ -49,7 +49,7 @@ export class AdminService {
   async getUpcomingMaintenance() {
     return this.prisma.maintenance.findFirst({
       where: {
-        end: { gte: getCurrentDate() },
+        end: { gt: getCurrentDate() },
       },
       orderBy: { start: 'asc' },
     });
