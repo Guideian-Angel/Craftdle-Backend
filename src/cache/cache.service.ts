@@ -8,13 +8,17 @@ export class CacheService implements OnModuleInit {
     private cache = new NodeCache();
 
     async onModuleInit() {
-        const jsonFilePath = path.join(__dirname, '../../public/newRecipes.json');
-        const jsonData = await this.loadJsonFile(jsonFilePath);
+        const recipesFilePath = path.join(__dirname, '../../recipes.json');
+        const recipesData = await this.loadJsonFile(recipesFilePath);
     
-        const convertedData = this.convertRecipe(jsonData.data);
-        this.cache.set('recipes', convertedData);
+        const convertedRecipes = this.convertRecipe(recipesData.data);
+        this.cache.set('recipes', convertedRecipes);
+
+        const itemsFilePath = path.join(__dirname, '../../items.json');
+        const itemsData = await this.loadJsonFile(itemsFilePath);
+
+        this.cache.set('items', itemsData.data);
     
-        console.log(convertedData);
         console.log("JSON sikeresen cachelve");
     }
     
