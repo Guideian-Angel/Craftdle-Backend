@@ -5,12 +5,13 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
 import { Game } from 'src/game/classes/Game';
 import { Riddle } from 'src/game/classes/Riddle';
 import { CacheService } from 'src/cache/cache.service';
+import { AdminService } from 'src/admin/admin.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -21,7 +22,8 @@ export class SocketGateway
 
   constructor(
     private readonly usersService: UsersService,
-  ) {}
+    @Inject(forwardRef(() => AdminService)) private readonly adminService: AdminService,
+  ) { }
 
   afterInit(server: Server) {
     this.server = server;
@@ -50,6 +52,7 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
+    client.emit("maintenance", await this.adminService.getCurrentMaintenance())
   }
 
   // Kliens lecsatlakozása
@@ -80,5 +83,13 @@ export class SocketGateway
   // Broadcast üzenet küldése minden kliensnek
   broadcastEvent(eventName: string, payload: any) {
     this.server.emit(eventName, payload);
+  }
+
+  emitMaintenanceUpdate(maintenance: {
+    started: boolean,
+    countdown: number | null
+  }) {
+    console.log(maintenance)
+    this.broadcastEvent("maintenance", maintenance)
   }
 }
