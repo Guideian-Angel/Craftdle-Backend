@@ -25,7 +25,7 @@ export class Riddle {
         if (newGame) {
             this.initializeNewGame(recipes, items);
         } else {
-            //this.getLastGame();;
+            //this.getLastGame();
         }
     }
 
@@ -88,9 +88,7 @@ export class Riddle {
 
     private checkForSameMaterial(set, mats) {
         return mats.some(mat =>
-            Array.isArray(mat)
-                ? mat.some(element => set.has(element))
-                : set.has(mat)
+            Array.isArray(mat) ? mat.some(element => set.has(element)) : set.has(mat)
         );
     }
 

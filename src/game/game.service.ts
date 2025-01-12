@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { fetchGameModesWithLastUnsolvedGame } from './utilities/GamemodesFetching';
+import { fetchGameModesWithLastUnsolvedGame } from './utilities/gamemodesFetching';
 import { IGamemode } from './interfaces/IGamemode';
 import tokenValidation from '../shared/utilities/tokenValidation';
 

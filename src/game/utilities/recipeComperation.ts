@@ -1,0 +1,3 @@
+function validateRecipe(recipe: IRecipe){
+    
+}
