@@ -1,10 +1,12 @@
-export class Recipe {
+import { IRecipe } from "../interfaces/IRecipe";
+
+export class Recipe implements IRecipe {
     name: string;
     id: string;
     shapeless: boolean;
     materials: string[];
     optionalMaterials: string[];
-    layout: Array<Array<Array<string> | null>>;
+    layout: Array<Array<string[] | null>>;
 
     constructor(data: any) {
         this.name = data.name;

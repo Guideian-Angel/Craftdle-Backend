@@ -8,7 +8,7 @@ export class Riddle {
     recipeGroup: string;
     recipe: Recipe[];
     templateRecipe: Recipe;
-    hints: string[] = [];
+    hints: string[] | null = null;
     numberOfGuesses: number = 0;
     guessedRecipes: string[] = [];
     tips: ITip[] = [];
@@ -19,13 +19,13 @@ export class Riddle {
     constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
         this.gamemode = gamemode;
 
-        const recipes = this.cacheService.getCachedData('recipe');
-        const items = this.cacheService.getCachedData('items');
+        const recipes = cacheService.getCachedData('recipes');
+        const items = cacheService.getCachedData('items');
 
         if (newGame) {
             this.initializeNewGame(recipes, items);
         } else {
-            //this.getLastGame();;
+            //this.getLastGame();
         }
     }
 
@@ -43,21 +43,21 @@ export class Riddle {
         this.templateRecipe = this.getRandomItem(this.recipe);
         this.recipeGroup = randomGroupKey;
 
-        if(this.gamemode === 6){
+        if (Number(this.gamemode) === 6) {
             this.inventory = this.collectMaterialsForGraph(recipes, items);
-        } else{
-            this.inventory = this.cacheService.getCachedData('items')
+        } else {
+            this.inventory = items
         }
 
-        if (this.gamemode !== 7) {
-            this.hints = this.generateHints();
+        if (Number(this.gamemode) !== 7) {
+            this.hints = this.generateHints(recipes);
         }
     }
 
-    private gatherItems(items ,itemIds: Set<string>){
+    private gatherItems(items, itemIds: Set<string>) {
         let result = [];
-        items.data.forEach(item => {
-            if(itemIds.has(item.id)){
+        items.forEach(item => {
+            if (itemIds.has(item.id)) {
                 result.push(item);
                 itemIds.delete(item.id);
             }
@@ -65,7 +65,7 @@ export class Riddle {
         return result;
     }
 
-    private collectMaterialsForGraph(recipes, items){
+    private collectMaterialsForGraph(recipes, items) {
         let graph = new Set(this.templateRecipe.materials);
         let elementAdded = true;
         while (elementAdded && graph.size < 20) {
@@ -88,9 +88,7 @@ export class Riddle {
 
     private checkForSameMaterial(set, mats) {
         return mats.some(mat =>
-            Array.isArray(mat)
-                ? mat.some(element => set.has(element))
-                : set.has(mat)
+            Array.isArray(mat) ? mat.some(element => set.has(element)) : set.has(mat)
         );
     }
 
@@ -103,7 +101,7 @@ export class Riddle {
     private isValidMaterial(material) {
         return material !== null && material !== undefined;
     }
-    
+
     private processMaterials(materials, callback?) {
         let result = [];
         materials.forEach(material => {
@@ -120,7 +118,7 @@ export class Riddle {
 
     private getValidGroups(recipes: Record<string, any>): string[] {
         return Object.keys(recipes).filter(groupKey => {
-            return recipes[groupKey].some(recipe => recipe.enableGamemodes.includes(this.gamemode));
+            return recipes[groupKey].some(recipe => recipe.enabledGamemodes.includes(Number(this.gamemode)));
         });
     }
 
@@ -128,32 +126,31 @@ export class Riddle {
         return array[Math.floor(Math.random() * array.length)];
     }
 
-    private generateHints(): string[] {
-        const hint2result = this.findCommonItem();
+    private generateHints(recipes): string[] {
+        const hint2result = this.findCommonItem(recipes);
         return [
-            `This recipe requires minimum ${this.countRequiredSlots(this.templateRecipe.layout)} slots.`,
-            hint2result? `At least 1 material is shared with this recipe: ${hint2result}` : `Materials used in this recipe are not included in any other recipe!`,
+            `This recipe requires minimum ${this.countRequiredSlots(this.templateRecipe)} slots.`,
+            hint2result ? `At least 1 material is shared with this recipe: ${hint2result}` : `Materials used in this recipe are not included in any other recipe!`,
             `Random material from this recipe: ${this.selectRandomMaterial()}`,
             `The item you need to think about is ${this.templateRecipe.name}`
         ]
     }
 
-    private countRequiredSlots(layout: any): number {
-        if (layout.shapeless) {
-            return layout.recipe.required.length;
+    private countRequiredSlots(recipe: any): number {
+        if (recipe.shapeless) {
+            return recipe.materials.length;
         }
-        return layout.recipe.filter(Boolean).length;
+        return recipe.layout.filter(Boolean).length;
     }
 
-    private findCommonItem(): string | null {
-        const recipes = this.cacheService.getCachedData('recipe');
+    private findCommonItem(recipes): string | null {
         let foundRecipe: string | null = null;
 
         for (const groupName of shuffleArray(Object.keys(recipes))) {
             if (groupName === this.recipeGroup) continue;
 
             for (const recipe of recipes[groupName]) {
-                for (const mat in this.templateRecipe.materials){
+                for (const mat in this.templateRecipe.materials) {
                     if (this.recipeMatchesTemplate(recipe, mat)) {
                         foundRecipe = recipe.name;
                         break;
@@ -182,7 +179,7 @@ export class Riddle {
         return element === material;
     }
 
-    private selectRandomMaterial(){
+    private selectRandomMaterial() {
         return this.templateRecipe.materials[Math.floor(Math.random() * this.templateRecipe.materials.length)];
     }
 
@@ -191,8 +188,8 @@ export class Riddle {
             items: this.inventory,
             recipes: this.cacheService.getCachedData('recipes'),
             tips: this.tips,
-            hints: this.hints.map((hint, index) => (index * 5 <= this.numberOfGuesses ? hint : null)),
-            hearts: this.gamemode === 7 ? 10 : null,
+            hints: this.hints? this.hints.map((hint, index) => ((index+1) * 5 <= this.numberOfGuesses ? hint : null)) : this.hints,
+            hearts: Number(this.gamemode) === 7 ? 10 : null,
             result: this.solved
         };
     }
