@@ -132,6 +132,7 @@ export class UsersController {
         try {
             console.log("pingelve")
             await this.usersService.updateSettings(settingsId, authorization, updateSettingsData);
+            return { message: "Settings successfully changed" }
         } catch (err) {
             return { message: err.message }
         }
