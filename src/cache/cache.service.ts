@@ -18,7 +18,7 @@ export class CacheService implements OnModuleInit {
         const itemsData = await this.loadJsonFile(itemsFilePath);
 
         this.cache.set('items', itemsData.data);
-    
+
         console.log("JSON sikeresen cachelve");
     }
     
@@ -51,8 +51,8 @@ export class CacheService implements OnModuleInit {
                             row = [];
                         }
                     });
-    
-                    return matrix;
+                    recipe.recipe = matrix;
+                    return recipe;
                 });
             } else {
                 convertedData[group] = data[group];
