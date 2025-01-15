@@ -1,12 +1,12 @@
-import { IRecipe } from "../interfaces/IRecipe";
-
-export class Recipe implements IRecipe {
+export class Recipe {
     name: string;
     id: string;
     shapeless: boolean;
     materials: Array<Array<string>>;
-    optionalMaterials: string[];
-    layout: Array<Array<string[] | null>>;
+    optionalMaterials?: string[];
+    layout?: Array<Array<string[] | null>>;
+    src: string;
+    availableGamemodes: number[];
 
     constructor(data: any) {
         this.name = data.name;
