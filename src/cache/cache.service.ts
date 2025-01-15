@@ -3,6 +3,7 @@ import * as NodeCache from 'node-cache';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from 'src/prisma/prisma.service'; // A PrismaService helyes útvonalát használd
+import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -46,18 +47,7 @@ export class CacheService implements OnModuleInit {
         Object.keys(data).forEach(group => {
             if (!data[group][0].shapeless) {
                 convertedData[group] = data[group].map(recipe => {
-                    let matrix = [];
-                    let row = [];
-
-                    recipe.recipe.forEach((item, index) => {
-                        row.push(item);
-
-                        if ((index + 1) % 3 === 0 || index === recipe.recipe.length - 1) {
-                            matrix.push(row);
-                            row = [];
-                        }
-                    });
-                    recipe.recipe = matrix;
+                    recipe.recipe = createMatrixFromArray(recipe.recipe);
                     return recipe;
                 });
             } else {

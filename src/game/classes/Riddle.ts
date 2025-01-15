@@ -3,6 +3,7 @@ import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ITip } from '../interfaces/ITip';
+import { create } from 'domain';
 
 export class Riddle {
     recipeGroup: string;
@@ -57,6 +58,7 @@ export class Riddle {
     private gatherItems(items, itemIds: Set<string>) {
         let result = [];
         items.forEach(item => {
+            //console.log("ASDASDASDASDASDASD", item)
             if (itemIds.has(item.id)) {
                 result.push(item);
                 itemIds.delete(item.id);
@@ -65,8 +67,17 @@ export class Riddle {
         return result;
     }
 
+    private createSetFromMaterials(materials: Array<Array<string>>): Set<string> {
+        let result: Set<string> = new Set();
+        console.log("AAAAAA ",materials)
+        materials.forEach(material => {
+            result.add(material[Math.floor(Math.random() * material.length)]);
+        });
+        return result;
+    }
+
     private collectMaterialsForGraph(recipes, items) {
-        let graph = new Set(this.templateRecipe.materials);
+        let graph = this.createSetFromMaterials(this.templateRecipe.materials);
         let elementAdded = true;
         while (elementAdded && graph.size < 20) {
             elementAdded = false;
@@ -81,6 +92,7 @@ export class Riddle {
                         graph = tempGraph;
                     }
                 });
+                //console.log("SDASDASDASDASD",graph.size, elementAdded)
             });
         }
         return this.gatherItems(items, graph);

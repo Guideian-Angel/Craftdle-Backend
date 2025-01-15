@@ -4,7 +4,7 @@ export class Recipe implements IRecipe {
     name: string;
     id: string;
     shapeless: boolean;
-    materials: string[];
+    materials: Array<Array<string>>;
     optionalMaterials: string[];
     layout: Array<Array<string[] | null>>;
 
@@ -13,11 +13,11 @@ export class Recipe implements IRecipe {
         this.id = data.id;
         this.shapeless = data.shapeless;
         this.materials = this.collectMaterials(data);
-        this.optionalMaterials = data.shapeless? data.recipe.optional : null;
+        this.optionalMaterials = data.shapeless ? data.recipe.optional : null;
         this.layout = data.recipe || [];
     }
 
-    private collectMaterials(data): string[] {
+    private collectMaterials(data): Array<Array<string>> {
         return data.shapeless? data.recipe.required : data.recipe.flat().filter(Boolean);
     }
 }

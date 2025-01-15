@@ -43,7 +43,7 @@ export class SocketGateway
 
     // Token validáció a UsersService-en keresztül
     const user = this.usersService.getUserByToken(token);
-    console.log(user);
+    //console.log(user);
 
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
@@ -83,13 +83,18 @@ export class SocketGateway
     const game = new Game(riddle, client.id, this.usersService);
 
     // Emit the game object back to the client or handle it as needed
-    console.log(riddle.toJSON());
+    //console.log(riddle.toJSON());
     client.emit('guess', riddle.toJSON());
   }
 
   // Broadcast üzenet küldése minden kliensnek
   broadcastEvent(eventName: string, payload: any) {
     this.server.emit(eventName, payload);
+  }
+
+  @SubscribeMessage('guess')
+  handleGuess(client: Socket, payload: {item: {group: string, id: string}, table: Array<string>}){
+
   }
 
   emitMaintenanceUpdate(maintenance: {

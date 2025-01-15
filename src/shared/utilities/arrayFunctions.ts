@@ -5,3 +5,18 @@ export function shuffleArray(array) {
     };
     return array;
 };
+
+export function createMatrixFromArray(array: Array<Array<string> | string | null>) {
+    let matrix = [];
+    let row = [];
+
+    array.forEach((item, index) => {
+        row.push(item);
+
+        if ((index + 1) % 3 === 0 || index === array.length - 1) {
+            matrix.push(row);
+            row = [];
+        }
+    });
+    return matrix;
+}
