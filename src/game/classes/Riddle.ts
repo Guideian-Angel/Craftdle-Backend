@@ -14,7 +14,7 @@ export class Riddle {
     guessedRecipes: string[] = [];
     tips: ITip[] = [];
     gamemode: number;
-    inventory: IItem[] | null;
+    inventory: IItem[];
     solved: boolean = false;
 
     constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
@@ -40,7 +40,7 @@ export class Riddle {
         const randomGroupKey = this.getRandomItem(validGroups);
         const selectedGroup = recipes[randomGroupKey];
 
-        this.recipe = selectedGroup.map(recipeData => new Recipe(recipeData));
+        this.recipe = selectedGroup;
         this.templateRecipe = this.getRandomItem(this.recipe);
         this.recipeGroup = randomGroupKey;
 
@@ -58,10 +58,9 @@ export class Riddle {
     private gatherItems(items, itemIds: Set<string>) {
         let result = [];
         items.forEach(item => {
-            //console.log("ASDASDASDASDASDASD", item)
-            if (itemIds.has(item.id)) {
+            if (itemIds.has(item.item_id)) {
                 result.push(item);
-                itemIds.delete(item.id);
+                itemIds.delete(item.item_id);
             }
         });
         return result;
@@ -69,7 +68,6 @@ export class Riddle {
 
     private createSetFromMaterials(materials: Array<Array<string>>): Set<string> {
         let result: Set<string> = new Set();
-        console.log("AAAAAA ",materials)
         materials.forEach(material => {
             result.add(material[Math.floor(Math.random() * material.length)]);
         });
@@ -77,55 +75,56 @@ export class Riddle {
     }
 
     private collectMaterialsForGraph(recipes, items) {
-        let graph = this.createSetFromMaterials(this.templateRecipe.materials);
-        let elementAdded = true;
-        while (elementAdded && graph.size < 20) {
-            elementAdded = false;
-            Object.keys(recipes).forEach(group => {
-                recipes[group].forEach(recipe => {
-                    const mats = recipe.shapeless ? recipe.recipe.required : recipe.recipe;
+        let graph = this.createSetFromMaterials(this.templateRecipe.required);
+        while (graph.size < 20) {
+            for (const group of shuffleArray(Object.keys(recipes))) {
+                for (const recipe of recipes[group]) {
+                    const mats = recipe.required;
                     if (this.checkForSameMaterial(graph, mats)) {
                         let tempGraph = this.addMaterialsToSet(graph, mats);
                         if (tempGraph.size > graph.size) {
-                            elementAdded = true;
                         }
                         graph = tempGraph;
                     }
-                });
-                //console.log("SDASDASDASDASD",graph.size, elementAdded)
-            });
+                };
+                if(graph.size >= 20) {
+                    break;
+                }
+            };
         }
+        console.log(graph)
         return this.gatherItems(items, graph);
     }
 
     private checkForSameMaterial(set, mats) {
         return mats.some(mat =>
-            Array.isArray(mat) ? mat.some(element => set.has(element)) : set.has(mat)
+            mat.some(element => set.has(element))
         );
     }
 
-    private addMaterialsToSet(set, mats) {
-        const processedMaterials = this.processMaterials(mats);
+    private addMaterialsToSet(set, materials) {
+        const processedMaterials = this.processMaterials(materials, set);
         processedMaterials.forEach(mat => set.add(mat));
         return set;
     }
 
-    private isValidMaterial(material) {
-        return material !== null && material !== undefined;
-    }
-
-    private processMaterials(materials, callback?) {
+    private processMaterials(materials, set) {
         let result = [];
         materials.forEach(material => {
-            if (this.isValidMaterial(material)) {
-                if (Array.isArray(material)) {
-                    result.push(material[Math.floor(Math.random() * material.length)]);
-                } else {
-                    result.push(material);
-                }
+            if (!this.setAlreadyHasMaterial(set, material)) {
+                result.push(material[Math.floor(Math.random() * material.length)]);
             }
         });
-        return callback ? callback(result) : result;
+        return result;
+    }
+
+    private setAlreadyHasMaterial(set, material) {
+        material.forEach(element => {
+            if(set.has(element)) {
+                return true;
+            }
+        });
+        return false;
     }
 
     private getValidGroups(recipes: Record<string, any>): string[] {
@@ -150,9 +149,9 @@ export class Riddle {
 
     private countRequiredSlots(recipe: any): number {
         if (recipe.shapeless) {
-            return recipe.materials.length;
+            return recipe.required.length;
         }
-        return recipe.layout.filter(Boolean).length;
+        return recipe.recipe.filter(Boolean).length;
     }
 
     private findCommonItem(recipes): string | null {
@@ -162,7 +161,7 @@ export class Riddle {
             if (groupName === this.recipeGroup) continue;
 
             for (const recipe of recipes[groupName]) {
-                for (const mat in this.templateRecipe.materials) {
+                for (const mat in this.templateRecipe.required) {
                     if (this.recipeMatchesTemplate(recipe, mat)) {
                         foundRecipe = recipe.name;
                         break;
@@ -178,7 +177,7 @@ export class Riddle {
 
     private recipeMatchesTemplate(recipe: any, material: string): boolean {
         if (recipe.shapeless) {
-            return recipe.recipe.required.some(element => this.matchesMaterial(element, material));
+            return recipe.required.some(element => this.matchesMaterial(element, material));
         }
 
         return recipe.recipe.some(row => row.some(element => this.matchesMaterial(element, material)));
@@ -192,7 +191,7 @@ export class Riddle {
     }
 
     private selectRandomMaterial() {
-        return this.templateRecipe.materials[Math.floor(Math.random() * this.templateRecipe.materials.length)];
+        return this.templateRecipe.required[Math.floor(Math.random() * this.templateRecipe.required.length)];
     }
 
     toJSON() {

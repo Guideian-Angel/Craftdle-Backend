@@ -1,23 +1,43 @@
+import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
+import { IShapelessRecipeData, IShapedRecipeData } from '../interfaces/IRecipeData';
+
 export class Recipe {
     name: string;
     id: string;
     shapeless: boolean;
-    materials: Array<Array<string>>;
-    optionalMaterials?: string[];
-    layout?: Array<Array<string[] | null>>;
+    required: Array<Array<string>>;
+    optionalMaterials?: string[] | null;
+    recipe?: Array<Array<string[] | null>> | null;
     src: string;
-    availableGamemodes: number[];
+    enabledGamemodes: number[];
 
-    constructor(data: any) {
+    constructor(data: IShapedRecipeData | IShapelessRecipeData) {
         this.name = data.name;
         this.id = data.id;
         this.shapeless = data.shapeless;
-        this.materials = this.collectMaterials(data);
-        this.optionalMaterials = data.shapeless ? data.recipe.optional : null;
-        this.layout = data.recipe || [];
+        this.required = this.collectMaterials(data);
+        this.optionalMaterials = this.isShapelessRecipeData(data) && data.recipe.optional ? data.recipe.optional : null;
+        this.recipe = !data.shapeless ? createMatrixFromArray(data.recipe as Array<Array<string>>) : null;
+        this.src = data.src;
+        this.enabledGamemodes = data.enabledGamemodes;
     }
 
     private collectMaterials(data): Array<Array<string>> {
-        return data.shapeless? data.recipe.required : data.recipe.flat().filter(Boolean);
+        if(data.shapeless) {
+            let materials = [];
+            data.recipe.required.forEach(material => {
+                if(!Array.isArray(material)) {
+                    materials.push([material]);
+                } else{
+                    materials.push(material);
+                }
+            });
+            return materials;
+        }
+        return data.recipe.filter(Boolean);
+    }
+
+    private isShapelessRecipeData(data: IShapelessRecipeData | IShapedRecipeData): data is IShapelessRecipeData {
+        return data.shapeless;
     }
 }

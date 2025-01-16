@@ -2,8 +2,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as NodeCache from 'node-cache';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaService } from 'src/prisma/prisma.service'; // A PrismaService helyes útvonalát használd
-import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Recipe } from 'src/game/classes/Recipe';
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -18,14 +18,8 @@ export class CacheService implements OnModuleInit {
         const convertedRecipes = this.convertRecipe(recipesData.data);
         this.cache.set('recipes', convertedRecipes);
 
-        const itemsFilePath = path.join(__dirname, '../../items.json');
-        const itemsData = await this.loadJsonFile(itemsFilePath);
-
-        this.cache.set('items', itemsData.data);
-
-        // Adatok betöltése adatbázisból
         const itemsFromDb = await this.getItemsFromDatabase();
-        this.cache.set('dbItems', itemsFromDb);
+        this.cache.set('items', itemsFromDb);
 
         console.log('JSON és adatbázis adatok sikeresen cachelve');
     }
@@ -45,14 +39,11 @@ export class CacheService implements OnModuleInit {
         const convertedData = {};
 
         Object.keys(data).forEach(group => {
-            if (!data[group][0].shapeless) {
-                convertedData[group] = data[group].map(recipe => {
-                    recipe.recipe = createMatrixFromArray(recipe.recipe);
-                    return recipe;
-                });
-            } else {
-                convertedData[group] = data[group];
-            }
+            let recipes = [];
+            data[group].forEach(recipeData => {
+                recipes.push(new Recipe(recipeData))
+            })
+            convertedData[group] = recipes;
         });
 
         return convertedData;

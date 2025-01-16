@@ -107,7 +107,6 @@ export class UsersController {
     async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
             const result: ISettings[] = await this.usersService.collectSettings(authorization);
-            console.log(result)
             return { data: result }; // Beállítások sikeres lekérdezése
         } catch (err) {
             return { message: err.message }; // Hiba esetén visszatérünk az üzenettel

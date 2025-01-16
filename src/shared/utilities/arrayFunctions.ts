@@ -6,10 +6,9 @@ export function shuffleArray(array) {
     return array;
 };
 
-export function createMatrixFromArray(array: Array<Array<string> | string | null>) {
+export function createMatrixFromArray(array: Array<Array<string> | null>) {
     let matrix = [];
     let row = [];
-
     array.forEach((item, index) => {
         row.push(item);
 
