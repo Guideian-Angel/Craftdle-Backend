@@ -50,7 +50,16 @@ export class CacheService implements OnModuleInit {
     }
 
     private async getItemsFromDatabase() {
-        return await this.prisma.items.findMany();
+        const items = await this.prisma.items.findMany();
+        let convertedItems = [];
+        for(const item of items) {
+            convertedItems.push({
+                id: item.item_id,
+                name: item.name,
+                src: item.src,
+            });
+        }
+        return convertedItems;
     }
 
     getCachedData(key: string): any {

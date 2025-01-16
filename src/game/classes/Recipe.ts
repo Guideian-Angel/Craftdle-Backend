@@ -40,4 +40,24 @@ export class Recipe {
     private isShapelessRecipeData(data: IShapelessRecipeData | IShapedRecipeData): data is IShapelessRecipeData {
         return data.shapeless;
     }
+
+    private createRecipeObject(){
+        if(this.shapeless){
+            return {
+                required: this.required,
+                optional: this.optionalMaterials
+            }
+        }
+        return this.recipe;
+    }
+
+    toJSON(){
+        return {
+            id: this.id,
+            name: this.name,
+            recipe: this.createRecipeObject(),
+            shapeless: this.shapeless,
+            src: this.src,
+        }
+    }
 }

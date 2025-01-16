@@ -5,6 +5,10 @@ import { IItem } from '../interfaces/IItem';
 import { ITip } from '../interfaces/ITip';
 import { create } from 'domain';
 
+type RecipeData = {
+    [key: string]: Recipe[];
+};
+
 export class Riddle {
     recipeGroup: string;
     recipe: Recipe[];
@@ -194,10 +198,21 @@ export class Riddle {
         return this.templateRecipe.required[Math.floor(Math.random() * this.templateRecipe.required.length)];
     }
 
+    private convertRecipes(data: RecipeData): { [key: string]: any[] } {
+        const transformedData: { [key: string]: any[] } = {};
+        
+        for (const [key, recipes] of Object.entries(data)) {
+            transformedData[key] = recipes.map(recipe => recipe.toJSON());
+        }
+        
+        return transformedData;
+    }
+
     toJSON() {
+        console.log(this.cacheService.getCachedData('recipes'))
         return {
             items: this.inventory,
-            recipes: this.cacheService.getCachedData('recipes'),
+            recipes: this.convertRecipes(this.cacheService.getCachedData('recipes')),
             tips: this.tips,
             hints: this.hints? this.hints.map((hint, index) => ((index+1) * 5 <= this.numberOfGuesses ? hint : null)) : this.hints,
             hearts: Number(this.gamemode) === 7 ? 10 : null,
