@@ -3,7 +3,6 @@ import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ITip } from '../interfaces/ITip';
-import { create } from 'domain';
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -62,9 +61,9 @@ export class Riddle {
     private gatherItems(items, itemIds: Set<string>) {
         let result = [];
         items.forEach(item => {
-            if (itemIds.has(item.item_id)) {
+            if (itemIds.has(item.id)) {
                 result.push(item);
-                itemIds.delete(item.item_id);
+                itemIds.delete(item.id);
             }
         });
         return result;
@@ -82,13 +81,14 @@ export class Riddle {
         let graph = this.createSetFromMaterials(this.templateRecipe.required);
         while (graph.size < 20) {
             for (const group of shuffleArray(Object.keys(recipes))) {
-                for (const recipe of recipes[group]) {
+                for (const recipe of shuffleArray(recipes[group])) {
                     const mats = recipe.required;
                     if (this.checkForSameMaterial(graph, mats)) {
                         let tempGraph = this.addMaterialsToSet(graph, mats);
                         if (tempGraph.size > graph.size) {
+                            graph = tempGraph;
                         }
-                        graph = tempGraph;
+                        break;
                     }
                 };
                 if(graph.size >= 20) {
@@ -96,7 +96,6 @@ export class Riddle {
                 }
             };
         }
-        console.log(graph)
         return this.gatherItems(items, graph);
     }
 
@@ -209,7 +208,6 @@ export class Riddle {
     }
 
     toJSON() {
-        console.log(this.cacheService.getCachedData('recipes'))
         return {
             items: this.inventory,
             recipes: this.convertRecipes(this.cacheService.getCachedData('recipes')),

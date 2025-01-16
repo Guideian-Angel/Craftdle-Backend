@@ -83,7 +83,6 @@ export class SocketGateway
     const game = new Game(riddle, client.id, this.usersService);
 
     // Emit the game object back to the client or handle it as needed
-    console.log(riddle.toJSON().items);
     client.emit('guess', riddle.toJSON());
   }
 

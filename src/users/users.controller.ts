@@ -78,7 +78,7 @@ export class UsersController {
     }
 
     /**
-     * Kijelentkezési végpont, amely Basic Auth stílusú `username:token` alapján validálja a felhasználót.
+     * Kijelentkezési végpont, amely Basic Auth `username:token` alapján validálja a felhasználót.
      * A valid tokennel rendelkező felhasználók tokenje törlésre kerül az adatbázisból.
      * A felhasználó adatai megmaradnak statisztikai célok miatt.
      * @param authHeader - Az `authorization` fejléc tartalma.
