@@ -1,5 +1,6 @@
 import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 import { IShapelessRecipeData, IShapedRecipeData } from '../interfaces/IRecipeData';
+import { RecipeFunctions } from './RecipeFunctions';
 
 export class Recipe {
     name: string;
@@ -15,30 +16,15 @@ export class Recipe {
         this.name = data.name;
         this.id = data.id;
         this.shapeless = data.shapeless;
-        this.required = this.collectMaterials(data);
-        this.optionalMaterials = this.isShapelessRecipeData(data) && data.recipe.optional ? data.recipe.optional : null;
+        this.required = RecipeFunctions.collectMaterials(data);
+        this.optionalMaterials = RecipeFunctions.isShapelessRecipeData(data) && data.recipe.optional ? data.recipe.optional : null;
         this.recipe = !data.shapeless ? createMatrixFromArray(data.recipe as Array<Array<string>>) : null;
+        if(this.name.includes("Iron Axe") && !this.shapeless){
+            console.log("ALAP: ", this.recipe)
+            RecipeFunctions.trimMatrix(this.recipe);
+        }
         this.src = data.src;
         this.enabledGamemodes = data.enabledGamemodes;
-    }
-
-    private collectMaterials(data): Array<Array<string>> {
-        if(data.shapeless) {
-            let materials = [];
-            data.recipe.required.forEach(material => {
-                if(!Array.isArray(material)) {
-                    materials.push([material]);
-                } else{
-                    materials.push(material);
-                }
-            });
-            return materials;
-        }
-        return data.recipe.filter(Boolean);
-    }
-
-    private isShapelessRecipeData(data: IShapelessRecipeData | IShapedRecipeData): data is IShapelessRecipeData {
-        return data.shapeless;
     }
 
     private createRecipeObject(){

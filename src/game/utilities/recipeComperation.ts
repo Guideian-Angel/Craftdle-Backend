@@ -1,3 +1,0 @@
-// function validateRecipe(recipe: IRecipe){
-    
-// }
