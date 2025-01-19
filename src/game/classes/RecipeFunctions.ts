@@ -105,30 +105,42 @@ export class RecipeFunctions {
             }
         }
     
-        // Tükrözött mátrixok generálása
-        const mirroredMatrices = matrices.map(matrix =>
-            matrix.map(row => [...row].reverse())
-        );
+        // Szimmetria ellenőrzése és tükrözött mátrixok generálása
+        const mirroredMatrices = matrices
+            .filter(matrix => !RecipeFunctions.isVerticallySymmetric(matrix)) // Csak nem szimmetrikus mátrixok tükrözése
+            .map(matrix => matrix.map(row => [...row].reverse()));
     
         // Eredeti és tükrözött mátrixok összefűzése
         const result = [...matrices, ...mirroredMatrices];
-        console.log("EREDMÉNY: ", result)
-
+        console.log("EREDMÉNY: ", result);
+    
         return result;
     }
     
+    // Új szimmetriaellenőrzés
+    static isVerticallySymmetric(matrix) {
+        for (let i = 0; i < matrix.length; i++) {
+            const row = matrix[i];
+            const reversedRow = [...row].reverse();
+            if (!RecipeFunctions.arraysEqual(row, reversedRow)) {
+                return false; // Ha bármelyik sor nem szimmetrikus, az egész mátrix nem szimmetrikus
+            }
+        }
+
+        return true; // Ha minden sor és oszlop szimmetrikus, a mátrix is az
+    }
+    
+    // Segédfüggvény két tömb összehasonlítására
+    static arraysEqual(arr1, arr2) {
+        if (arr1.length !== arr2.length) return false;
+        for (let i = 0; i < arr1.length; i++) {
+            if(arr1[i] && arr2[i]){
+            } else if(arr1[i] !== arr2[i]) return false;
+        }
+        return true;
+    }
     
     
-    
-    
-
-
-
-
-
-
-
-
 
     // static compareShapedRecipes(tip: Array<Array<Array<string>> | null>, baseRecipe: Recipe): Boolean{
 
