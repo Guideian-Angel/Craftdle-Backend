@@ -142,6 +142,7 @@ function convertDictToValidArray(dict) {
 
 function convertCellsToList(recipe) {
     let result = [];
+    console.log(recipe)
     recipe.forEach(element => {
         let cell = element && !Array.isArray(element) ? [element] : element;
         result.push(cell);
@@ -162,8 +163,8 @@ function analyzeRecipes(data) {
 function convertEveryRecipeToArray(data) {
     Object.keys(data).forEach(group => {
         data[group].forEach(recipe => {
-            if(!data[group][0].shapeless){
-                if(!Array.isArray(data[group][0].recipe)){
+            if(!recipe.shapeless){
+                if(!Array.isArray(recipe.recipe)){
                     recipe.recipe = convertDictToValidArray(recipe.recipe);
                 };
                 recipe.recipe = convertCellsToList(recipe.recipe);
@@ -175,7 +176,7 @@ function convertEveryRecipeToArray(data) {
 }
 
 async function main() {
-    const filePath = "./newRecipes.json";
+    const filePath = "./recipes.json";
     let recipes = await fetchJSONFile(filePath);
     recipes = convertEveryRecipeToArray(recipes.data);
     const analyzedData = analyzeRecipes(recipes);

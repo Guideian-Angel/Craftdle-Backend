@@ -3,6 +3,11 @@ import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ITip } from '../interfaces/ITip';
+import { ICheckedTip } from '../interfaces/ICheckedTip';
+
+type RecipeData = {
+    [key: string]: Recipe[];
+};
 
 export class Riddle {
     recipeGroup: string;
@@ -11,9 +16,9 @@ export class Riddle {
     hints: string[] | null = null;
     numberOfGuesses: number = 0;
     guessedRecipes: string[] = [];
-    tips: ITip[] = [];
+    tips: ICheckedTip[] = [];
     gamemode: number;
-    inventory: IItem[] | null;
+    inventory: IItem[];
     solved: boolean = false;
 
     constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
@@ -35,12 +40,18 @@ export class Riddle {
         if (validGroups.length === 0) {
             throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
         }
-
-        const randomGroupKey = this.getRandomItem(validGroups);
+        let randomGroupKey;
+        while(true){
+            randomGroupKey = this.getRandomItem(validGroups);
+            if(recipes[randomGroupKey][0].shapeless){
+                break;
+            }
+        }
         const selectedGroup = recipes[randomGroupKey];
 
-        this.recipe = selectedGroup.map(recipeData => new Recipe(recipeData));
+        this.recipe = selectedGroup;
         this.templateRecipe = this.getRandomItem(this.recipe);
+        console.log("Riddle: ", this.templateRecipe)
         this.recipeGroup = randomGroupKey;
 
         if (Number(this.gamemode) === 6) {
@@ -65,55 +76,65 @@ export class Riddle {
         return result;
     }
 
+    private createSetFromMaterials(materials: Array<Array<string>>): Set<string> {
+        let result: Set<string> = new Set();
+        materials.forEach(material => {
+            result.add(material[Math.floor(Math.random() * material.length)]);
+        });
+        return result;
+    }
+
     private collectMaterialsForGraph(recipes, items) {
-        let graph = new Set(this.templateRecipe.materials);
-        let elementAdded = true;
-        while (elementAdded && graph.size < 20) {
-            elementAdded = false;
-            Object.keys(recipes).forEach(group => {
-                recipes[group].forEach(recipe => {
-                    const mats = recipe.shapeless ? recipe.recipe.required : recipe.recipe;
+        let graph = this.createSetFromMaterials(this.templateRecipe.required);
+        while (graph.size < 20) {
+            for (const group of shuffleArray(Object.keys(recipes))) {
+                for (const recipe of shuffleArray(recipes[group])) {
+                    const mats = recipe.required;
                     if (this.checkForSameMaterial(graph, mats)) {
                         let tempGraph = this.addMaterialsToSet(graph, mats);
                         if (tempGraph.size > graph.size) {
-                            elementAdded = true;
+                            graph = tempGraph;
                         }
-                        graph = tempGraph;
+                        break;
                     }
-                });
-            });
+                };
+                if(graph.size >= 20) {
+                    break;
+                }
+            };
         }
         return this.gatherItems(items, graph);
     }
 
     private checkForSameMaterial(set, mats) {
         return mats.some(mat =>
-            Array.isArray(mat) ? mat.some(element => set.has(element)) : set.has(mat)
+            mat.some(element => set.has(element))
         );
     }
 
-    private addMaterialsToSet(set, mats) {
-        const processedMaterials = this.processMaterials(mats);
+    private addMaterialsToSet(set, materials) {
+        const processedMaterials = this.processMaterials(materials, set);
         processedMaterials.forEach(mat => set.add(mat));
         return set;
     }
 
-    private isValidMaterial(material) {
-        return material !== null && material !== undefined;
-    }
-
-    private processMaterials(materials, callback?) {
+    private processMaterials(materials, set) {
         let result = [];
         materials.forEach(material => {
-            if (this.isValidMaterial(material)) {
-                if (Array.isArray(material)) {
-                    result.push(material[Math.floor(Math.random() * material.length)]);
-                } else {
-                    result.push(material);
-                }
+            if (!this.setAlreadyHasMaterial(set, material)) {
+                result.push(material[Math.floor(Math.random() * material.length)]);
             }
         });
-        return callback ? callback(result) : result;
+        return result;
+    }
+
+    private setAlreadyHasMaterial(set, material) {
+        material.forEach(element => {
+            if(set.has(element)) {
+                return true;
+            }
+        });
+        return false;
     }
 
     private getValidGroups(recipes: Record<string, any>): string[] {
@@ -138,9 +159,9 @@ export class Riddle {
 
     private countRequiredSlots(recipe: any): number {
         if (recipe.shapeless) {
-            return recipe.materials.length;
+            return recipe.required.length;
         }
-        return recipe.layout.filter(Boolean).length;
+        return recipe.recipe.filter(Boolean).length;
     }
 
     private findCommonItem(recipes): string | null {
@@ -150,7 +171,7 @@ export class Riddle {
             if (groupName === this.recipeGroup) continue;
 
             for (const recipe of recipes[groupName]) {
-                for (const mat in this.templateRecipe.materials) {
+                for (const mat in this.templateRecipe.required) {
                     if (this.recipeMatchesTemplate(recipe, mat)) {
                         foundRecipe = recipe.name;
                         break;
@@ -166,7 +187,7 @@ export class Riddle {
 
     private recipeMatchesTemplate(recipe: any, material: string): boolean {
         if (recipe.shapeless) {
-            return recipe.recipe.required.some(element => this.matchesMaterial(element, material));
+            return recipe.required.some(element => this.matchesMaterial(element, material));
         }
 
         return recipe.recipe.some(row => row.some(element => this.matchesMaterial(element, material)));
@@ -180,13 +201,23 @@ export class Riddle {
     }
 
     private selectRandomMaterial() {
-        return this.templateRecipe.materials[Math.floor(Math.random() * this.templateRecipe.materials.length)];
+        return this.templateRecipe.required[Math.floor(Math.random() * this.templateRecipe.required.length)];
+    }
+
+    private convertRecipes(data: RecipeData): { [key: string]: any[] } {
+        const transformedData: { [key: string]: any[] } = {};
+        
+        for (const [key, recipes] of Object.entries(data)) {
+            transformedData[key] = recipes.map(recipe => recipe.toJSON());
+        }
+        
+        return transformedData;
     }
 
     toJSON() {
         return {
             items: this.inventory,
-            recipes: this.cacheService.getCachedData('recipes'),
+            recipes: this.convertRecipes(this.cacheService.getCachedData('recipes')),
             tips: this.tips,
             hints: this.hints? this.hints.map((hint, index) => ((index+1) * 5 <= this.numberOfGuesses ? hint : null)) : this.hints,
             hearts: Number(this.gamemode) === 7 ? 10 : null,

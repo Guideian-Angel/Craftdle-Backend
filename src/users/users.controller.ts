@@ -78,7 +78,7 @@ export class UsersController {
     }
 
     /**
-     * Kijelentkezési végpont, amely Basic Auth stílusú `username:token` alapján validálja a felhasználót.
+     * Kijelentkezési végpont, amely Basic Auth `username:token` alapján validálja a felhasználót.
      * A valid tokennel rendelkező felhasználók tokenje törlésre kerül az adatbázisból.
      * A felhasználó adatai megmaradnak statisztikai célok miatt.
      * @param authHeader - Az `authorization` fejléc tartalma.
@@ -107,7 +107,6 @@ export class UsersController {
     async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
             const result: ISettings[] = await this.usersService.collectSettings(authorization);
-            console.log(result)
             return { data: result }; // Beállítások sikeres lekérdezése
         } catch (err) {
             return { message: err.message }; // Hiba esetén visszatérünk az üzenettel

@@ -39,9 +39,9 @@ export class UsersService {
         try {
             await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
             UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
-            console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
+            //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
-            console.error("Hiba a createNewUser-ben:", error);
+            //console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
         }
     };
@@ -77,7 +77,7 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserByToken(token: string): User | undefined {
-        console.log("MAP TARTALMA (getUserByToken): ", UsersService.tokenToUser);
+        //console.log("MAP TARTALMA (getUserByToken): ", UsersService.tokenToUser);
         return UsersService.tokenToUser.get(token);
     }
 
@@ -135,7 +135,7 @@ export class UsersService {
         const newGuest = await createAccount(this.prisma);
 
         // Token párosítása a felhasználóhoz, átmeneti státusszal
-        console.log(newGuest)
+        //console.log(newGuest)
         await this.createNewUser(newGuest, true);
 
         // Id eltávolítása a válaszból
