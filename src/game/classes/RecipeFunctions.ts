@@ -69,7 +69,7 @@ export class RecipeFunctions {
             }
         }
 
-        console.log("TRIMMELT CUCC: ",matrix)
+        console.log("TRIMMELT CUCC: ", matrix)
 
         RecipeFunctions.generateMatrices(matrix)
 
@@ -78,16 +78,16 @@ export class RecipeFunctions {
 
     static generateMatrices(recipe) {
         let matrices = [];
-    
+
         // Iterálás minden lehetséges pozícióra a 3x3-as mátrixban
         for (let i = 0; i <= 3 - recipe.length; i++) { // Sor eltolása
             for (let j = 0; j <= 3 - recipe[0].length; j++) { // Oszlop eltolása
                 let matrix = [];
-    
+
                 // Mátrix kitöltése
                 for (let k = 0; k < 3; k++) {
                     let row = [];
-    
+
                     if (k < i || k >= i + recipe.length) {
                         // Ha a sor nem tartozik a recepthez, üres sor (3 darab null)
                         row = [null, null, null];
@@ -97,26 +97,26 @@ export class RecipeFunctions {
                         row.push(...recipe[k - i]); // Recept tartalma
                         for (let l = 0; l < 3 - j - recipe[0].length; l++) row.push(null); // Jobb oldali nullok
                     }
-    
+
                     matrix.push(row);
                 }
-    
+
                 matrices.push(matrix);
             }
         }
-    
+
         // Szimmetria ellenőrzése és tükrözött mátrixok generálása
         const mirroredMatrices = matrices
             .filter(matrix => !RecipeFunctions.isVerticallySymmetric(matrix)) // Csak nem szimmetrikus mátrixok tükrözése
             .map(matrix => matrix.map(row => [...row].reverse()));
-    
+
         // Eredeti és tükrözött mátrixok összefűzése
         const result = [...matrices, ...mirroredMatrices];
         console.log("EREDMÉNY: ", result);
-    
+
         return result;
     }
-    
+
     // Új szimmetriaellenőrzés
     static isVerticallySymmetric(matrix) {
         for (let i = 0; i < matrix.length; i++) {
@@ -129,22 +129,55 @@ export class RecipeFunctions {
 
         return true; // Ha minden sor és oszlop szimmetrikus, a mátrix is az
     }
-    
+
     // Segédfüggvény két tömb összehasonlítására
     static arraysEqual(arr1, arr2) {
         if (arr1.length !== arr2.length) return false;
         for (let i = 0; i < arr1.length; i++) {
-            if(arr1[i] && arr2[i]){
-            } else if(arr1[i] !== arr2[i]) return false;
+            if (arr1[i] && arr2[i]) {
+            } else if (arr1[i] !== arr2[i]) return false;
         }
         return true;
     }
-    
-    
 
-    // static compareShapedRecipes(tip: Array<Array<Array<string>> | null>, baseRecipe: Recipe): Boolean{
 
-    // }
+
+    static compareShapedRecipes(tip: Array<Array<Array<string>> | null>, riddle: Recipe) {
+        let result = [];
+        let correctCount = 0;
+
+        // Iterálás a mátrix celláin
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                const tipCell = tip[i][j];
+                const riddleCell = riddle[i][j];
+
+                if (tipCell === null) {
+                    // Ha a tipp cellája null, akkor az eredmény is null
+                    result.push(null);
+                } else if (Array.isArray(tipCell) && tipCell.length === 1) {
+                    // Ellenőrizzük, hogy a tippben szereplő elem helyes-e
+                    const tipItem = tipCell[0];
+                    const isCorrect = Array.isArray(riddleCell) && riddleCell.includes(tipItem);
+
+                    // Ha helyes az item, növeljük a correctCount-ot
+                    if (isCorrect) {
+                        correctCount++;
+                    }
+
+                    result.push({
+                        item: tipItem,
+                        status: isCorrect ? "correct" : null
+                    });
+                } else {
+                    // Ha a tipp cellája nem megfelelő formátumú, null-t adunk hozzá az eredményhez
+                    result.push(null);
+                }
+            }
+        }
+
+        return { result, correctCount };
+    }
 
     // static compareShapelessRecipes(tip: Array<Array<Array<string>> | null>, baseRecipe: Recipe): Boolean{
     //     if
