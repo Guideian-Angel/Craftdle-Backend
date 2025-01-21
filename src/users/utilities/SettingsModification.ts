@@ -85,7 +85,7 @@ async function updateControls(settingsId: number, settingsData: UpdateSettingsDt
  * @param {PrismaService} prisma - A Prisma ORM példánya az adatbázis műveletekhez.
  */
 function updateTableMappings(updatedControlsId: number, settingsData: UpdateSettingsDto, prisma: PrismaService) {
-    settingsData.controls.tableMapping.map((hotKey, index) =>
+    settingsData.controls.tableMapping.map(async (hotKey, index) =>
         prisma.table_mappings.updateMany({
             where: {
                 control: updatedControlsId,
