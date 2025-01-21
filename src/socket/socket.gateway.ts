@@ -12,6 +12,9 @@ import { Game } from 'src/game/classes/Game';
 import { Riddle } from 'src/game/classes/Riddle';
 import { CacheService } from 'src/cache/cache.service';
 import { AdminService } from 'src/admin/admin.service';
+import { RecipeFunctions } from 'src/game/classes/RecipeFunctions';
+import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
+import { ITip } from 'src/game/interfaces/ITip';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -21,16 +24,29 @@ export class SocketGateway
   private server: Server;
   private reporter: NodeJS.Timeout | null = null;
 
+  private static gameToClient: Map<string, Game> = new Map();
+
   constructor(
     private readonly usersService: UsersService,
     @Inject(forwardRef(() => AdminService)) private readonly adminService: AdminService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) { }
 
   afterInit(server: Server) {
     this.server = server;
     this.logger.log('Socket Gateway initialized!');
   }
+
+  /**
+ * Eltávolítja a gamet a socket ID alapján.
+ * @param socketId - A socket ID.
+ */
+  removeUserBySocketId(socketId: string): void {
+    const game = SocketGateway.gameToClient.get(socketId);
+    if (game) {
+      SocketGateway.gameToClient.delete(socketId);
+    };
+  };
 
   // Kliens csatlakozása
   async handleConnection(client: Socket) {
@@ -81,6 +97,7 @@ export class SocketGateway
   handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }): void {
     const riddle = new Riddle(payload.newGame, payload.gamemode, this.cacheService);
     const game = new Game(riddle, client.id, this.usersService);
+    SocketGateway.gameToClient.set(client.id, game);
 
     // Emit the game object back to the client or handle it as needed
     //console.log(riddle.toJSON());
@@ -93,7 +110,21 @@ export class SocketGateway
   }
 
   @SubscribeMessage('guess')
-  handleGuess(client: Socket, payload: {item: {group: string, id: string}, table: Array<string>}){
+  handleGuess(client: Socket, payload: ITip) {
+    const game = SocketGateway.gameToClient.get(client.id);
+    if (game || !game.riddle.guessedRecipes.includes(payload.item.id)) {
+      const tippedMatrix = createMatrixFromArray(payload.table);
+      if (RecipeFunctions.validateRecipe(tippedMatrix, payload.item, this.cacheService)) {
+        game.riddle.guessedRecipes.push(payload.item.id);
+        game.riddle.numberOfGuesses++;
+        const result = RecipeFunctions.compareTipWithRiddle(tippedMatrix, game.riddle);
+        game.riddle.tips.push(result.result);
+        if(result.solved){
+          //save game to database
+        }
+        client.emit('guess', game.riddle.toJSON());
+      }
+    }
 
   }
 
