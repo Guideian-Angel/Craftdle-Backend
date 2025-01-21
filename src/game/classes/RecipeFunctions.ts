@@ -29,17 +29,21 @@ export class RecipeFunctions {
         return data.shapeless;
     }
 
-    static validateRecipe(tip: Array<Array<Array<string>> | null>, itemData: { group: string, id: string }, cacheService: CacheService): Boolean {
-        const baseRecipe = this.getRecipeById(itemData.id, itemData.group, cacheService);
-        return baseRecipe.shapeless ? this.compareShapelessRecipes(tip, baseRecipe).solved : this.compareShapedRecipes(tip, baseRecipe, 3).solved;
+    static validateRecipe(tip: Array<Array<Array<string>> | null>, baseRecipe: Recipe): Boolean {
+        return baseRecipe.shapeless? !!this.compareShapelessRecipes(tip, baseRecipe) : this.arraysEqual(mergeMatrixRows(tip).filter(Boolean), mergeMatrixRows(baseRecipe.recipe).filter(Boolean))
     }
 
     static getRecipeById(group: string, id: string, cacheService: CacheService): Recipe {
+        let result;
         cacheService.getCachedData('recipes')[group].forEach((recipe: Recipe) => {
+            console.log(recipe.id, id)
             if (recipe.id == id) {
-                return recipe;
+                result = recipe;
             }
         });
+        if (result) {
+            return result;
+        }
         throw new Error('Invalid recipe error: Not found');
     }
 
@@ -77,27 +81,32 @@ export class RecipeFunctions {
         return matrix;
     }
 
-    // Generálja a mátrixokat egy adott grid mérethez
     static generateMatrices(recipe: (any[] | null)[][], gridSize: number): (any[] | null)[][][] {
         let matrices = [];
 
-        // Iterálás minden lehetséges pozícióra a gridSize x gridSize mátrixban
+        // 1. Recept validálása és hiányzó sorok kitöltése nullokkal
+        recipe = recipe.map(row => row || Array(recipe[0]?.length || gridSize).fill(null));
+
+        // 2. Iterálás minden lehetséges pozícióra a gridSize x gridSize mátrixban
         for (let i = 0; i <= gridSize - recipe.length; i++) { // Sor eltolása
             for (let j = 0; j <= gridSize - recipe[0].length; j++) { // Oszlop eltolása
                 let matrix = [];
 
-                // Mátrix kitöltése
+                // 3. Mátrix kitöltése
                 for (let k = 0; k < gridSize; k++) {
                     let row = [];
 
                     if (k < i || k >= i + recipe.length) {
-                        // Ha a sor nem tartozik a recepthez, üres sor (gridSize darab null)
+                        // Sor kívül esik a recept hatókörén -> csak nullok
                         row = Array(gridSize).fill(null);
                     } else {
                         // Recept sorok kitöltése
-                        for (let l = 0; l < j; l++) row.push(null); // Bal oldali nullok
-                        row.push(...recipe[k - i]); // Recept tartalma
-                        for (let l = 0; l < gridSize - j - recipe[0].length; l++) row.push(null); // Jobb oldali nullok
+                        const recipeRow = recipe[k - i];
+                        row = [
+                            ...Array(j).fill(null),            // Bal oldali nullok
+                            ...recipeRow,                     // Recept tartalma
+                            ...Array(gridSize - j - recipeRow.length).fill(null) // Jobb oldali nullok
+                        ];
                     }
 
                     matrix.push(row);
@@ -107,16 +116,13 @@ export class RecipeFunctions {
             }
         }
 
-        // Szimmetria ellenőrzése és tükrözött mátrixok generálása
+        // 4. Szimmetria ellenőrzése és tükrözött mátrixok generálása
         const mirroredMatrices = matrices
             .filter(matrix => !this.isVerticallySymmetric(matrix)) // Csak nem szimmetrikus mátrixok tükrözése
             .map(matrix => matrix.map(row => [...row].reverse()));
 
-        // Eredeti és tükrözött mátrixok összefűzése
-        const result = [...matrices, ...mirroredMatrices];
-        console.log("EREDMÉNY: ", result);
-
-        return result;
+        // 5. Eredeti és tükrözött mátrixok összefűzése
+        return [...matrices, ...mirroredMatrices];
     }
 
     // Új szimmetriaellenőrzés
@@ -143,56 +149,87 @@ export class RecipeFunctions {
     }
 
     static compareTipWithRiddle(tip: Array<Array<Array<string> | null>>, riddle: Riddle) {
-        const trimmedTip = this.trimMatrix(tip);
-        const matrices = this.generateMatrices(trimmedTip, riddle.gamemode == 5? 2 : 3);
-        let result = riddle.templateRecipe.shapeless ? this.compareShapelessRecipes(matrices[0], riddle.templateRecipe): this.compareShapedRecipes(matrices[0], riddle.templateRecipe, riddle.gamemode == 5? 2 : 3);
-        for(let i = 1; i < matrices.length; i++) {
-            const tempResult = riddle.templateRecipe.shapeless ? this.compareShapelessRecipes(matrices[0], riddle.templateRecipe): this.compareShapedRecipes(matrices[0], riddle.templateRecipe, riddle.gamemode == 5? 2 : 3);
-            if(tempResult.matches > result.matches) {
-                result = tempResult;
+        let result;
+        if(riddle.templateRecipe.shapeless){
+            result = this.compareShapelessRecipes(tip, riddle.templateRecipe)
+        } else{
+            const trimmedRiddle = this.trimMatrix(riddle.templateRecipe.recipe);
+            const matrices = this.generateMatrices(trimmedRiddle, riddle.gamemode == 5 ? 2 : 3);
+            for(const recipe of riddle.recipe){
+                result = this.compareShapedRecipes(matrices[0], recipe, tip, riddle.gamemode == 5 ? 2 : 3);
+                for (let i = 1; i < matrices.length; i++) {
+                    const tempResult = this.compareShapedRecipes(matrices[0], recipe, tip, riddle.gamemode == 5 ? 2 : 3);
+                    if (tempResult.matches > result.matches) {
+                        result = tempResult;
+                    }
+                }
             }
         }
         return result;
     }
 
-    static compareShapedRecipes(tip: Array<Array<Array<string> | null>>, riddle: Recipe, gridSize: number): IMatrixCompareResponse {
+    static compareShapedRecipes(recipe: Array<Array<Array<string> | null>>, riddle: Recipe, tip: Array<Array<Array<string> | null>>, gridSize: number): IMatrixCompareResponse {
         let result = [];
         let correctCount = 0;
-        let materials = riddle
+        let materials = [...riddle.required]
 
         // Iterálás a mátrix celláin
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
+                console.log("riddle: ", riddle.recipe, "tipCell: ", tip)
                 const tipCell = tip[i][j];
-                const riddleCell = riddle[i][j];
+                const riddleCell = recipe[i][j];
 
                 if (tipCell === null) {
                     // Ha a tipp cellája null, akkor az eredmény is null
                     result.push(null);
                 } else {
                     // Ellenőrzés, hogy a tipp cella megegyezik-e a riddle cellával
-                    if (riddleCell.includes(tipCell[0])) {
+                    if (riddleCell && riddleCell.includes(tipCell[0])) {
                         // Ha megegyezik, akkor a tipp helyes
-                        result.push({ item: tipCell, status: "correct" });
+                        result.push({ item: tipCell[0], status: "correct" });
                         correctCount++;
+                        materials = this.removeMaterial(materials, tipCell[0])
                     } else {
                         // Ha nem egyezik meg, akkor a tipp helytelen
-                        result.push({ item: tipCell, status: "wrong" });
+                        result.push({ item: tipCell[0], status: "wait" });
                     }
                 }
             }
         }
 
+        result.forEach(element => {
+            if (element && element.status == "wait") {
+                const lengthBeforeCompare = materials.length;
+                materials = this.removeMaterial(materials, element.item)
+                if (materials.length < lengthBeforeCompare) {
+                    element.status = "semi-correct";
+                } else {
+                    element.status = "wrong";
+                }
+            }
+        })
+
         const solved = correctCount == riddle.required.length && correctCount == mergeMatrixRows(tip).filter(Boolean).length
 
-        return {result: result, matches: correctCount, solved: solved };
+        return { result: result, matches: correctCount, solved: solved };
+    }
+
+    static removeMaterial(materials: Array<Array<string>>, toRemove: string) {
+        for (let i = 0; i < materials.length; i++) {
+            if (materials[i].includes(toRemove)) {
+                materials.splice(i, 1);
+                break;
+            }
+        }
+        return materials;
     }
 
     static compareShapelessRecipes(tip: Array<Array<Array<string> | null>>, baseRecipe: Recipe): IMatrixCompareResponse {
         let result = [];
         let correctCount = 0;
         let reqMats = baseRecipe.required.filter(Boolean);
-        let optMats = [...baseRecipe.optionalMaterials];
+        let optMats = [...baseRecipe.optionalMaterials ?? []];
         let wrongMat = false;
 
         tip.flat().forEach(item => {

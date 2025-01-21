@@ -3,6 +3,7 @@ import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ITip } from '../interfaces/ITip';
+import { ICheckedTip } from '../interfaces/ICheckedTip';
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -15,7 +16,7 @@ export class Riddle {
     hints: string[] | null = null;
     numberOfGuesses: number = 0;
     guessedRecipes: string[] = [];
-    tips: ITip[] = [];
+    tips: ICheckedTip[] = [];
     gamemode: number;
     inventory: IItem[];
     solved: boolean = false;
@@ -39,12 +40,18 @@ export class Riddle {
         if (validGroups.length === 0) {
             throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
         }
-
-        const randomGroupKey = this.getRandomItem(validGroups);
+        let randomGroupKey;
+        while(true){
+            randomGroupKey = this.getRandomItem(validGroups);
+            if(recipes[randomGroupKey][0].shapeless){
+                break;
+            }
+        }
         const selectedGroup = recipes[randomGroupKey];
 
         this.recipe = selectedGroup;
         this.templateRecipe = this.getRandomItem(this.recipe);
+        console.log("Riddle: ", this.templateRecipe)
         this.recipeGroup = randomGroupKey;
 
         if (Number(this.gamemode) === 6) {

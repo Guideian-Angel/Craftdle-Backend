@@ -19,10 +19,6 @@ export class Recipe {
         this.required = RecipeFunctions.collectMaterials(data);
         this.optionalMaterials = RecipeFunctions.isShapelessRecipeData(data) && data.recipe.optional ? data.recipe.optional : null;
         this.recipe = !data.shapeless ? createMatrixFromArray(data.recipe as Array<Array<string>>) : null;
-        if(this.name.includes("Oak Slab") && !this.shapeless){
-            console.log("ALAP: ", this.recipe)
-            RecipeFunctions.trimMatrix(this.recipe);
-        }
         this.src = data.src;
         this.enabledGamemodes = data.enabledGamemodes;
     }

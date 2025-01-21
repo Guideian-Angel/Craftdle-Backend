@@ -2,6 +2,6 @@ import { IItem } from "./IItem";
 
 export interface IMatrixCompareResponse {
     solved: boolean;
-    result: Array<{item: IItem, status: string} | null>;
+    result: Array<{item: string, status: string} | null>;
     matches: number;
 }

@@ -112,14 +112,16 @@ export class SocketGateway
   @SubscribeMessage('guess')
   handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
-    if (game || !game.riddle.guessedRecipes.includes(payload.item.id)) {
+    if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
-      if (RecipeFunctions.validateRecipe(tippedMatrix, payload.item, this.cacheService)) {
+      const baseRecipe = RecipeFunctions.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
+      if (RecipeFunctions.validateRecipe(tippedMatrix, baseRecipe)) {
         game.riddle.guessedRecipes.push(payload.item.id);
         game.riddle.numberOfGuesses++;
         const result = RecipeFunctions.compareTipWithRiddle(tippedMatrix, game.riddle);
-        game.riddle.tips.push(result.result);
+        game.riddle.tips.push({item: {id: baseRecipe.id, name: baseRecipe.name, src: baseRecipe.src}, table: result.result});
         if(result.solved){
+          game.riddle.solved = true
           //save game to database
         }
         client.emit('guess', game.riddle.toJSON());
