@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2024. Nov 27. 15:05
+-- Létrehozás ideje: 2025. Jan 22. 10:32
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -120,7 +120,8 @@ INSERT INTO `achievements` (`id`, `title`, `description`, `icon`, `goal`, `is_se
 CREATE TABLE `admin_rights` (
   `admin` int(11) NOT NULL,
   `is_super` tinyint(1) NOT NULL,
-  `delete_users` tinyint(1) NOT NULL
+  `delete_users` tinyint(1) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1066,7 +1067,8 @@ CREATE TABLE `crafting_table_slots` (
   `tip` int(11) NOT NULL,
   `position` int(11) NOT NULL,
   `content` varchar(255) NOT NULL,
-  `status` int(11) NOT NULL
+  `status` int(11) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1117,7 +1119,7 @@ INSERT INTO `gamemodes` (`id`, `icon`, `name`, `description`, `difficulty`) VALU
 (4, 'All_in_One.png', 'All in One', 'In this mode, you can receive any recipe as a riddle. Four different hints are available to help you solve it.', 4),
 (5, 'Pocket.png', 'Pocket', 'Similar to All in One, but you must work with a 2x2 crafting table to solve the riddles.', 3),
 (6, 'Resource.png', 'Resource', 'Similar to Classic, but with a limited supply of materials.', 2),
-(7, 'Harcore.png', 'Hardcore', 'Similar to Classic, but no hints are available, and the game is played with health points.', 5);
+(7, 'Hardcore.png', 'Hardcore', 'Similar to Classic, but no hints are available, and the game is played with health points.', 5);
 
 -- --------------------------------------------------------
 
@@ -1163,7 +1165,8 @@ INSERT INTO `guess_types` (`id`, `type`) VALUES
 CREATE TABLE `hints` (
   `game` int(11) NOT NULL,
   `number` int(11) NOT NULL,
-  `content` varchar(255) DEFAULT NULL
+  `content` varchar(255) DEFAULT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1174,7 +1177,8 @@ CREATE TABLE `hints` (
 
 CREATE TABLE `inventories_items` (
   `game` int(11) NOT NULL,
-  `item` int(11) NOT NULL
+  `item` int(11) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1187,14 +1191,14 @@ CREATE TABLE `items` (
   `id` int(11) NOT NULL,
   `item_id` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `image` varchar(255) NOT NULL
+  `src` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `items`
 --
 
-INSERT INTO `items` (`id`, `item_id`, `name`, `image`) VALUES
+INSERT INTO `items` (`id`, `item_id`, `name`, `src`) VALUES
 (1, 'oak_log', 'Oak Log', 'Oak_Log.png'),
 (2, 'oak_wood', 'Oak Wood', 'Oak_Wood.png'),
 (3, 'stripped_oak_log', 'Stripped Oak Log', 'Stripped_Oak_Log.png'),
@@ -1997,145 +2001,146 @@ INSERT INTO `profile_pictures` (`id`, `name`, `src`) VALUES
 CREATE TABLE `rewards` (
   `achievement` int(11) NOT NULL,
   `reward` int(11) NOT NULL,
-  `reward_type` int(11) NOT NULL
+  `reward_type` int(11) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `rewards`
 --
 
-INSERT INTO `rewards` (`achievement`, `reward`, `reward_type`) VALUES
-(1, 12, 1),
-(1, 15, 1),
-(1, 30, 1),
-(1, 33, 1),
-(1, 45, 1),
-(1, 48, 1),
-(1, 60, 1),
-(1, 63, 1),
-(1, 76, 1),
-(1, 79, 1),
-(1, 91, 1),
-(1, 94, 1),
-(1, 106, 1),
-(1, 109, 1),
-(39, 2, 1),
-(39, 20, 1),
-(39, 35, 1),
-(39, 50, 1),
-(39, 66, 1),
-(39, 81, 1),
-(39, 96, 1),
-(40, 3, 1),
-(40, 21, 1),
-(40, 36, 1),
-(40, 67, 1),
-(40, 82, 1),
-(40, 97, 1),
-(41, 4, 1),
-(41, 22, 1),
-(41, 37, 1),
-(41, 52, 1),
-(41, 68, 1),
-(41, 83, 1),
-(41, 98, 1),
-(42, 5, 1),
-(42, 23, 1),
-(42, 38, 1),
-(42, 53, 1),
-(42, 69, 1),
-(42, 84, 1),
-(42, 99, 1),
-(43, 6, 1),
-(43, 24, 1),
-(43, 39, 1),
-(43, 54, 1),
-(43, 70, 1),
-(43, 85, 1),
-(43, 100, 1),
-(44, 7, 1),
-(44, 25, 1),
-(44, 40, 1),
-(44, 55, 1),
-(44, 71, 1),
-(44, 86, 1),
-(44, 101, 1),
-(45, 8, 1),
-(45, 26, 1),
-(45, 41, 1),
-(45, 56, 1),
-(45, 72, 1),
-(45, 87, 1),
-(45, 102, 1),
-(46, 9, 1),
-(46, 27, 1),
-(46, 42, 1),
-(46, 57, 1),
-(46, 73, 1),
-(46, 88, 1),
-(46, 103, 1),
-(47, 10, 1),
-(47, 28, 1),
-(47, 43, 1),
-(47, 58, 1),
-(47, 74, 1),
-(47, 89, 1),
-(47, 104, 1),
-(48, 11, 1),
-(48, 29, 1),
-(48, 44, 1),
-(48, 59, 1),
-(48, 75, 1),
-(48, 90, 1),
-(48, 105, 1),
-(49, 13, 1),
-(49, 31, 1),
-(49, 46, 1),
-(49, 61, 1),
-(49, 77, 1),
-(49, 92, 1),
-(49, 107, 1),
-(50, 14, 1),
-(50, 32, 1),
-(50, 47, 1),
-(50, 62, 1),
-(50, 78, 1),
-(50, 93, 1),
-(50, 108, 1),
-(51, 16, 1),
-(51, 34, 1),
-(51, 49, 1),
-(51, 64, 1),
-(51, 80, 1),
-(51, 95, 1),
-(51, 110, 1),
-(40, 51, 1),
-(52, 1, 1),
-(53, 17, 1),
-(54, 18, 1),
-(3, 111, 1),
-(13, 19, 1),
-(16, 65, 1),
-(1, 7, 2),
-(1, 20, 2),
-(6, 3, 2),
-(6, 16, 2),
-(7, 4, 2),
-(5, 5, 2),
-(9, 19, 2),
-(12, 1, 2),
-(13, 14, 2),
-(16, 6, 2),
-(17, 11, 2),
-(20, 18, 2),
-(23, 17, 2),
-(24, 13, 2),
-(25, 2, 2),
-(29, 15, 2),
-(30, 9, 2),
-(35, 10, 2),
-(38, 12, 2),
-(56, 8, 2);
+INSERT INTO `rewards` (`achievement`, `reward`, `reward_type`, `id`) VALUES
+(1, 12, 1, 1),
+(1, 15, 1, 2),
+(1, 30, 1, 3),
+(1, 33, 1, 4),
+(1, 45, 1, 5),
+(1, 48, 1, 6),
+(1, 60, 1, 7),
+(1, 63, 1, 8),
+(1, 76, 1, 9),
+(1, 79, 1, 10),
+(1, 91, 1, 11),
+(1, 94, 1, 12),
+(1, 106, 1, 13),
+(1, 109, 1, 14),
+(39, 2, 1, 15),
+(39, 20, 1, 16),
+(39, 35, 1, 17),
+(39, 50, 1, 18),
+(39, 66, 1, 19),
+(39, 81, 1, 20),
+(39, 96, 1, 21),
+(40, 3, 1, 22),
+(40, 21, 1, 23),
+(40, 36, 1, 24),
+(40, 67, 1, 25),
+(40, 82, 1, 26),
+(40, 97, 1, 27),
+(41, 4, 1, 28),
+(41, 22, 1, 29),
+(41, 37, 1, 30),
+(41, 52, 1, 31),
+(41, 68, 1, 32),
+(41, 83, 1, 33),
+(41, 98, 1, 34),
+(42, 5, 1, 35),
+(42, 23, 1, 36),
+(42, 38, 1, 37),
+(42, 53, 1, 38),
+(42, 69, 1, 39),
+(42, 84, 1, 40),
+(42, 99, 1, 41),
+(43, 6, 1, 42),
+(43, 24, 1, 43),
+(43, 39, 1, 44),
+(43, 54, 1, 45),
+(43, 70, 1, 46),
+(43, 85, 1, 47),
+(43, 100, 1, 48),
+(44, 7, 1, 49),
+(44, 25, 1, 50),
+(44, 40, 1, 51),
+(44, 55, 1, 52),
+(44, 71, 1, 53),
+(44, 86, 1, 54),
+(44, 101, 1, 55),
+(45, 8, 1, 56),
+(45, 26, 1, 57),
+(45, 41, 1, 58),
+(45, 56, 1, 59),
+(45, 72, 1, 60),
+(45, 87, 1, 61),
+(45, 102, 1, 62),
+(46, 9, 1, 63),
+(46, 27, 1, 64),
+(46, 42, 1, 65),
+(46, 57, 1, 66),
+(46, 73, 1, 67),
+(46, 88, 1, 68),
+(46, 103, 1, 69),
+(47, 10, 1, 70),
+(47, 28, 1, 71),
+(47, 43, 1, 72),
+(47, 58, 1, 73),
+(47, 74, 1, 74),
+(47, 89, 1, 75),
+(47, 104, 1, 76),
+(48, 11, 1, 77),
+(48, 29, 1, 78),
+(48, 44, 1, 79),
+(48, 59, 1, 80),
+(48, 75, 1, 81),
+(48, 90, 1, 82),
+(48, 105, 1, 83),
+(49, 13, 1, 84),
+(49, 31, 1, 85),
+(49, 46, 1, 86),
+(49, 61, 1, 87),
+(49, 77, 1, 88),
+(49, 92, 1, 89),
+(49, 107, 1, 90),
+(50, 14, 1, 91),
+(50, 32, 1, 92),
+(50, 47, 1, 93),
+(50, 62, 1, 94),
+(50, 78, 1, 95),
+(50, 93, 1, 96),
+(50, 108, 1, 97),
+(51, 16, 1, 98),
+(51, 34, 1, 99),
+(51, 49, 1, 100),
+(51, 64, 1, 101),
+(51, 80, 1, 102),
+(51, 95, 1, 103),
+(51, 110, 1, 104),
+(40, 51, 1, 105),
+(52, 1, 1, 106),
+(53, 17, 1, 107),
+(54, 18, 1, 108),
+(3, 111, 1, 109),
+(13, 19, 1, 110),
+(16, 65, 1, 111),
+(1, 7, 2, 112),
+(1, 20, 2, 113),
+(6, 3, 2, 114),
+(6, 16, 2, 115),
+(7, 4, 2, 116),
+(5, 5, 2, 117),
+(9, 19, 2, 118),
+(12, 1, 2, 119),
+(13, 14, 2, 120),
+(16, 6, 2, 121),
+(17, 11, 2, 122),
+(20, 18, 2, 123),
+(23, 17, 2, 124),
+(24, 13, 2, 125),
+(25, 2, 2, 126),
+(29, 15, 2, 127),
+(30, 9, 2, 128),
+(35, 10, 2, 129),
+(38, 12, 2, 130),
+(56, 8, 2, 131);
 
 -- --------------------------------------------------------
 
@@ -2205,8 +2210,150 @@ CREATE TABLE `tips` (
 CREATE TABLE `tokens` (
   `user` int(11) NOT NULL,
   `login_token` varchar(255) NOT NULL,
-  `is_expire` tinyint(1) NOT NULL
+  `is_expire` tinyint(1) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `tokens`
+--
+
+INSERT INTO `tokens` (`user`, `login_token`, `is_expire`, `id`) VALUES
+(4, 'f97d95fc25e971b8944160f3b6e64eab7738ed09756263d074aeb5fdd82c512915cbdd10c114d27401108ec18295f6a5', 1, 1),
+(5, 'f0fabc7b2479106eacd8d07d51ffd53a33796763af67b3b3b7601dc41855da3c63109a03eb92a89b7e207f05834c02c7', 1, 2),
+(6, '49bcb16d1f86c981f9a5781edc554220769c593bf1428d45893d99d50960bff4b21b2eb2234e45302edfedcdc904b8d3', 1, 3),
+(7, 'd04b17ada032c772868c4ab33ce7a95998494936bf41f39821852729f9fd3682217174011a1aa6463159b7484a158105', 1, 4),
+(8, '5323531dea844d67f22837196972134c1893d895a441650d707493387b0fcf2b5e308e23958a40254c41f68c553e9c7d', 1, 5),
+(9, '007f6f49b66b395f3ff69abbfab4be9c689f42c0d92b7b14326fe1956ffbc5665db0215a7e4b5b16aacfaf24f2e77e78', 1, 6),
+(10, '7a7ed99bdabbac2319bbd8e852261f6f9337a60e6628f1481185d5d050fa192ac4f2799203bf17b879494e1bff4a4c1a', 1, 7),
+(11, '77b3bcf43e9ba1cef06d9c21c71e085e0967d9d0b3efc938d49a64233df42fae179852e62bccd90f50322baff49db670', 1, 8),
+(12, 'dd0587ad442bb49d8dd4b722b2e2a97a2c8dcc55db819c4a6b893fbc2eb0d481e092e2c5e0aca6acb4ae8bf784be983b', 1, 9),
+(13, 'efe9ffd63e0ea350e49a8e7748f5ebeeafc0c028d4ecdb034b9f4dbe0e01e05fb2932fdecc00bddaee0e750c3ae18706', 1, 10),
+(14, '2e578e9e5b04958254e280b5188542f1de2cd8465acc5a6e3eb012ec36b41e197ba957441310d17b880ae190cdb9df2e', 1, 11),
+(15, 'aace95caf6ae0aa7876526fc3a9bfe6458af6a07065494ecddc9657ec5fde61c7a1a08a2482a25a375339c4ae151f169', 1, 12),
+(16, '010757391c140eaf34b22842d2554c0c306d2c47c9037852ab773e511f4233db08be7d2586614585168cd555e4000104', 1, 13),
+(17, 'ea7b81b2c92e47cde92791d4fca4056793efab1514b4f2925ca09bcebd45cd75e1cd54f8e4a8c1cf88e4c0fa9c85c0a5', 1, 14),
+(18, 'fc254b60f0129dda8b69f128b68f3cdcc9d339e1decca2e609e816f862beebd2d94c6f898a9817783f90d9b450f30943', 1, 15),
+(19, '6c63640a6ebc3245f1676359033b2567ddce8c93f6a1997c59053629dd267f334aba703261ed676cee629188e81d6c22', 1, 16),
+(20, '74238e1dac2ce06d3d41518a06bf44168c66eb447d67137d3194c92a440113679b3b04fb6bd1502d6a1417fe4d4a0f20', 1, 17),
+(21, 'bbbc3136791601176d52b5354068bbe8b05fad46f0b1ed43fa079ecb9d1631488ec9d2ca30528a6bd1b8ed3d2cbc1dec', 1, 18),
+(22, 'dcde0ed66507cd10c9bfee37292c29d11990fad08a4a71ed381ce9b08898f7a1166c26d1f3a32a18cf16c110d4f48301', 1, 19),
+(23, 'e2d49b1892a76622549d9dd439606cef10816f9492bf09ebdd421665694aad22ab6775e10bc5013759ac35ecb71ac4f3', 1, 20),
+(24, '1a1d2b0f481b6afe71ee1577e4d7972a04b5f8a590ec403259bd385728a077f7bc6c406065f877b73bae0e28bcebaefb', 1, 21),
+(25, '65b613df58e6b8d8d9c351c02b301fb9bb4413e0359c31c447d6659d9e180ba68f011220e1969329330c53943b745af1', 1, 22),
+(26, 'c8938ba0468511e3b6da4e45a3360c949a8f3819d6051ab52132f15adb5124dc9320695a5d276847e367bdc7a4c76408', 1, 23),
+(27, '9391b1280a2d2b5c46d279de56befc1a806557828f15e372f3321b0aa70e7706324242e7bcc0181ebe8774db46a78a0e', 1, 24),
+(28, '650bf458a38406f10d2a7cd06b95c8d3c0c7d69bd9656058b224570f7f47180cadd5e24817a609a1ac5468a94ca781bd', 1, 25),
+(29, 'b2fbd3b7fa76cf78f53d5a261d6e9ef3fac252970595be1dc64c1b072f70650965f2504d388a468fbee36e57edea2156', 1, 26),
+(30, 'ccbc442c138ce88093a4745236d5d6831eae1a2afca1dc6f66e90b88a9b6127783182bfb101655619916c8c3fce0d10f', 1, 27),
+(31, '9992c2119f49d293edefe7f24e033f6cdb47f264199d4962e1d5f17c2995a822cd8e7d26a5b00dff0b76b540c3ca1567', 1, 28),
+(32, 'c71155fdd0d34951438d8f4185495e73f140cb142f346ae3a945862a8ff5f3b186665c3d115bf0c0d017375b52fb0fec', 1, 29),
+(33, '62f08075cc6c35d9885feecd3a12d6e29a46df76855d2ac41900eb01fcfb19dac59ee966b271f9c5c95e6731ba098c43', 1, 30),
+(34, '0f6d6740e0504124a1ecc8717fc8f9a6610ad09314bdb527affb4458c1bff1e33f295ba9e8a66816fcbd9f93837a7b38', 1, 31),
+(35, 'b5368571505f32b3919e21e84142f3cf1afeb36eb2a3e514df077d4ced25012cae6f18d8b2464a09219dd66d3136d21c', 1, 32),
+(36, '360cb126df927463f7a00d9d766079c3b9411ea278a19fa87fbfd12fc7dbbc1688c3c392e4e0ef204b4641be4d06c261', 1, 33),
+(37, '9634dcf411c3fc101455139e90d725e1861364d3d308922a53eea6d42b207c6efe1deab5a14af886129a0171b3da8879', 1, 34),
+(38, 'cda34009e77d0dc0a6487613aa2726e79351c56fbb4a43f69ad9fe9b661813caae296a33e1602b46995e68469ffee58c', 1, 35),
+(39, '6534f028bb82c2e0fd97e1818fd6c4a7e1417d934aaeef4ff0053b3125e7280081de1f1de2f2d41f82b5a8dca241008e', 1, 36),
+(40, '9e1b1db9be2d79f125842fc2aa6c1c000ddec0c23a3d6b55ca77f187e8923693c433b1915e410f9ca2db1c0a829d909b', 1, 37),
+(41, 'a9116645d347a7dee92e09e957394ef279518b05865b5e2b64600f5eee070d6faf2bf5342b80df0b1a0d5c84ac220532', 1, 38),
+(42, 'e5005505a03ffefde82497801b5c283e9597c4f0d61d77a8c7495b1ff8f83324736323920e9ef2b542a68c5527659783', 1, 39),
+(43, '288763da3bb84118ff706a0ef599a7705ad3d370c31b7ed52fec290ac28be521f399b5a4950909a5fbf198235d76b2b3', 1, 40),
+(44, 'fec2891cf910f82f580dbf2f5954c061dbaca368ecf6d4309a36b04d2b54a9b0d13f57a5705f9a0ae5af6460b3855a6e', 1, 41),
+(45, 'c3a5283642d91c62810a432e5a7cf62696806084252cb2942e3ee3e64280948a77cd220da773d27ad90cb8c7d12a6ce0', 1, 42),
+(46, 'a0fad65d27e1efc99cd91b70300c087b864f5a2004bc8d8fc68e4e33371a3c9dd665099d5e09ab3313d2c739768971b8', 1, 43),
+(47, '94b92eb5e91c311cc6cf522ac2560f21858f2d375f956947eab57adff01d363e1bb0d5b57fd31ea42c66a49abf45f7e9', 1, 44),
+(48, '9c92eb157257184b92f82a4e9cd4016abb23b3bf0251f0fa09a61d678be5aeb0c24fe12833ae922fa4db3bf26814ddcb', 1, 45),
+(49, 'b55f9d92027ba1d725fac78e7b216f24e97506890098f7589861df6487082e1eda6e11ede1c92a8e077ca278f236c53d', 1, 46),
+(50, 'f7af3aef22fc434781ba6739ed66b8d48ba25c84a41f1ac54c57a7c11f577d64fd7f7ce61cb3c2f9e5bf9ee9d04076f9', 1, 47),
+(51, '728af1f6300a13bf1b80d7e491f117533656aa22a88fcd136ca9f4d990eda23c431cb48eec4e2616f9aa3c28e8adced3', 1, 48),
+(52, 'cab4055c85e7fb112b11bf47e33c996e9d141dbabc9b299c96d5f4e633ca549a3a90298fddf99f6d81262ca2b1a98e48', 1, 49),
+(53, 'd0264fd6e1b84eead6b1a9f6cbdc8ce6d6c092940a4598442897d87afbcf3950b88d23d3435cee113435af19690b5f97', 1, 50),
+(54, '1e0f39e395e1541ff918cdf8f8ba7302c0dee7cbedd84ea7ae52bad99a3523300dd8725d6528440cd13b2d5411724a27', 1, 51),
+(55, '17dc3e06bb6da1f8be0205d4f371c53ac081ef383d1368804429dbafc3fdd9a1c389d5fdd9f42b59c4cccd668bb2b112', 1, 52),
+(56, '87ac35b01d0ee1697c945ed850debe78dcff9e1352aa6bdb6ebed0901b8d877454d414537b96ccd75dde18c9bf9d8409', 1, 53),
+(57, '494a6f7fd8221c6ef1482f2b4df80d77063738272a6462f7654ac85d2f3c396f64b2121aff9a312bbb73588eb60e5145', 1, 54),
+(58, '1584dcdc4c333c9351895b2dee1e8f8a4b4c13f1f636215ba1e45b6278be18ec1c6bbcfe5fd51ca9e4665e7ed4b0df9c', 1, 55),
+(59, '3db7c93b149e6dbdcbb24f962ef8be049531bf5c3e5007516e8fefc1770ff71d05756c9b853a2866e7b9ec9979852bb2', 1, 56),
+(60, '58b97916eba906b61484b4788ff9da4e9f2ae87047c37b1c09df87f9b703f5f5e11c2838afe39ef098e7f66366d98815', 1, 57),
+(61, '7afc73c40678e6e03c244ae8297ff433c705bcd2dbd42356dba65d95190d7b62710cd9a0451ca0d9d1aaf378094f303e', 1, 58),
+(62, 'd49626ccf5855bc1894c4f67f8864840a127ec5495ad2dc8dac53f7d0d25a452ae8696d9e98c7dfcd1083f77ebaa17c2', 1, 59),
+(63, 'b4fbc0271f62906df99aaef8bef58822f05f7b4534a4235684c8f847a114713415f72ed350af85e647d49b0743b841da', 1, 60),
+(64, 'd5d8477565809ca4c579427477d36c5fa3120d90fe5feed06220ba2ac00afba41350506b560d79b6a62c7a3e6af22701', 1, 61),
+(65, '340b50d0e61f16a1f56ca550087c5f5b3eb5a8946932fc39265599f82cd5cba62dce540f8f1a0091c9e0611c686065cc', 1, 62),
+(66, '82b384a27c463d0cfd000a942ab57d174efd69d31163de35b86cd2536f3d4e0fffc0ee6c00d51a672e9820382f7887a0', 1, 63),
+(67, 'a1f37506a62102f089a477746aaa324f8019cdb9531450bb0e94f0e89fc235871d4f8b6baa36280c962d6e711755513c', 1, 64),
+(68, '6ea45a68a31f6a843a9e074761b6ec5401b38221f8a9aa27e9799eb2e6b6b303ae820958ea018b61da1893bcd7172be1', 1, 65),
+(69, '0ca8c95c872d2ff816ddc623f5d8eaa6a154c2bb12b2a5cd03bc335e8ff31fb46722b39d7c5c7c7c690d1c3d21ea3686', 1, 66),
+(70, 'e18ec7003c94d74c5ecd3d0c1be5485f2a5038ec79d1c8f5fb5dec0afaf99f3be867663fa7430e2c67d0e62bb274e807', 1, 67),
+(71, 'c2ad56833ed2e4e268bca812ad69c74e5e18468fcc4ea63ffd37bc9662b7148ea9d5cf1e78524c216d4ba94435887e31', 1, 68),
+(72, '4291268283a2a35c7bdbc206f48cd0a99c355660c1e20a618ffae2ea09b5e51e2b22f8cdc7b72a830cf542f22ef51452', 1, 69),
+(73, 'e597814e679d85d7c23a01f63d9a418a23de97e4935ede5b8b97226fdf4f220ae5c1fcafe85337f1aa2afb3acc00849f', 1, 70),
+(74, 'c3567ef6c6116502b274ab2a1f338f93658feef2487a5621ec63354ca8c5e6bdb03f5e36461a6349c81dcf90517db440', 1, 71),
+(75, '14aaf219eb9c6d2ac388c0c793b4b915ad6ffb2c303c834dbba0615f617bab5ee4b471d1da643c96f657dbd1e70194de', 1, 72),
+(76, '4bdcc0b8ece0e38216d3f02d5869edf9abc00fca01cefe0d6a952aaf2bc3e8614a51e7fa060301b18fda6af82dbd499c', 1, 73),
+(77, '16d24154cb4c25208ece8c04c8cacbb9f968f4c8d172790a4519c9814a1a085b9481753e925c4e1ca37becdb5efd3d9b', 1, 74),
+(78, '92693e9408d6bc7f31029a83308866ae090ec719c418283bcdc6f6a04238b4af028535067b6c76415704c8bcfeb6a1bd', 1, 75),
+(79, 'a071ac3f6de78f89675068659e9cdc5ad824d8f0ae39a3f336eb6cb1ad61d856fa3fe8fb102435a22fea950ce3678d5d', 1, 76),
+(80, 'f60330429be7bb80d16b1ec1060663206cc1fabfc15ce63622bc6f5e587a5f45164e7bee3d5fb2285b9fd437c42fa17e', 1, 77),
+(81, '999974e6b47fda4bd11e8a5af0f213a5eb5504d3cd6ccb4af99c4d1a3e7865d64f2e061e014f9abd77d6f4d488f4c699', 1, 78),
+(82, 'a4c108d929264010b10860dea486867888645c2ff71532b67d2d68345f662a5fae5d11a0dae0adf873edb0951fb727fb', 1, 79),
+(83, '17737d1fd6da74a5ef261212f765dffd6f2f25db379e1e7b5ac0f6729eb4e478e5cd3af892a54f7478730a2f258bf55b', 1, 80),
+(84, '12693aa30e82bb49a3e0169ac7b762d8bca3c2b5e55327c12544c1d7120a4f6efdc660bbf710539a70e6580a85bdb4f6', 1, 81),
+(85, '5f3e67048233ed62d17351e161a76c9aa91b2704362333544951ca07f1cbc6029c59e6b72b7b7c5cc2d768cd183c7a12', 1, 82),
+(86, 'e4676b67051a53594e581a60d5c669838a38155b73b0f3610802d111fe56bc061cab92b9d48504f090e75be90d237fbb', 1, 83),
+(87, '6cada0e3d0b7c4e4293f2093c2c061c170fcea0be1cddb50fa7a8162d54df8ab10e873645e67213ef74c8c4ca74edb4f', 1, 84),
+(88, 'd8f3117d1a9470b283cc85b3a5ee0983dcfe60fb6ad2c5b4e1fe5019469a7a3d1b924de82fa5508171d4abb34b7642df', 1, 85),
+(89, 'e9f07256958e9dc6db88dffaf1f43a0a02059fad2327f7973873fd8acb34d8582b7142fb8783fe65ffbe61d153f54fea', 1, 86),
+(90, '1dd099800eafc8ec3eafdac8a28438ddb2f29cee7d6fcc0364c95874e59f5b928c72e50b1790548da3718326616e2afc', 1, 87),
+(91, '1dc57f6376104dd8a6049cde303a224ac45b530eb62c3b8272b6d1e405a28963344c73c453ad73c417080192840ff026', 1, 88),
+(92, '007e4973f1d9c42b1db98073a1bef5ea11d7f224e7be90c776c6605f074b7d5562444dfce915f7e7e0c2c288ac99cd52', 1, 89),
+(93, '7e3034be4028c91a574fe3afc1ae2b601bdc792e124ae6c170c7add67b3126ee0babc9ddeb14c9b54807d5204c0ab4cd', 1, 90),
+(94, 'de50029b4ae50fdff46da4d6f92a6df1d155289c79b8c0270cbe9da3d026a7c2e72c4f40fb7fb93af1b404a2c8e04c51', 1, 91),
+(95, '77d72d525438733a517f7d58ebb986583b987373322334315d927ed1eded5857789398d013b5a594d5ceec0f76c12a99', 1, 92),
+(96, '91884aa153e6495c2b435f142913390e545823961bcad203297b36b32345be4adac0f2ed5ed52f01f3351daca827c403', 1, 93),
+(97, '0c6c82e0125d11d74692536b7aacb6ee36bc7df3e77bb0f05aeb67bc7c9de4c2d19302ae97eaf8415e421eddb5e8fee6', 1, 94),
+(98, '8fd5fd0b1380a25d14be04420646981b66c3f00741b5675409271ef8118ee8a3fa35405bb06b8be4477288838efcedba', 1, 95),
+(99, '1e0e76ae2d463a6560f0fd0ffeb36b2cd3b2f56fc34b67494aa6e41e610644620b7c0267ebb90840602a2132a3115d06', 1, 96),
+(100, '30685ff5f50f98b68df2cc686cae226c33e918200d945cb732dc4947fcd78701b4e892eac612869693134659635f9723', 1, 97),
+(101, '20b683af4521df178ff6c2b07836a1b414e7ea8d8d6a200939aa61b9ef35948d9c092a35249e1140d480e8b5d2d2d0d7', 1, 98),
+(102, '992908ff4ce986c123cd61560952a1495d5acab0e7857c31f79e2c643a7f851869f6a1f8fb451b00a75b6513777a4f94', 1, 99),
+(103, 'ac3469ef72524137a6ad0d782b4541b1fd617257741b7d6153cd81a24af65778e7a19ced1bc7dc5b64abd7a768731bfb', 1, 100),
+(104, 'b3c77505d64a950adfe54297e1d1385706445eb56ca074a284d5ec8cc89c90634705ab7d94c96a360e80550bc9ff5e14', 1, 101),
+(105, '44c4ab8fb23b9eaf621a9d40612ae88ced12b2955db32193705b23d5460120509e2441d1d77e52555f37bd0107d32650', 1, 102),
+(106, '3c12b20b69ee629558001d0355198609df49bf8f1fdd98f45a3ae68a302dfe6016ed974c146638fab085306d476a26a8', 1, 103),
+(107, 'f9a999a6e69c8439ec7170605f9c05645dbc48803d992e16fe53894d590b0e7b8490eaaf50ddc951cc24741a8db5c649', 1, 104),
+(108, '42ef8856fc5cff362a87d8aec328e90a4665fb35db3ead3f9d90cbcca325ac2bbe35c74a6775ca88a860dc8711e727e4', 1, 105),
+(109, 'c342dcb3e23db2afd1c92d3b9d48fab3366e72f80153e0ccca4c115443bbd797fd62b421bca09b91f2dcb545cb8901fb', 1, 106),
+(110, '75eb1d7f132584aecaf1a0bd9ec897bc56ea24838715fc78a441df05a14c45e7ed41889cd09c755e06d0195ebbbb9bdc', 1, 107),
+(111, 'a34c99dc0864bfa4681c51e89b77b78634f263a83e0597556aab6d970985d8c43ef8d9eab379240b3f3d324cf29e88c3', 1, 108),
+(112, '82785918f33edb6e62b6fe48feabbdcfaff926f6b15059d8c43c47882eff39a5caa9ffc3ce723d701af414e336b1b274', 1, 109),
+(113, 'f5383fc4ed487e977ea8c4151cacec9e0463c23165689999a6a478555ab3a84d6afde0b431b6d1847667539938e03ebd', 1, 110),
+(114, 'e509b7301985590bfec7efc482de322e4936e91b9dd423dd59abaa9a418e3d5872ecdeb80818db21775f1d9c3f9b59d0', 1, 111),
+(115, '4dd74c46fa7774b9836a0593eece086c0202c26d98ff1c0846dcb35f5793de7c84fc286f5c26ec6f8e05cc7525b05fe1', 1, 112),
+(116, 'a0265eb5c5f231660eb4d097d3f0238f0a74bc1f83c212438cdfe59a9c49f16df1ac5fe3bb072b15dcde159c8e02e81b', 1, 113),
+(117, 'd76014b0b9fa9f682425f56972df8f30c6522de43efe680b73eb047e6dfdcca9ab1669b76f2e0614bf99c5d7f8425028', 1, 114),
+(118, '7a7637491bcc4b7a6de3a04387b1417afda70f847c51d0a2d4b42a1d601e7ac42c5e839395fa8a27f65f35883b474bb2', 1, 115),
+(119, '36a2ddac5f3a1c6c6a6d7644f17bdc3a4e661d98d4b2ad410b5a17d301ef3d74f518218537fd742ee9ea7e4fc583d492', 1, 116),
+(120, '64521b494810c4f9fe480fab594d34bc0c3fddf20268dcd8c8fe395e19e6e9c15a79904a5c192762b7d1753b05835b44', 1, 117),
+(121, '0e9afb5e0d7f949d1f44c9a26ed079d36b245d659c35a33ae506a77afc75f0cf9b1d4e73ee850e9d7105f7e188693a28', 1, 118),
+(122, '81ca65e8e75c0ea3ba574a2b49ceec9b4af45599673dc39e402171fb34b294b9c6e3a630e56cbc4ec32e7e546742850b', 1, 119),
+(123, 'b7b1f4c16f86aaa9fd315b27d88401a38e37d388019936e64f0cc816f18e02f50ee5b3aded2814708a625308d99dafc5', 1, 120),
+(124, '18c46f6a94ee100bb6e1757f1f692dbc689dec3a9cf29fea50d8849d1564b860137d22ac4d4eedcc3c3c9b5a46318d66', 1, 121),
+(125, '8310bb7a9346eb43c3e25b2275619eae6a3ba010adb7968aea456e2c2c1894e3ea11d383eadef0b725b48e0f67e2ec75', 1, 122),
+(126, 'd13a8132da52614e869e1654aaa68dede3ce85faec6bba62ea2ba0f69117600a29b5199d790eed9ddfcfdfddc2a1e308', 1, 123),
+(127, 'aa830959f96c2a0f2c4d8c4eafc3d6e0b95c864a9769bbc03152ae9d6c3253605335f0ea12d0ea22e3322c8b1a694bfb', 1, 124),
+(128, 'c182c0a7288ef9335ba0827a8a77e8445dd7b5bcbd26924b6066a9e59595982c30e39586883eb39f68ad8724cc038a84', 1, 125),
+(129, 'ef622eba5740d9017103db12105e6bab500d2f6caa8c1872c6db686a8e4f0b6a11c0106482885ad7c33608558e8e28cb', 1, 126),
+(130, 'f8ba1d6726d6dbbe9896745a907faaa40daf9cb76c9b14231002e6e1ee8483ab3cdcf0f7c2ee3d6d45d63b097dd3339b', 1, 127),
+(131, 'ba53bfa666b4b3c04850226cea1707e6fec9f99e0d0cde8f711cd148fa2ad76846f1941f5f914fd14f4c3902620c47d6', 1, 128),
+(132, '1076c5c3f3fe5558c02b968d01356d57e6cebf3436efd652192b8dae99f553384dc74c9d405dfadee9674f991a7dd97c', 1, 129),
+(133, '2f3bad06a425262a1f0780072a08dfbb3fcf7f96551abb78f316e3118997d8f41f9b6ccb1a7a3b3f0e9bbb75d7c6370f', 1, 130),
+(134, '89ac4be9c9f66e3e24b15ba5816fb3690873c2f6627252b2ffe46868f2b167836a6536a4ecce1ef1278862656ab43b19', 1, 131),
+(135, '53232503664696f35f296c1d680cbf406956eae4577cf4bc3ffef4eacc33e77930d7f1f8486307dc19d42c0423e63a97', 1, 132),
+(136, 'ca21d92414bbf28586f678ecc2179efc1b8c4e4cb8997d68ec82e808a52cd1baabe17adf57380f4cc6156a49136f1cac', 1, 133),
+(137, 'fdd3a007c4c21c0f48e95ebd23c6f699ef7df802d2e53dc62b0d5722240773088060a2c7184b775b389e07c130dff8a7', 1, 134),
+(138, '238196fcbc77781242953b69ec9e87d557ee0a1b1691db6187c4e3ccfa09c28f0dd6896527de3b022de04408818a663d', 1, 135);
 
 -- --------------------------------------------------------
 
@@ -2230,7 +2377,142 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `is_guest`, `socket_id`) VALUES
 (1, NULL, NULL, NULL, 1, NULL),
 (2, NULL, NULL, NULL, 1, NULL),
-(3, 'validUser123', '$2b$04$Xr6yJRiiLbCBD.USYnzXZeO3u5zMy5b4lZZsOR6DjSa/LcJTrM8X6', 'validemail@example.com', 0, NULL);
+(3, 'validUser123', '$2b$04$Xr6yJRiiLbCBD.USYnzXZeO3u5zMy5b4lZZsOR6DjSa/LcJTrM8X6', 'validemail@example.com', 0, NULL),
+(4, NULL, NULL, NULL, 1, NULL),
+(5, NULL, NULL, NULL, 1, NULL),
+(6, NULL, NULL, NULL, 1, NULL),
+(7, NULL, NULL, NULL, 1, NULL),
+(8, NULL, NULL, NULL, 1, NULL),
+(9, NULL, NULL, NULL, 1, NULL),
+(10, NULL, NULL, NULL, 1, NULL),
+(11, NULL, NULL, NULL, 1, NULL),
+(12, NULL, NULL, NULL, 1, NULL),
+(13, NULL, NULL, NULL, 1, NULL),
+(14, NULL, NULL, NULL, 1, NULL),
+(15, NULL, NULL, NULL, 1, NULL),
+(16, NULL, NULL, NULL, 1, NULL),
+(17, NULL, NULL, NULL, 1, NULL),
+(18, NULL, NULL, NULL, 1, NULL),
+(19, NULL, NULL, NULL, 1, NULL),
+(20, NULL, NULL, NULL, 1, NULL),
+(21, NULL, NULL, NULL, 1, NULL),
+(22, NULL, NULL, NULL, 1, NULL),
+(23, NULL, NULL, NULL, 1, NULL),
+(24, NULL, NULL, NULL, 1, NULL),
+(25, NULL, NULL, NULL, 1, NULL),
+(26, NULL, NULL, NULL, 1, NULL),
+(27, NULL, NULL, NULL, 1, NULL),
+(28, NULL, NULL, NULL, 1, NULL),
+(29, NULL, NULL, NULL, 1, NULL),
+(30, NULL, NULL, NULL, 1, NULL),
+(31, NULL, NULL, NULL, 1, NULL),
+(32, NULL, NULL, NULL, 1, NULL),
+(33, NULL, NULL, NULL, 1, NULL),
+(34, NULL, NULL, NULL, 1, NULL),
+(35, NULL, NULL, NULL, 1, NULL),
+(36, NULL, NULL, NULL, 1, NULL),
+(37, NULL, NULL, NULL, 1, NULL),
+(38, NULL, NULL, NULL, 1, NULL),
+(39, NULL, NULL, NULL, 1, NULL),
+(40, NULL, NULL, NULL, 1, NULL),
+(41, NULL, NULL, NULL, 1, NULL),
+(42, NULL, NULL, NULL, 1, NULL),
+(43, NULL, NULL, NULL, 1, NULL),
+(44, NULL, NULL, NULL, 1, NULL),
+(45, NULL, NULL, NULL, 1, NULL),
+(46, NULL, NULL, NULL, 1, NULL),
+(47, NULL, NULL, NULL, 1, NULL),
+(48, NULL, NULL, NULL, 1, NULL),
+(49, NULL, NULL, NULL, 1, NULL),
+(50, NULL, NULL, NULL, 1, NULL),
+(51, NULL, NULL, NULL, 1, NULL),
+(52, NULL, NULL, NULL, 1, NULL),
+(53, NULL, NULL, NULL, 1, NULL),
+(54, NULL, NULL, NULL, 1, NULL),
+(55, NULL, NULL, NULL, 1, NULL),
+(56, NULL, NULL, NULL, 1, NULL),
+(57, NULL, NULL, NULL, 1, NULL),
+(58, NULL, NULL, NULL, 1, NULL),
+(59, NULL, NULL, NULL, 1, NULL),
+(60, NULL, NULL, NULL, 1, NULL),
+(61, NULL, NULL, NULL, 1, NULL),
+(62, NULL, NULL, NULL, 1, NULL),
+(63, NULL, NULL, NULL, 1, NULL),
+(64, NULL, NULL, NULL, 1, NULL),
+(65, NULL, NULL, NULL, 1, NULL),
+(66, NULL, NULL, NULL, 1, NULL),
+(67, NULL, NULL, NULL, 1, NULL),
+(68, NULL, NULL, NULL, 1, NULL),
+(69, NULL, NULL, NULL, 1, NULL),
+(70, NULL, NULL, NULL, 1, NULL),
+(71, NULL, NULL, NULL, 1, NULL),
+(72, NULL, NULL, NULL, 1, NULL),
+(73, NULL, NULL, NULL, 1, NULL),
+(74, NULL, NULL, NULL, 1, NULL),
+(75, NULL, NULL, NULL, 1, NULL),
+(76, NULL, NULL, NULL, 1, NULL),
+(77, NULL, NULL, NULL, 1, NULL),
+(78, NULL, NULL, NULL, 1, NULL),
+(79, NULL, NULL, NULL, 1, NULL),
+(80, NULL, NULL, NULL, 1, NULL),
+(81, NULL, NULL, NULL, 1, NULL),
+(82, NULL, NULL, NULL, 1, NULL),
+(83, NULL, NULL, NULL, 1, NULL),
+(84, NULL, NULL, NULL, 1, NULL),
+(85, NULL, NULL, NULL, 1, NULL),
+(86, NULL, NULL, NULL, 1, NULL),
+(87, NULL, NULL, NULL, 1, NULL),
+(88, NULL, NULL, NULL, 1, NULL),
+(89, NULL, NULL, NULL, 1, NULL),
+(90, NULL, NULL, NULL, 1, NULL),
+(91, NULL, NULL, NULL, 1, NULL),
+(92, NULL, NULL, NULL, 1, NULL),
+(93, NULL, NULL, NULL, 1, NULL),
+(94, NULL, NULL, NULL, 1, NULL),
+(95, NULL, NULL, NULL, 1, NULL),
+(96, NULL, NULL, NULL, 1, NULL),
+(97, NULL, NULL, NULL, 1, NULL),
+(98, NULL, NULL, NULL, 1, NULL),
+(99, NULL, NULL, NULL, 1, NULL),
+(100, NULL, NULL, NULL, 1, NULL),
+(101, NULL, NULL, NULL, 1, NULL),
+(102, NULL, NULL, NULL, 1, NULL),
+(103, NULL, NULL, NULL, 1, NULL),
+(104, NULL, NULL, NULL, 1, NULL),
+(105, NULL, NULL, NULL, 1, NULL),
+(106, NULL, NULL, NULL, 1, NULL),
+(107, NULL, NULL, NULL, 1, NULL),
+(108, NULL, NULL, NULL, 1, NULL),
+(109, NULL, NULL, NULL, 1, NULL),
+(110, NULL, NULL, NULL, 1, NULL),
+(111, NULL, NULL, NULL, 1, NULL),
+(112, NULL, NULL, NULL, 1, NULL),
+(113, NULL, NULL, NULL, 1, NULL),
+(114, NULL, NULL, NULL, 1, NULL),
+(115, NULL, NULL, NULL, 1, NULL),
+(116, NULL, NULL, NULL, 1, NULL),
+(117, NULL, NULL, NULL, 1, NULL),
+(118, NULL, NULL, NULL, 1, NULL),
+(119, NULL, NULL, NULL, 1, NULL),
+(120, NULL, NULL, NULL, 1, NULL),
+(121, NULL, NULL, NULL, 1, NULL),
+(122, NULL, NULL, NULL, 1, NULL),
+(123, NULL, NULL, NULL, 1, NULL),
+(124, NULL, NULL, NULL, 1, NULL),
+(125, NULL, NULL, NULL, 1, NULL),
+(126, NULL, NULL, NULL, 1, NULL),
+(127, NULL, NULL, NULL, 1, NULL),
+(128, NULL, NULL, NULL, 1, NULL),
+(129, NULL, NULL, NULL, 1, NULL),
+(130, NULL, NULL, NULL, 1, NULL),
+(131, NULL, NULL, NULL, 1, NULL),
+(132, NULL, NULL, NULL, 1, NULL),
+(133, NULL, NULL, NULL, 1, NULL),
+(134, NULL, NULL, NULL, 1, NULL),
+(135, NULL, NULL, NULL, 1, NULL),
+(136, NULL, NULL, NULL, 1, NULL),
+(137, NULL, NULL, NULL, 1, NULL),
+(138, NULL, NULL, NULL, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -2241,7 +2523,8 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `is_guest`, `socket_
 CREATE TABLE `users_achievements` (
   `user` int(11) NOT NULL,
   `achievement` int(11) NOT NULL,
-  `progress` int(11) NOT NULL
+  `progress` int(11) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -2252,7 +2535,8 @@ CREATE TABLE `users_achievements` (
 
 CREATE TABLE `users_collections` (
   `user` int(11) NOT NULL,
-  `collection` int(11) NOT NULL
+  `collection` int(11) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -2264,7 +2548,8 @@ CREATE TABLE `users_collections` (
 CREATE TABLE `users_profile_borders` (
   `user` int(11) NOT NULL,
   `profile_border` int(11) NOT NULL,
-  `is_set` tinyint(1) NOT NULL
+  `is_set` tinyint(1) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -2276,7 +2561,8 @@ CREATE TABLE `users_profile_borders` (
 CREATE TABLE `users_profile_pictures` (
   `user` int(11) NOT NULL,
   `profile_picture` int(11) NOT NULL,
-  `is_set` tinyint(1) NOT NULL
+  `is_set` tinyint(1) NOT NULL,
+  `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -2294,6 +2580,7 @@ ALTER TABLE `achievements`
 -- A tábla indexei `admin_rights`
 --
 ALTER TABLE `admin_rights`
+  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `admin` (`admin`);
 
 --
@@ -2314,6 +2601,7 @@ ALTER TABLE `controls`
 -- A tábla indexei `crafting_table_slots`
 --
 ALTER TABLE `crafting_table_slots`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `tip` (`tip`),
   ADD KEY `status` (`status`);
 
@@ -2352,12 +2640,14 @@ ALTER TABLE `guess_types`
 -- A tábla indexei `hints`
 --
 ALTER TABLE `hints`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `game` (`game`);
 
 --
 -- A tábla indexei `inventories_items`
 --
 ALTER TABLE `inventories_items`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `game` (`game`),
   ADD KEY `item` (`item`);
 
@@ -2391,6 +2681,7 @@ ALTER TABLE `profile_pictures`
 -- A tábla indexei `rewards`
 --
 ALTER TABLE `rewards`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `achievement` (`achievement`),
   ADD KEY `reward_type` (`reward_type`);
 
@@ -2425,6 +2716,7 @@ ALTER TABLE `tips`
 -- A tábla indexei `tokens`
 --
 ALTER TABLE `tokens`
+  ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `user` (`user`),
   ADD UNIQUE KEY `login_token` (`login_token`);
 
@@ -2440,6 +2732,7 @@ ALTER TABLE `users`
 -- A tábla indexei `users_achievements`
 --
 ALTER TABLE `users_achievements`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `achievement` (`achievement`),
   ADD KEY `user` (`user`);
 
@@ -2447,6 +2740,7 @@ ALTER TABLE `users_achievements`
 -- A tábla indexei `users_collections`
 --
 ALTER TABLE `users_collections`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `user` (`user`),
   ADD KEY `collection` (`collection`);
 
@@ -2454,6 +2748,7 @@ ALTER TABLE `users_collections`
 -- A tábla indexei `users_profile_borders`
 --
 ALTER TABLE `users_profile_borders`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `user` (`user`),
   ADD KEY `profile_border` (`profile_border`);
 
@@ -2461,6 +2756,7 @@ ALTER TABLE `users_profile_borders`
 -- A tábla indexei `users_profile_pictures`
 --
 ALTER TABLE `users_profile_pictures`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `user` (`user`),
   ADD KEY `profile_picture` (`profile_picture`);
 
@@ -2475,6 +2771,12 @@ ALTER TABLE `achievements`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
+-- AUTO_INCREMENT a táblához `admin_rights`
+--
+ALTER TABLE `admin_rights`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT a táblához `collections`
 --
 ALTER TABLE `collections`
@@ -2484,6 +2786,12 @@ ALTER TABLE `collections`
 -- AUTO_INCREMENT a táblához `controls`
 --
 ALTER TABLE `controls`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `crafting_table_slots`
+--
+ALTER TABLE `crafting_table_slots`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -2511,6 +2819,18 @@ ALTER TABLE `guess_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT a táblához `hints`
+--
+ALTER TABLE `hints`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `inventories_items`
+--
+ALTER TABLE `inventories_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT a táblához `items`
 --
 ALTER TABLE `items`
@@ -2533,6 +2853,12 @@ ALTER TABLE `profile_borders`
 --
 ALTER TABLE `profile_pictures`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+
+--
+-- AUTO_INCREMENT a táblához `rewards`
+--
+ALTER TABLE `rewards`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
 
 --
 -- AUTO_INCREMENT a táblához `reward_types`
@@ -2559,10 +2885,40 @@ ALTER TABLE `tips`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT a táblához `tokens`
+--
+ALTER TABLE `tokens`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=136;
+
+--
 -- AUTO_INCREMENT a táblához `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+
+--
+-- AUTO_INCREMENT a táblához `users_achievements`
+--
+ALTER TABLE `users_achievements`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `users_collections`
+--
+ALTER TABLE `users_collections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `users_profile_borders`
+--
+ALTER TABLE `users_profile_borders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `users_profile_pictures`
+--
+ALTER TABLE `users_profile_pictures`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Megkötések a kiírt táblákhoz

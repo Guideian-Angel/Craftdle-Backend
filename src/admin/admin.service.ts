@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
@@ -10,8 +10,8 @@ import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 export class AdminService {
   constructor(
     private prisma: PrismaService,
-    @Inject(forwardRef(() => SocketGateway)) private socketGateway: SocketGateway
-  ) { }
+    private socketGateway: SocketGateway // Már nem forwardRef szükséges
+  ) {}
 
   create(createAdminDto: CreateAdminDto) {
     return 'This action adds a new admin';
@@ -37,13 +37,13 @@ export class AdminService {
     const newMaintenance = await this.prisma.maintenance.create({
       data: {
         user: 1,
-        ...createMaintenanceDto
-      }
-    })
+        ...createMaintenanceDto,
+      },
+    });
 
     this.socketGateway.emitMaintenanceUpdate(await this.getCurrentMaintenance());
 
-    return newMaintenance
+    return newMaintenance;
   }
 
   async getUpcomingMaintenance() {
@@ -60,23 +60,23 @@ export class AdminService {
     if (!upcomingMaintenance) {
       return {
         started: false,
-        countdown: null
-      }
+        countdown: null,
+      };
     }
 
-    const now = getCurrentDate()
+    const now = getCurrentDate();
 
-    const started = upcomingMaintenance.start < now
+    const started = upcomingMaintenance.start < now;
 
-    const countdown = Math.round((started ? (
-      upcomingMaintenance.end.getTime() - now.getTime()
-    ) : (
-      upcomingMaintenance.start.getTime() - now.getTime()
-    )) / 1000)
+    const countdown = Math.round(
+      (started
+        ? upcomingMaintenance.end.getTime() - now.getTime()
+        : upcomingMaintenance.start.getTime() - now.getTime()) / 1000,
+    );
 
     return {
       started: started,
-      countdown: countdown > 0 ? countdown : null
-    }
+      countdown: countdown > 0 ? countdown : null,
+    };
   }
 }

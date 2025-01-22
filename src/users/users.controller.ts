@@ -24,7 +24,6 @@ export class UsersController {
         try {
             const result = await this.usersService.register(userDto);
 
-            console.log(result);
             if (!('loginToken' in result)) {
                 // Ha nincs loginToken az adatban, hiba történt..
                 throw new HttpException({ errors: result }, HttpStatus.BAD_REQUEST);
@@ -45,7 +44,6 @@ export class UsersController {
      */
     @Get('login')
     async createGuestAccount(): Promise<ApiResponse> {
-        console.log("asd")
         try {
             const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
@@ -67,9 +65,7 @@ export class UsersController {
         @Body() body: LoginDataDto
     ) {
         try {
-            console.log("asd",body); // Debug: A body tartalmának naplózása
             const result = await this.usersService.loginUser(authorization, body);
-            console.log(result)
             return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
         } catch (err) {
             console.error("Bejelentkezési hiba:", err.message);
@@ -129,7 +125,6 @@ export class UsersController {
         @Body() updateSettingsData: UpdateSettingsDto,
     ) {
         try {
-            console.log("pingelve")
             await this.usersService.updateSettings(settingsId, authorization, updateSettingsData);
             return { message: "Settings successfully changed" }
         } catch (err) {
