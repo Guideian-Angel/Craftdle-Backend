@@ -5,17 +5,16 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { forwardRef, Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
 import { Game } from 'src/game/classes/Game';
 import { Riddle } from 'src/game/classes/Riddle';
 import { CacheService } from 'src/cache/cache.service';
-import { AdminService } from 'src/admin/admin.service';
 import { RecipeFunctions } from 'src/game/classes/RecipeFunctions';
 import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 import { ITip } from 'src/game/interfaces/ITip';
-import { GameService } from 'src/game/game.service';
+import { Maintenance } from 'src/admin/classes/Maintenance';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -29,9 +28,8 @@ export class SocketGateway
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly adminService: AdminService,
     private readonly cacheService: CacheService,
-    private readonly gameService: GameService,
+    private readonly maintenanceService: Maintenance,
   ) { }
 
   afterInit(server: Server) {
@@ -72,13 +70,13 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
-    const maintenance = await this.adminService.getCurrentMaintenance();
+    const maintenance = await this.maintenanceService.getCurrentMaintenance();
     client.emit('maintenance', maintenance);
 
     if (maintenance.countdown != null) {
       clearTimeout(this.reporter);
       this.reporter = setTimeout(async () => {
-        this.emitMaintenanceUpdate(await this.adminService.getCurrentMaintenance());
+        this.emitMaintenanceUpdate(await this.maintenanceService.getCurrentMaintenance());
       }, (maintenance.countdown + 1) * 1000);
     }
   }
@@ -97,7 +95,8 @@ export class SocketGateway
 
   // Egyedi események kezelése
   @SubscribeMessage('startGame')
-  async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
+  handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }): void {
+    console.log('New game started');
     const riddle = new Riddle(payload.newGame, payload.gamemode, this.cacheService);
     const game = new Game(riddle, client.id, this.usersService);
     game.id = await this.gameService.saveGame(game);
@@ -152,7 +151,7 @@ export class SocketGateway
     if (maintenance.countdown != null) {
       clearTimeout(this.reporter);
       this.reporter = setTimeout(async () => {
-        this.emitMaintenanceUpdate(await this.adminService.getCurrentMaintenance());
+        this.emitMaintenanceUpdate(await this.maintenanceService.getCurrentMaintenance());
       }, (maintenance.countdown + 1) * 1000);
     }
   }
