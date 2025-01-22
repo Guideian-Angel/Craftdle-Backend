@@ -36,7 +36,6 @@ export class RecipeFunctions {
     static getRecipeById(group: string, id: string, cacheService: CacheService): Recipe {
         let result;
         cacheService.getCachedData('recipes')[group].forEach((recipe: Recipe) => {
-            console.log(recipe.id, id)
             if (recipe.id == id) {
                 result = recipe;
             }
@@ -75,8 +74,6 @@ export class RecipeFunctions {
                 columnCount--; // Csökkentjük az oszlopok számát
             }
         }
-
-        console.log("TRIMMELT CUCC: ", matrix);
 
         return matrix;
     }
@@ -176,7 +173,6 @@ export class RecipeFunctions {
         // Iterálás a mátrix celláin
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
-                console.log("riddle: ", riddle.recipe, "tipCell: ", tip)
                 const tipCell = tip[i][j];
                 const riddleCell = recipe[i][j];
 
@@ -233,7 +229,6 @@ export class RecipeFunctions {
         let wrongMat = false;
 
         tip.flat().forEach(item => {
-            console.log(item)
             if (item === null) {
                 result.push(null);
             } else {
