@@ -1,13 +1,12 @@
-// game/game.module.ts
 import { Module } from '@nestjs/common';
 import { GameService } from './game.service';
-import { SharedModule } from '../shared/shared.module';
 import { GameController } from './game.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-    imports: [SharedModule],
+    imports: [PrismaModule],
     controllers: [GameController],
     providers: [GameService],
     exports: [GameService],
 })
-export class GameModule {}
+export class GameModule { }

@@ -7,8 +7,13 @@ import { UsersService } from 'src/users/users.service';
 import { Maintenance } from './classes/Maintenance';
 
 @Module({
+  imports: [
+    SocketModule,
+    UsersModule,
+    GameModule,
+  ],
   controllers: [AdminController],
-  providers: [PrismaService, AdminService, SocketGateway, UsersService, Maintenance, SocketGateway],
-  exports: [AdminService, Maintenance, SocketGateway]
+  providers: [PrismaService, AdminService],
+  exports: [AdminService],
 })
 export class AdminModule {}

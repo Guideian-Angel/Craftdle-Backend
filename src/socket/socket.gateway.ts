@@ -72,6 +72,7 @@ export class SocketGateway
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
     const maintenance = await this.maintenanceService.getCurrentMaintenance();
     client.emit('maintenance', maintenance);
+
     if (maintenance.countdown != null) {
       clearTimeout(this.reporter);
       this.reporter = setTimeout(async () => {
@@ -98,10 +99,9 @@ export class SocketGateway
     console.log('New game started');
     const riddle = new Riddle(payload.newGame, payload.gamemode, this.cacheService);
     const game = new Game(riddle, client.id, this.usersService);
+    game.id = await this.gameService.saveGame(game);
     SocketGateway.gameToClient.set(client.id, game);
 
-    // Emit the game object back to the client or handle it as needed
-    //console.log(riddle.toJSON());
     client.emit('guess', riddle.toJSON());
   }
 
@@ -111,7 +111,7 @@ export class SocketGateway
   }
 
   @SubscribeMessage('guess')
-  handleGuess(client: Socket, payload: ITip) {
+  async handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
     if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
@@ -120,10 +120,21 @@ export class SocketGateway
         game.riddle.guessedRecipes.push(payload.item.id);
         game.riddle.numberOfGuesses++;
         const result = RecipeFunctions.compareTipWithRiddle(tippedMatrix, game.riddle);
-        game.riddle.tips.push({item: {id: baseRecipe.id, name: baseRecipe.name, src: baseRecipe.src}, table: result.result});
+        const tip = {
+          item: {
+            id: baseRecipe.id, 
+            name: baseRecipe.name, 
+            src: baseRecipe.src
+          }, 
+          table: result.result, 
+          date: new Date()
+        }
+        game.riddle.tips.push(tip);
+        await this.gameService.saveTip(tip, game.id);
         if(result.solved){
           game.riddle.solved = true
-          //save game to database
+          await this.gameService.changeGameStatus(game.id);
+          SocketGateway.gameToClient.delete(client.id)
         }
         client.emit('guess', game.riddle.toJSON());
       }

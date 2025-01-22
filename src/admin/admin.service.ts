@@ -24,7 +24,6 @@ export class AdminService {
   update(id: number, updateAdminDto: UpdateAdminDto) {
     return `This action updates a #${id} admin`;
   }
-
   remove(id: number) {
     return `This action removes a #${id} admin`;
   }

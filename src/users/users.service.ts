@@ -33,7 +33,7 @@ export class UsersService {
     private static tokenToUser: Map<string, User> = new Map();
     private static socketIdToUser: Map<string, User> = new Map();
 
-    constructor(private prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
@@ -77,7 +77,7 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserByToken(token: string): User | undefined {
-        //console.log("MAP TARTALMA (getUserByToken): ", UsersService.tokenToUser);
+        console.log("ASDASDASDASDASD:", token, "SADDSASAD", UsersService.tokenToUser.get(token))
         return UsersService.tokenToUser.get(token);
     }
 
