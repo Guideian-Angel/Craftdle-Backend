@@ -14,6 +14,7 @@ import { CacheService } from 'src/cache/cache.service';
 import { RecipeFunctions } from 'src/game/classes/RecipeFunctions';
 import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 import { ITip } from 'src/game/interfaces/ITip';
+import { GameService } from 'src/game/game.service';
 import { Maintenance } from 'src/admin/classes/Maintenance';
 
 @WebSocketGateway({ cors: true })
@@ -30,6 +31,7 @@ export class SocketGateway
     private readonly usersService: UsersService,
     private readonly cacheService: CacheService,
     private readonly maintenanceService: Maintenance,
+    private readonly gameService: GameService
   ) { }
 
   afterInit(server: Server) {
@@ -95,7 +97,7 @@ export class SocketGateway
 
   // Egyedi események kezelése
   @SubscribeMessage('startGame')
-  handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }): void {
+  async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
     console.log('New game started');
     const riddle = new Riddle(payload.newGame, payload.gamemode, this.cacheService);
     const game = new Game(riddle, client.id, this.usersService);

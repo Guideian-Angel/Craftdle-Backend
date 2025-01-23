@@ -77,7 +77,6 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserByToken(token: string): User | undefined {
-        console.log("ASDASDASDASDASD:", token, "SADDSASAD", UsersService.tokenToUser.get(token))
         return UsersService.tokenToUser.get(token);
     }
 

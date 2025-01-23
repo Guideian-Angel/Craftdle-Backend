@@ -3,14 +3,16 @@ import { SocketGateway } from './socket.gateway';
 import { UsersModule } from '../users/users.module';
 import { CacheModule } from '../cache/cache.module';
 import { GameModule } from '../game/game.module';
+import { Maintenance } from 'src/admin/classes/Maintenance';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
     imports: [
         UsersModule,
         CacheModule,
-        GameModule,
+        GameModule
     ],
-    providers: [SocketGateway],
+    providers: [SocketGateway, Maintenance, PrismaService],
     exports: [SocketGateway],
 })
 export class SocketModule { }

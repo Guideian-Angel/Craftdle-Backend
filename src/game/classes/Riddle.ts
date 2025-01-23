@@ -45,7 +45,6 @@ export class Riddle {
 
         this.recipe = selectedGroup;
         this.templateRecipe = this.getRandomItem(this.recipe);
-        console.log("Riddle: ", this.templateRecipe)
         this.recipeGroup = randomGroupKey;
 
         if (Number(this.gamemode) === 6) {
