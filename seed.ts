@@ -15,7 +15,6 @@ async function main() {
         for (const query of queries) {
             if (query.trim()) {
                 await prisma.$executeRawUnsafe(query);
-                console.log('Query executed successfully:', query);
             }
         }
         console.log('Seeding kész!');
