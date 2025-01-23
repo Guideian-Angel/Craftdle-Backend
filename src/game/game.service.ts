@@ -83,13 +83,13 @@ export class GameService {
                 item: tip.item.id
             }
         });
-        await this.saveCraftingTableContent(tip, tipRecord.id)
+        await this.saveCraftingTableContent(tip, tipRecord.id);
     }
 
     async saveCraftingTableContent(tip: ICheckedTip, tipId: number){
-        tip.table.forEach((slot, index) => {
+        tip.table.forEach(async (slot, index) => {
             if(slot){
-                this.prisma.crafting_table_slots.create({
+                await this.prisma.crafting_table_slots.create({
                     data: {
                         tip: tipId,
                         position: index,
@@ -97,7 +97,7 @@ export class GameService {
                         status: slot.status == "wrong"? 3: slot.status == "semi-correct"? 2: 1
                     }
                 });
-            }
-        })
+            };
+        });
     }
 }
