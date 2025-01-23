@@ -330,6 +330,7 @@
         "shapeless": false,
         "src": "Wooden_Axe.png",
         "enabledGamemodes": [
+          1,
           4,
           2,
           3,
@@ -369,6 +370,7 @@
         "shapeless": false,
         "src": "Stone_Axe.png",
         "enabledGamemodes": [
+          1,
           4,
           2,
           3,
@@ -402,6 +404,7 @@
         "shapeless": false,
         "src": "Iron_Axe.png",
         "enabledGamemodes": [
+          1,
           4,
           2,
           3,
@@ -435,6 +438,7 @@
         "shapeless": false,
         "src": "Golden_Axe.png",
         "enabledGamemodes": [
+          1,
           4,
           2,
           3,
@@ -468,6 +472,7 @@
         "shapeless": false,
         "src": "Diamond_Axe.png",
         "enabledGamemodes": [
+          1,
           4,
           2,
           3,
