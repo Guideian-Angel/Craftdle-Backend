@@ -38,7 +38,7 @@ export class UsersService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly assetsService: AssetsService
-    ) {}
+    ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
@@ -281,7 +281,11 @@ export class UsersService {
 
     async getCollection(authHeader: string) {
         try {
-            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
+            const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
+            const userId = user.id
+            if (user.is_guest) {
+                throw new HttpException('No No Collection', HttpStatus.UNAUTHORIZED);
+            }
             return {
                 profilePictures: await this.getProfilePicturesCollection(userId),
                 profileBorders: await this.getProfileBordersCollection(userId),
@@ -509,14 +513,14 @@ export class UsersService {
     async updateProfile(authHeader: string, profile: ProfileDto) {
         try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
-    
+
             // Helper function for updating is_set fields
             const updateIsSet = async (model: any, identifierField: string, identifierValue: number | null) => {
                 await model.updateMany({
                     where: { user: userId },
                     data: { is_set: false },
                 });
-    
+
                 if (identifierValue) {
                     await model.updateMany({
                         where: { user: userId, [identifierField]: identifierValue },
@@ -524,10 +528,10 @@ export class UsersService {
                     });
                 }
             };
-    
+
             // Update profile pictures
             const profilePictureUpdate = await updateIsSet(this.prisma.users_profile_pictures, 'profile_picture', profile.profilePicture);
-    
+
             // Update profile borders
             const profileBorderUpdate = await updateIsSet(this.prisma.users_profile_borders, 'profile_border', profile.profileBorder);
 
