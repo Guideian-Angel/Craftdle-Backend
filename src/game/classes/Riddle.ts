@@ -22,7 +22,8 @@ export class Riddle {
     solved: boolean = false;
 
     constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
-        this.gamemode = gamemode;
+        this.gamemode = Number(gamemode);
+        console.log('gamemode', typeof this.gamemode);
 
         const recipes = cacheService.getCachedData('recipes');
         const items = cacheService.getCachedData('items');
