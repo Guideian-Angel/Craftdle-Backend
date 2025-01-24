@@ -2,8 +2,9 @@ import { Recipe } from './Recipe';
 import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
-import { ITip } from '../interfaces/ITip';
 import { ICheckedTip } from '../interfaces/ICheckedTip';
+import { User } from 'src/users/classes/user';
+import { GameService } from '../game.service';
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -21,20 +22,31 @@ export class Riddle {
     inventory: IItem[];
     solved: boolean = false;
 
-    constructor(newGame: boolean, gamemode: number, private readonly cacheService: CacheService) {
+    constructor(private readonly cacheService: CacheService, private readonly gameService: GameService) { }
+
+    async initializeExistingGame(user, gamemode) {
         this.gamemode = gamemode;
+        const recipes = this.cacheService.getCachedData('recipes');
+        const items = this.cacheService.getCachedData('items');
 
-        const recipes = cacheService.getCachedData('recipes');
-        const items = cacheService.getCachedData('items');
+        const game = await this.gameService.loadLastGame(user, this.gamemode);
+        this.recipeGroup = game.riddle;
+        this.recipe = recipes[this.recipeGroup];
+        this.templateRecipe = this.getRandomItem(this.recipe);
+        this.inventory = Number(this.gamemode) === 6 ? await this.gameService.loadInventory(game.id) : items;
+        this.hints = Number(this.gamemode) !== 7 ? await this.gameService.loadHints(game.id) : null;
+        this.tips = await this.gameService.loadTips(game.id);
+        this.guessedRecipes = this.tips.map(tip => tip.item.id);
+        this.numberOfGuesses = this.guessedRecipes.length;
 
-        if (newGame) {
-            this.initializeNewGame(recipes, items);
-        } else {
-            //this.getLastGame();
-        }
+        return game.id;
     }
 
-    private initializeNewGame(recipes: Record<string, any>, items): void {
+    initializeNewGame(gamemode): void {
+        this.gamemode = gamemode;
+        const recipes = this.cacheService.getCachedData('recipes');
+        const items = this.cacheService.getCachedData('items');
+
         const validGroups = this.getValidGroups(recipes);
 
         if (validGroups.length === 0) {
@@ -46,16 +58,8 @@ export class Riddle {
         this.recipe = selectedGroup;
         this.templateRecipe = this.getRandomItem(this.recipe);
         this.recipeGroup = randomGroupKey;
-
-        if (Number(this.gamemode) === 6) {
-            this.inventory = this.collectMaterialsForGraph(recipes, items);
-        } else {
-            this.inventory = items
-        }
-
-        if (Number(this.gamemode) !== 7) {
-            this.hints = this.generateHints(recipes);
-        }
+        this.inventory = Number(this.gamemode) === 6? this.collectMaterialsForGraph(recipes, items): items;
+        this.hints = Number(this.gamemode) !== 7? this.generateHints(recipes): null;
     }
 
     private gatherItems(items, itemIds: Set<string>) {

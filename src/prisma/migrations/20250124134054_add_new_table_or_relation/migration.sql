@@ -1,0 +1,2 @@
+-- AddForeignKey
+ALTER TABLE `tips` ADD CONSTRAINT `tips_ibfk_2` FOREIGN KEY (`item`) REFERENCES `items`(`item_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

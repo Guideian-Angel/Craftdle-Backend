@@ -1,12 +1,14 @@
 import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { fetchGameModesWithLastUnsolvedGame } from './utilities/gamemodesFetching';
+import { GamemodeFunctions } from './classes/GamemodeFunctions';
 import { IGamemode } from './interfaces/IGamemode';
 import tokenValidation from '../shared/utilities/tokenValidation';
 import { Game } from './classes/Game';
 import { Riddle } from './classes/Riddle';
 import { IItem } from './interfaces/IItem';
 import { ICheckedTip } from './interfaces/ICheckedTip';
+import { User } from 'src/users/classes/user';
+import { get } from 'http';
 
 @Injectable()
 export class GameService {
@@ -20,15 +22,15 @@ export class GameService {
             if (!user) {
                 throw new UnauthorizedException('Authorization header is required');
             }
-            return await fetchGameModesWithLastUnsolvedGame(this.prisma, user.id);
+            return await GamemodeFunctions.fetchGameModesWithLastUnsolvedGame(this.prisma, user.id);
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
         }
     }
 
-    async changeGameStatus(gameId: number){
+    async changeGameStatus(gameId: number) {
         this.prisma.games.update({
-            where: {id: gameId},
+            where: { id: gameId },
             data: {
                 is_solved: true
             }
@@ -45,14 +47,16 @@ export class GameService {
                 is_solved: game.riddle.solved,
             },
         });
-        await this.saveHints(game.riddle, gameRecord.id);
-        if(game.riddle.gamemode == 6){
+        if (game.riddle.gamemode != 7) {
+            await this.saveHints(game.riddle, gameRecord.id);
+        }
+        if (game.riddle.gamemode == 6) {
             this.saveInventory(game.riddle.inventory, gameRecord.id);
         }
         return gameRecord.id;
     }
 
-    async saveHints(riddle: Riddle, gameId: number){
+    async saveHints(riddle: Riddle, gameId: number) {
         riddle.hints.forEach(async (hint, index) => {
             await this.prisma.hints.create({
                 data: {
@@ -64,7 +68,7 @@ export class GameService {
         });
     }
 
-    saveInventory(items: IItem[], gameId: number){
+    saveInventory(items: IItem[], gameId: number) {
         items.forEach(async (item) => {
             await this.prisma.inventories_items.create({
                 data: {
@@ -75,7 +79,7 @@ export class GameService {
         })
     }
 
-    async saveTip(tip: ICheckedTip, gameId: number){
+    async saveTip(tip: ICheckedTip, gameId: number) {
         const tipRecord = await this.prisma.tips.create({
             data: {
                 game: gameId,
@@ -86,17 +90,113 @@ export class GameService {
         await this.saveCraftingTableContent(tip, tipRecord.id);
     }
 
-    async saveCraftingTableContent(tip: ICheckedTip, tipId: number){
+    async saveCraftingTableContent(tip: ICheckedTip, tipId: number) {
         tip.table.forEach(async (slot, index) => {
-            if(slot){
+            if (slot) {
                 await this.prisma.crafting_table_slots.create({
                     data: {
                         tip: tipId,
                         position: index,
                         content: slot.item,
-                        status: slot.status == "wrong"? 3: slot.status == "semi-correct"? 2: 1
+                        status: slot.status == "wrong" ? 3 : slot.status == "semi-correct" ? 2 : 1
                     }
                 });
+            };
+        });
+    }
+
+    checkTutorialScript(group: string, numberOfGuess: number) {
+        const scriptedTip = ["planks0", "armorStand0", "rail0", "piston0", "axe0"];
+        return group == scriptedTip[numberOfGuess]
+    };
+
+    async getGameById(gameId: number) {
+        return await this.prisma.games.findUnique({
+            where: {
+                id: gameId
+            }
+        });
+    }
+
+    async loadLastGame(user: User, gamemode: number) {
+        const lastGames = await GamemodeFunctions.getLastGameByGamemode(this.prisma, user.id);
+        console.log(lastGames)
+        return await this.getGameById(lastGames[gamemode].id);
+    };
+
+    async loadInventory(gameId: number): Promise<IItem[]> {
+        const inventory = await this.prisma.inventories_items.findMany({
+            where: {
+                game: gameId
+            },
+            include: {
+                items: true
+            }
+        });
+
+        return inventory.map(entry => {
+            const item = entry.items;
+            if (!item) throw new Error("Item not found!");
+
+            return {
+                id: item.item_id,
+                name: item.name,
+                src: item.src
+            };
+        });
+    }
+
+    async loadHints(gameId: number): Promise<string[]> {
+        const hints = await this.prisma.hints.findMany({
+            where: {
+                game: gameId
+            },
+            select: {
+                content: true,
+                number: true
+            }
+        });
+        return hints.sort((a, b) => a.number - b.number).map(hint => hint.content);
+    }
+
+    async loadTips(gameId: number): Promise<ICheckedTip[]> {
+        const tips = await this.prisma.tips.findMany({
+            where: {
+                game: gameId
+            },
+            include: {
+                collections: true,
+                crafting_table_slots: {
+                    include: {
+                        guess_types: true,
+                    }
+                }
+            }
+        });
+    
+        return tips.map(tip => {
+            // Kezdetben létrehozzuk a table-t, ami 9 null értékű elem
+            const table = new Array(9).fill(null);
+    
+            // A table feltöltése a megfelelő slot.position értékek alapján
+            tip.crafting_table_slots.forEach(slot => {
+                // Slot position alapján beállítjuk az itemet a megfelelő indexre
+                if (slot.position >= 0 && slot.position < 9) {
+                    table[slot.position] = {
+                        item: slot.content,
+                        status: slot.guess_types.type
+                    };
+                }
+            });
+    
+            return {
+                item: {
+                    id: tip.item,
+                    name: tip.collections.name,
+                    src: tip.collections.image
+                },
+                table: table,  // A 9 elemű table, ami már tartalmazza a pozíciókat
+                date: tip.date
             };
         });
     }

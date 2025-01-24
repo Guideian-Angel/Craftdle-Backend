@@ -262,9 +262,4 @@ export class RecipeFunctions {
 
         return { result: result, matches: correctCount, solved: solved };
     }
-
-    static checkTutorialScript(group: string, numberOfGuess: number) {
-        const scriptedTip = ["piston0", "axe0", "rail0", "palnks0", "armorStand0"];
-        return group == scriptedTip[numberOfGuess]
-    }
 }
