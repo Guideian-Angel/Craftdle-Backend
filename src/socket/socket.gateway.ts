@@ -118,25 +118,27 @@ export class SocketGateway
     if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = RecipeFunctions.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
-      if (RecipeFunctions.validateRecipe(tippedMatrix, baseRecipe)) {
-        game.riddle.guessedRecipes.push(payload.item.id);
-        game.riddle.numberOfGuesses++;
-        const result = RecipeFunctions.compareTipWithRiddle(tippedMatrix, game.riddle);
-        const tip = {
-          item: {
-            id: baseRecipe.id, 
-            name: baseRecipe.name, 
-            src: baseRecipe.src
-          }, 
-          table: result.result, 
-          date: new Date()
-        }
-        game.riddle.tips.push(tip);
-        await this.gameService.saveTip(tip, game.id);
-        if(result.solved){
-          game.riddle.solved = true
-          await this.gameService.changeGameStatus(game.id);
-          SocketGateway.gameToClient.delete(client.id)
+      if ((game.riddle.gamemode == 1 && RecipeFunctions.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
+        if(RecipeFunctions.validateRecipe(tippedMatrix, baseRecipe)){
+          game.riddle.guessedRecipes.push(payload.item.id);
+          game.riddle.numberOfGuesses++;
+          const result = RecipeFunctions.compareTipWithRiddle(tippedMatrix, game.riddle);
+          const tip = {
+            item: {
+              id: baseRecipe.id, 
+              name: baseRecipe.name, 
+              src: baseRecipe.src
+            }, 
+            table: result.result, 
+            date: new Date()
+          }
+          game.riddle.tips.push(tip);
+          await this.gameService.saveTip(tip, game.id);
+          if(result.solved){
+            game.riddle.solved = true
+            await this.gameService.changeGameStatus(game.id);
+            SocketGateway.gameToClient.delete(client.id)
+          }
         }
         client.emit('guess', game.riddle.toJSON());
       }

@@ -4,6 +4,7 @@ import { Recipe } from "./Recipe";
 import { mergeMatrixRows } from "src/shared/utilities/arrayFunctions";
 import { Riddle } from "./Riddle";
 import { IMatrixCompareResponse } from "../interfaces/IMatrixCompareResponse";
+import { ITip } from "../interfaces/ITip";
 
 export class RecipeFunctions {
 
@@ -30,18 +31,21 @@ export class RecipeFunctions {
     }
 
     static validateRecipe(tip: Array<Array<Array<string>> | null>, baseRecipe: Recipe): Boolean {
-        return baseRecipe.shapeless? !!this.compareShapelessRecipes(tip, baseRecipe) : this.arraysEqual(mergeMatrixRows(tip).filter(Boolean), mergeMatrixRows(baseRecipe.recipe).filter(Boolean))
+        return baseRecipe.shapeless ? !!this.compareShapelessRecipes(tip, baseRecipe) : this.arraysEqual(mergeMatrixRows(tip).filter(Boolean), mergeMatrixRows(baseRecipe.recipe).filter(Boolean))
     }
 
     static getRecipeById(group: string, id: string, cacheService: CacheService): Recipe {
         let result;
-        cacheService.getCachedData('recipes')[group].forEach((recipe: Recipe) => {
-            if (recipe.id == id) {
-                result = recipe;
+        const recipes = cacheService.getCachedData('recipes')[group];
+        if (recipes) {
+            cacheService.getCachedData('recipes')[group].forEach((recipe: Recipe) => {
+                if (recipe.id == id) {
+                    result = recipe;
+                }
+            });
+            if (result) {
+                return result;
             }
-        });
-        if (result) {
-            return result;
         }
         throw new Error('Invalid recipe error: Not found');
     }
@@ -147,16 +151,15 @@ export class RecipeFunctions {
 
     static compareTipWithRiddle(tip: Array<Array<Array<string> | null>>, riddle: Riddle) {
         let result;
-        if(riddle.templateRecipe.shapeless){
-            result = this.compareShapelessRecipes(tip, riddle.templateRecipe)
-        } else{
-            const trimmedRiddle = this.trimMatrix(riddle.templateRecipe.recipe);
-            const matrices = this.generateMatrices(trimmedRiddle, riddle.gamemode == 5 ? 2 : 3);
-            for(const recipe of riddle.recipe){
-                result = this.compareShapedRecipes(matrices[0], recipe, tip, riddle.gamemode == 5 ? 2 : 3);
-                for (let i = 1; i < matrices.length; i++) {
-                    const tempResult = this.compareShapedRecipes(matrices[0], recipe, tip, riddle.gamemode == 5 ? 2 : 3);
-                    if (tempResult.matches > result.matches) {
+        for (const recipe of riddle.recipe) {
+            if (riddle.templateRecipe.shapeless) {
+                result = this.compareShapelessRecipes(tip, recipe)
+            } else {
+                const trimmedRiddle = this.trimMatrix(recipe.recipe);
+                const matrices = this.generateMatrices(trimmedRiddle, riddle.gamemode == 5 ? 2 : 3);
+                for (let i = 0; i < matrices.length; i++) {
+                    const tempResult = this.compareShapedRecipes(matrices[i], recipe, tip, riddle.gamemode == 5 ? 2 : 3);
+                    if (!result || (tempResult.matches > result.matches)) {
                         result = tempResult;
                     }
                 }
@@ -258,5 +261,10 @@ export class RecipeFunctions {
         const solved = reqMats.length == 0 && !wrongMat;
 
         return { result: result, matches: correctCount, solved: solved };
+    }
+
+    static checkTutorialScript(group: string, numberOfGuess: number) {
+        const scriptedTip = ["piston0", "axe0", "rail0", "palnks0", "armorStand0"];
+        return group == scriptedTip[numberOfGuess]
     }
 }
