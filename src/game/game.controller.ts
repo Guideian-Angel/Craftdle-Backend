@@ -8,8 +8,10 @@ export class GameController {
 
   @Get('singleplayer')
   async getGameModesWithLastUnsolvedGame(@Headers('authorization') authorization: string) {
+    console.log(authorization)
     try{
       const result = await this.gameService.getGameModesWithLastUnsolvedGame(authorization);
+      console.log(result)
       return {data: {gamemodes: result}}
     }catch(err){
       throw new UnauthorizedException();

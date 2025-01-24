@@ -115,9 +115,11 @@ export class SocketGateway
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
+    console.log(game.riddle.guessedRecipes, payload.item.group)
     if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = RecipeFunctions.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
+      console.log(game.riddle.gamemode)
       if ((game.riddle.gamemode == 1 && RecipeFunctions.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
         if(RecipeFunctions.validateRecipe(tippedMatrix, baseRecipe)){
           game.riddle.guessedRecipes.push(payload.item.id);

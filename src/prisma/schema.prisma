@@ -35,7 +35,7 @@ model collections {
   id                Int                 @id @default(autoincrement())
   item_id           String              @unique(map: "item_id") @db.VarChar(255)
   name              String              @db.VarChar(255)
-  image             String              @db.VarChar(255)
+  src             String              @db.VarChar(255)
   users_collections users_collections[]
 }
 
