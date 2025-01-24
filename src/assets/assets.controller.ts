@@ -15,7 +15,7 @@ export class AssetsController {
         @Res() res: Response,
     ) {
         // Az elérési út módosítása, hogy a public mappában keresse
-        const imagePath = path.join(__dirname, '../../public/img', type, src);
+        const imagePath = path.join(__dirname, '../../../public/img', type, src);
 
         // Ellenőrizd, hogy a fájl létezik-e
         if (fs.existsSync(imagePath)) {
