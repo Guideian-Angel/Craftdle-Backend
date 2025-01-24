@@ -5,6 +5,7 @@ import { LoginDataDto } from './dtos/LoginData.dto';
 import { RegistDataDto } from './dtos/RegistData.dto';
 import { UpdateSettingsDto } from './dtos/SettingsData.dto';
 import { ISettings } from './interfaces/ISettings';
+import { ProfileDto } from './dtos/Profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -141,6 +142,17 @@ export class UsersController {
             return { data: result };
         } catch (err) {
             return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
+        }
+    }
+
+    @Put('profile')
+    async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileDto): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.updateProfile(authorization, body);
+            console.log(result)
+            return { data: result };
+        } catch (err) {
+            return { message: err.message };
         }
     }
 }
