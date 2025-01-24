@@ -26,6 +26,7 @@ import userAuthorization, { findUser } from './utilities/userAuthorization.util'
 import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
 import { modifySettings } from './utilities/SettingsModification';
 import { geatherSettings } from './utilities/SettingsCollection';
+import { AssetsService } from 'src/assets/assets.service';
 
 
 @Injectable()
@@ -33,7 +34,10 @@ export class UsersService {
     private static tokenToUser: Map<string, User> = new Map();
     private static socketIdToUser: Map<string, User> = new Map();
 
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly assetsService: AssetsService
+    ) {}
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
@@ -269,6 +273,20 @@ export class UsersService {
         try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
             modifySettings(settingsId, userId, settingsData, this.prisma);
+        } catch (error) {
+            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    async getCollection(authHeader: string) {
+        try {
+            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
+            return {
+                profilePictures: await this.assetsService.getProfilePicturesCollection(userId),
+                profileBorders: await this.assetsService.getProfileBordersCollection(userId),
+                inventory: await this.assetsService.getInventoryCollection(userId),
+                achievements: await this.assetsService.getAchievements(userId)
+            }
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
         }

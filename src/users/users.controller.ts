@@ -131,4 +131,16 @@ export class UsersController {
             return { message: err.message }
         }
     }
+
+    @Get('collection')
+    async getCollection(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+        try {
+            console.log("Collection endpoint asd");
+            const result = await this.usersService.getCollection(authorization);
+            console.log("Collection endpoint");
+            return { data: result };
+        } catch (err) {
+            return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
+        }
+    }
 }
