@@ -4,7 +4,7 @@ import { AssetsService } from './assets.service';
 import * as path from 'path';
 import * as fs from 'fs';
 
-@Controller('/')
+@Controller("/assets")
 export class AssetsController {
     constructor(private readonly assetsService: AssetsService) { }
 

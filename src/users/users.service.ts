@@ -507,8 +507,6 @@ export class UsersService {
     }
 
     async updateProfile(authHeader: string, profile: ProfileDto) {
-        console.log(profile);
-    
         try {
             const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
     
@@ -528,12 +526,15 @@ export class UsersService {
             };
     
             // Update profile pictures
-            await updateIsSet(this.prisma.users_profile_pictures, 'profile_picture', profile.profilePicture);
+            const profilePictureUpdate = await updateIsSet(this.prisma.users_profile_pictures, 'profile_picture', profile.profilePicture);
     
             // Update profile borders
-            const updateResult = await updateIsSet(this.prisma.users_profile_borders, 'profile_border', profile.profileBorder);
-    
-            console.log(updateResult);
+            const profileBorderUpdate = await updateIsSet(this.prisma.users_profile_borders, 'profile_border', profile.profileBorder);
+
+            return {
+                profilePicture: profilePictureUpdate,
+                profileBorder: profileBorderUpdate
+            }
         } catch (error) {
             return { message: error.message };
         }
