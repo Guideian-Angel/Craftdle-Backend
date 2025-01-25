@@ -155,4 +155,14 @@ export class UsersController {
             return { message: err.message };
         }
     }
+
+    @Get('stats')
+    async getStats(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.getStats(authorization)
+            return { data: result }
+        } catch (err) {
+            return { message: err.message }
+        }
+    }
 }

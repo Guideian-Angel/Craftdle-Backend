@@ -28,6 +28,7 @@ import { modifySettings } from './utilities/SettingsModification';
 import { geatherSettings } from './utilities/SettingsCollection';
 import { AssetsService } from 'src/assets/assets.service';
 import { ProfileDto } from './dtos/Profile.dto';
+import { GameService } from 'src/game/game.service';
 
 
 @Injectable()
@@ -37,7 +38,8 @@ export class UsersService {
 
     constructor(
         private readonly prisma: PrismaService,
-        private readonly assetsService: AssetsService
+        private readonly assetsService: AssetsService,
+        private readonly gameService: GameService
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -157,7 +159,7 @@ export class UsersService {
         // Próbálkozás token alapú bejelentkezéssel
         const user = await tokenValidation.validateBearerToken(authorization, this.prisma, true);
         if (user) { // Token sikeres validációja
-            const formatedUser = this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true);
+            const formatedUser = await this.generateLoginResponse(user, authorization.replace('Bearer ', ''), true);
             await this.createNewUser(formatedUser, false)
             return formatedUser
         }
@@ -165,21 +167,13 @@ export class UsersService {
         return await this.handleBodyLogin(userData);
     }
 
-    generateLoginResponse(userData, token, stayLoggedIn) {
+    async generateLoginResponse(userData, token, stayLoggedIn) {
         return {
             id: userData.id,
             loginToken: token,
             username: userData.username,
-            profilePicture: {
-                id: 15,
-                name: "Desert Villager Base",
-                src: "Desert_Villager_Base.png"
-            },
-            profileBorder: {
-                id: 7,
-                name: "Grass",
-                src: "Grass.png"
-            },
+            profilePicture: (await this.getUsersProfilePicture(userData.id)).find(picture => picture.is_set).profile_pictures,
+            profileBorder: (await this.getUsersProfileBorders(userData.id)).find(border => border.is_set).profile_borders,
             isGuest: false,
             stayLoggedIn: stayLoggedIn
         };
@@ -211,7 +205,7 @@ export class UsersService {
         await pairTokenWithUser(this.prisma, user.id, newToken, !userData.stayLoggedIn);
 
         // Válasz generálása, objektum generálása
-        const formatedUser = this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
+        const formatedUser = await this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
         await this.createNewUser(formatedUser, userData.stayLoggedIn);
         return formatedUser;
     }
@@ -469,7 +463,7 @@ export class UsersService {
                     const progress = owned?.progress || 0;
 
                     // Ha titkos az achievement, helyettesítő adatokat állítunk be
-                    if (achievement.is_secret && !owned) {
+                    if (achievement.is_secret && achievement.goal > progress) {
                         return {
                             id: achievement.id,
                             icon: "Secret.png",
@@ -478,7 +472,7 @@ export class UsersService {
                             goal: null,
                             progress: null,
                             rarity: 2,
-                            collected: true,
+                            collected: false,
                         };
                     }
 
@@ -490,14 +484,14 @@ export class UsersService {
                         goal: achievement.goal,
                         progress: progress,
                         rarity: achievement.is_secret ? 2 : 1,
-                        collected: false
+                        collected: owned ? true : false,
                     };
                 })
                 .sort((a, b) => {
                     // Titkos achievementek kerüljenek a lista végére
-                    if (a.collected && b.collected) return 0; // Mindkettő titkos
-                    if (a.collected) return 1; // `a` titkos, tehát mögé kerül
-                    if (b.collected) return -1; // `b` titkos, tehát elé kerül
+                    if (a.rarity === 2 && b.rarity === 2 && !a.collected && !b.collected) return 0; // Mindkettő titkos
+                    if (a.rarity === 2 && !a.collected) return 1; // `a` titkos, tehát mögé kerül
+                    if (b.rarity === 2 && !b.collected) return -1; // `b` titkos, tehát elé kerül
 
                     // Normál achievementeknél a progress alapján rendezünk
                     const aProgress = a.goal ? (a.progress / a.goal) : 0;
@@ -539,6 +533,31 @@ export class UsersService {
                 profilePicture: profilePictureUpdate,
                 profileBorder: profileBorderUpdate
             }
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
+    async getStats(authHeader: string){
+        try {
+            const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
+            const stats = {
+                username: user.username,
+                profilePicture: (await this.getUsersProfilePicture(user.id)).find(picture => picture.is_set).profile_pictures,
+                profileBorder: (await this.getUsersProfileBorders(user.id)).find(border => border.is_set).profile_borders,
+                streak: await this.gameService.getStreak(user.id),
+                gamemodes: await this.gameService.sortGames(user.id),
+                registrationDate: user.registration_date.toLocaleDateString(),
+                performedAchievements: {
+                    collected: (await this.getUsersAchievements(user.id)).length,
+                    collectable: (await this.assetsService.getAllAchievements()).length
+                },
+                collectedRecipes: {
+                    collected: (await this.getUsersInventory(user.id)).length,
+                    collectable: (await this.assetsService.getAllInventoryItems()).length
+                }
+            }
+            return stats;
         } catch (error) {
             return { message: error.message };
         }
