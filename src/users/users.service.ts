@@ -571,10 +571,11 @@ export class UsersService {
         try {
             const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
             const token = authHeader.replace('Bearer ', '');
+            const verifyToken = uuidv4()
             const images = await RandomizePasswordResetImages(this.prisma);
             if (user.email === email) {
                 const paswordReset = {
-                    token:  uuidv4(),
+                    token: verifyToken,
                     expiration: getCurrentDate(),
                     images: images
                 }
@@ -582,7 +583,10 @@ export class UsersService {
                     token, 
                     { ...UsersService.tokenToUser.get(token), passwordReset: paswordReset }
                 );
-                return { item: images.find(image => image.isRight) };
+                return { 
+                    items: images,
+                    token: verifyToken
+                };
             } else {
                 errors.email = ['Email does not exists.'];
                 return { message: errors };

@@ -6,10 +6,14 @@ import { RegistDataDto } from './dtos/RegistData.dto';
 import { UpdateSettingsDto } from './dtos/SettingsData.dto';
 import { ISettings } from './interfaces/ISettings';
 import { ProfileDto } from './dtos/Profile.dto';
+import { EmailService } from 'src/email/emailSender';
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly emailService: EmailService,
+    ) { }
 
 
     //######################################################### USER LOGIN/REGIST ENDPOINTS #########################################################
@@ -170,7 +174,10 @@ export class UsersController {
     async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<ApiResponse> {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
-            return { data: result };
+            const item = result.items.find(image => image.isRight)
+            delete item.id;
+            this.emailService.sendVerifyEmail(body.email, { token: result.token, items: result.items });
+            return { data: { item: item } };
         } catch (err) {
             return { message: err.message };
         }

@@ -7,6 +7,7 @@ import { AssetsModule } from './assets/assets.module';
 import { CacheModule } from './cache/cache.module';
 import { AdminModule } from './admin/admin.module';
 import { SocketModule } from './socket/socket.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SocketModule } from './socket/socket.module';
     AdminModule,
     SocketModule,
     AssetsModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
