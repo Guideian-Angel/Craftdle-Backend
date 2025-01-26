@@ -4,6 +4,17 @@ export class User{
     isGuest: boolean;
     token: string;
     socketId?: string;
+    passwordReset?: {
+        token: string;
+        expiration: Date;
+        images: Array<{
+            id: number;
+            item_id: string;
+            name: string;
+            src: string;
+            isRight: boolean;
+        }>;
+    }
 
     constructor(id: number, username: string, isGuest: boolean, token: string){
         this.id = id;
@@ -11,5 +22,6 @@ export class User{
         this.isGuest = isGuest;
         this.token = token;
         this.socketId = undefined;
+        this.passwordReset = undefined;
     }
 }

@@ -29,6 +29,9 @@ import { geatherSettings } from './utilities/SettingsCollection';
 import { AssetsService } from 'src/assets/assets.service';
 import { ProfileDto } from './dtos/Profile.dto';
 import { GameService } from 'src/game/game.service';
+import { RandomizePasswordResetImages } from './utilities/RandomizePasswordResetImages';
+import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { v4 as uuidv4 } from 'uuid';
 
 
 @Injectable()
@@ -558,6 +561,32 @@ export class UsersService {
                 }
             }
             return stats;
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
+    async requestPasswordReset(authHeader: string, email: string) {
+        const errors: { email?: string[] } = {};
+        try {
+            const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
+            const token = authHeader.replace('Bearer ', '');
+            const images = await RandomizePasswordResetImages(this.prisma);
+            if (user.email === email) {
+                const paswordReset = {
+                    token:  uuidv4(),
+                    expiration: getCurrentDate(),
+                    images: images
+                }
+                UsersService.tokenToUser.set(
+                    token, 
+                    { ...UsersService.tokenToUser.get(token), passwordReset: paswordReset }
+                );
+                return { item: images.find(image => image.isRight) };
+            } else {
+                errors.email = ['Email does not exists.'];
+                return { message: errors };
+            }
         } catch (error) {
             return { message: error.message };
         }

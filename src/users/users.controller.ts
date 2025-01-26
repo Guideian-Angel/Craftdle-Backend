@@ -165,4 +165,14 @@ export class UsersController {
             return { message: err.message }
         }
     }
+
+    @Post('password')
+    async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.requestPasswordReset(authorization, body.email);
+            return { data: result };
+        } catch (err) {
+            return { message: err.message };
+        }
+    }
 }
