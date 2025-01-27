@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Headers, Body, UnauthorizedException, UsePipes, ValidationPipe, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Headers, Body, UnauthorizedException, UsePipes, ValidationPipe, Param, HttpException, HttpStatus, Render, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiResponse } from '../shared/interfaces/APIResponse'
 import { LoginDataDto } from './dtos/LoginData.dto';
@@ -6,13 +6,15 @@ import { RegistDataDto } from './dtos/RegistData.dto';
 import { UpdateSettingsDto } from './dtos/SettingsData.dto';
 import { ISettings } from './interfaces/ISettings';
 import { ProfileDto } from './dtos/Profile.dto';
-import { EmailService } from 'src/email/emailSender';
+import { EmailService } from 'src/email/email.service';
+import { EmailGateway } from 'src/email/email.gateway';
 
 @Controller('users')
 export class UsersController {
     constructor(
         private readonly usersService: UsersService,
         private readonly emailService: EmailService,
+        private readonly emailGateway: EmailGateway
     ) { }
 
 
@@ -175,9 +177,25 @@ export class UsersController {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
             const item = result.items.find(image => image.isRight)
-            delete item.id;
             this.emailService.sendVerifyEmail(body.email, { token: result.token, items: result.items });
             return { data: { item: item } };
+        } catch (err) {
+            return { message: err.message };
+        }
+    }
+
+    @Get('userVerify')
+    @Render('passwordResetResponse')
+    async verifyUser(@Query('token') token: string, @Query('id') id: string) {
+        console.log("Token + id", token, id);
+        try {
+            const result = await this.usersService.verifyUser(token, id);
+            this.emailGateway.emitUserVerification(result.userId, result.token, result.success);
+            console.log("Result", result);
+            return {
+                text: result.text,
+                color: result.color
+            };
         } catch (err) {
             return { message: err.message };
         }
