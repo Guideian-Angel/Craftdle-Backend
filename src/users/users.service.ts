@@ -32,17 +32,20 @@ import { GameService } from 'src/game/game.service';
 import { RandomizePasswordResetImages } from './utilities/RandomizePasswordResetImages';
 import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 import { v4 as uuidv4 } from 'uuid';
+import { EmailService } from 'src/email/email.service';
 
 
 @Injectable()
 export class UsersService {
     private static tokenToUser: Map<string, User> = new Map();
     private static socketIdToUser: Map<string, User> = new Map();
+    private static passwordChangeTokenToUser: Map<string, User> = new Map();
 
     constructor(
         private readonly prisma: PrismaService,
         private readonly assetsService: AssetsService,
-        private readonly gameService: GameService
+        private readonly gameService: GameService,
+        private readonly emailService: EmailService,
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -99,7 +102,9 @@ export class UsersService {
         return UsersService.socketIdToUser.get(socketId);
     }
 
-
+    getUserByPasswordResetToken(token: string): User | undefined {
+        return UsersService.passwordChangeTokenToUser.get(token);
+    }
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
 
@@ -576,13 +581,13 @@ export class UsersService {
             if (user.email === email) {
                 const paswordReset = {
                     token: verifyToken,
-                    expiration: getCurrentDate(),
-                    images: images
+                    expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
+                    images: images,
+                    verified: false
                 }
-                UsersService.tokenToUser.set(
-                    token, 
-                    { ...UsersService.tokenToUser.get(token), passwordReset: paswordReset }
-                );
+                const user = this.getUserByToken(token);
+                user.passwordReset = paswordReset;
+                UsersService.passwordChangeTokenToUser.set(verifyToken, user);
                 return { 
                     items: images,
                     token: verifyToken
@@ -590,6 +595,56 @@ export class UsersService {
             } else {
                 errors.email = ['Email does not exists.'];
                 return { message: errors };
+            }
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
+    async verifyUser(token: string, id: string) {
+        try {
+            const user = this.getUserByPasswordResetToken(token);
+            if (user) {
+                if(user.passwordReset.expiration > getCurrentDate()){
+                    if(user.passwordReset.images.find(image => image?.id === parseInt(id))?.isRight){
+                        user.passwordReset.verified = true;
+                        return {
+                            userId: user.socketId,
+                            success: true,
+                            token: token,
+                            text: "Verification successful",
+                            color: '#00aa00'
+                        };
+                    }else{
+                        user.passwordReset = undefined;
+                        UsersService.passwordChangeTokenToUser.delete(token);
+                        return {
+                            userId: user.socketId,
+                            success: false,
+                            token: null,
+                            text: "Verification failed",
+                            color: '#aa0000'
+                        }
+                    }
+                }else{
+                    user.passwordReset = undefined;
+                    UsersService.passwordChangeTokenToUser.delete(token);
+                    return {
+                        userId: user.socketId,
+                        success: false,
+                        token: null,
+                        text: "Verification token expired",
+                        color: '#aa0000'
+                    }
+                }
+            } else {
+                return {
+                    userId: user.socketId,
+                    success: false,
+                    token: null,
+                    text: "Verification failed",
+                    color: '#aa0000'
+                }
             }
         } catch (error) {
             return { message: error.message };

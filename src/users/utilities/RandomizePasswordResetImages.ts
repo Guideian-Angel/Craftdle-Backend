@@ -2,7 +2,15 @@ import { PrismaService } from "src/prisma/prisma.service";
 
 export async function RandomizePasswordResetImages(prisma: PrismaService){
     const images = await prisma.collections.findMany();
-    const randomIndexes = Array.from({ length: 3 }, () => Math.floor(Math.random() * images.length));
+    const randomImagesSrc = new Set()
+    const randomIndexes = [];
+    while (randomImagesSrc.size < 3) {
+        const randomIndex = Math.floor(Math.random() * images.length);
+        if(!randomImagesSrc.has(images[randomIndex].src)){
+            randomImagesSrc.add(images[randomIndex].src);
+            randomIndexes.push(randomIndex);
+        };
+    }
     const correctIndex = Math.floor(Math.random() * 3);
     console.log(randomIndexes, correctIndex);
     return randomIndexes.map((index, i) => ({

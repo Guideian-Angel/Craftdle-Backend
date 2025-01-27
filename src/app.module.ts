@@ -8,6 +8,7 @@ import { CacheModule } from './cache/cache.module';
 import { AdminModule } from './admin/admin.module';
 import { SocketModule } from './socket/socket.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SocketModule,
     AssetsModule,
     PrismaModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
