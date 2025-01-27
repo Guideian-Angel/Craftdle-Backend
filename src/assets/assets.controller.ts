@@ -4,7 +4,7 @@ import { AssetsService } from './assets.service';
 import * as path from 'path';
 import * as fs from 'fs';
 
-@Controller('/')
+@Controller("/assets")
 export class AssetsController {
     constructor(private readonly assetsService: AssetsService) { }
 
@@ -15,7 +15,7 @@ export class AssetsController {
         @Res() res: Response,
     ) {
         // Az elérési út módosítása, hogy a public mappában keresse
-        const imagePath = path.join(__dirname, '../../public/img', type, src);
+        const imagePath = path.join(__dirname, '../../../public/img', type, src);
 
         // Ellenőrizd, hogy a fájl létezik-e
         if (fs.existsSync(imagePath)) {

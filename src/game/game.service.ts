@@ -97,8 +97,8 @@ export class GameService {
                     data: {
                         tip: tipId,
                         position: index,
-                        content: slot.item,
-                        status: slot.status == "wrong" ? 3 : slot.status == "semi-correct" ? 2 : 1
+                        content: slot.item[0],
+                        status: slot.status == "wrong"? 3: slot.status == "semi-correct"? 2: 1
                     }
                 });
             };

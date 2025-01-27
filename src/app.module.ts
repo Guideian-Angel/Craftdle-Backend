@@ -12,10 +12,10 @@ import { SocketModule } from './socket/socket.module';
   imports: [
     UsersModule,
     GameModule,
-    AssetsModule,
     CacheModule,
     AdminModule,
     SocketModule,
+    AssetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

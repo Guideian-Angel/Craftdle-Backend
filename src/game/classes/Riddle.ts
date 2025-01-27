@@ -28,7 +28,6 @@ export class Riddle {
         this.gamemode = gamemode;
         const recipes = this.cacheService.getCachedData('recipes');
         const items = this.cacheService.getCachedData('items');
-
         const game = await this.gameService.loadLastGame(user, this.gamemode);
         this.recipeGroup = game.riddle;
         this.recipe = recipes[this.recipeGroup];

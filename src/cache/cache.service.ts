@@ -12,7 +12,7 @@ export class CacheService implements OnModuleInit {
     constructor(private readonly prisma: PrismaService) { } // Prisma injektálása
 
     async onModuleInit() {
-        const recipesFilePath = path.join(__dirname, '../../recipes.json');
+        const recipesFilePath = path.join(__dirname, '../../../recipes.json');
         const recipesData = await this.loadJsonFile(recipesFilePath);
 
         const convertedRecipes = this.convertRecipe(recipesData.data);
