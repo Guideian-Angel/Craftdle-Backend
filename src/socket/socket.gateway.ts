@@ -98,10 +98,14 @@ export class SocketGateway
   // Egyedi események kezelése
   @SubscribeMessage('startGame')
   async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
-    console.log('New game started');
-    const riddle = new Riddle(payload.newGame, payload.gamemode, this.cacheService);
+    const riddle = new Riddle(this.cacheService, this.gameService);
     const game = new Game(riddle, client.id, this.usersService);
-    game.id = await this.gameService.saveGame(game);
+    if(payload.newGame){
+      riddle.initializeNewGame(payload.gamemode);
+      game.id = await this.gameService.saveGame(game);
+    } else{
+      game.id = await riddle.initializeExistingGame(this.usersService.getUserBySocketId(client.id), payload.gamemode)
+    }
     SocketGateway.gameToClient.set(client.id, game);
 
     client.emit('guess', riddle.toJSON());
@@ -119,8 +123,7 @@ export class SocketGateway
     if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = RecipeFunctions.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
-      console.log(game.riddle.gamemode)
-      if ((game.riddle.gamemode == 1 && RecipeFunctions.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
+      if ((game.riddle.gamemode == 1 && this.gameService.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
         if(RecipeFunctions.validateRecipe(tippedMatrix, baseRecipe)){
           game.riddle.guessedRecipes.push(payload.item.id);
           game.riddle.numberOfGuesses++;
