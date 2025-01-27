@@ -10,7 +10,7 @@ async function init() {
 
   // CORS engedélyezése
   app.enableCors({
-    origin: 'http://localhost:5173', // Csak erről a domainről érkező kéréseket engedélyezzük
+    origin: ['http://localhost:5173','http://localhost:5174'], // Csak erről a domainről érkező kéréseket engedélyezzük
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Engedélyezett HTTP metódusok
     allowedHeaders: 'Content-Type, Authorization', // Engedélyezett fejléc típusok
   });
