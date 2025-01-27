@@ -66,6 +66,7 @@ export class UsersController {
         @Body() body: LoginDataDto
     ) {
         try {
+            console.log(authorization)
             const result = await this.usersService.loginUser(authorization, body);
             return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
         } catch (err) {
