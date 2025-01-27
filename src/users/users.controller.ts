@@ -201,4 +201,14 @@ export class UsersController {
             return { message: err.message };
         }
     }
+
+    @Put('password')
+    async resetPassword(@Headers('authorization') authorization: string, @Body() body: { token: string, password: string }): Promise<ApiResponse> {
+        try {
+            console.log("Reset password", body);
+            return await this.usersService.resetPassword(authorization, body);
+        } catch (err) {
+            return { message: err.message };
+        }
+    }
 }

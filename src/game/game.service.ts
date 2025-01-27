@@ -292,7 +292,7 @@ export class GameService {
                 item: {
                     id: tip.item,
                     name: tip.collections.name,
-                    src: tip.collections.image
+                    src: tip.collections.src
                 },
                 table: table,  // A 9 elemű table, ami már tartalmazza a pozíciókat
                 date: tip.date

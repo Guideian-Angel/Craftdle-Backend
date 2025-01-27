@@ -33,6 +33,7 @@ import { RandomizePasswordResetImages } from './utilities/RandomizePasswordReset
 import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailService } from 'src/email/email.service';
+import * as bcrypt from 'bcrypt';
 
 
 @Injectable()
@@ -571,19 +572,32 @@ export class UsersService {
         }
     }
 
+    async findEmail(email: string) {
+        try {
+            const user = await this.prisma.users.findFirst({
+                where: {
+                    email: email
+                }
+            })
+            return user ? true : false;
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
     async requestPasswordReset(authHeader: string, email: string) {
         const errors: { email?: string[] } = {};
         try {
-            const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
             const token = authHeader.replace('Bearer ', '');
             const verifyToken = uuidv4()
             const images = await RandomizePasswordResetImages(this.prisma);
-            if (user.email === email) {
+            if (await this.findEmail(email)) {
                 const paswordReset = {
                     token: verifyToken,
                     expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
                     images: images,
-                    verified: false
+                    verified: false,
+                    email: email
                 }
                 const user = this.getUserByToken(token);
                 user.passwordReset = paswordReset;
@@ -639,12 +653,38 @@ export class UsersService {
                 }
             } else {
                 return {
-                    userId: user.socketId,
                     success: false,
                     token: null,
                     text: "Verification failed",
                     color: '#aa0000'
                 }
+            }
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
+    async resetPassword(authHeader: string, body: { token: string, password: string }) {
+        try {
+            const user = this.getUserByPasswordResetToken(body.token);
+            if (user && user.token === authHeader.replace('Bearer ', '')) {
+                if(user.passwordReset.verified){
+                    await this.prisma.users.update({
+                        where: {
+                            email: user.passwordReset.email
+                        },
+                        data: {
+                            password: await bcrypt.hash(body.password, 2)
+                        }
+                    })
+                    user.passwordReset = undefined;
+                    UsersService.passwordChangeTokenToUser.delete(body.token);
+                    return {}
+                }else{
+                    return { message: "User not verified" };
+                }
+            } else {
+                return { message: "User not found" };
             }
         } catch (error) {
             return { message: error.message };
