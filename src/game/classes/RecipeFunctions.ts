@@ -230,29 +230,31 @@ export class RecipeFunctions {
         let reqMats = baseRecipe.required.filter(Boolean);
         let optMats = [...baseRecipe.optionalMaterials ?? []];
         let wrongMat = false;
+        console.log("kell: ", reqMats, " opt: ", optMats);
 
         tip.flat().forEach(item => {
             if (item === null) {
                 result.push(null);
             } else {
                 let found = false;
-                reqMats.forEach((reqMat, index) => {
-                    if (reqMat.includes(item[0])) {
-                        result.push({ item: item, status: "correct" });
+                for(let i = 0; i < reqMats.length; i++){
+                    if (reqMats[i].includes(item[0])) {
+                        result.push({ item: item[0], status: "correct" });
                         correctCount++;
-                        reqMats.splice(index, 1);
+                        reqMats.splice(i, 1);
                         found = true;
+                        break;
                     }
-                });
+                };
                 if (!found && optMats.includes(item[0])) {
-                    result.push({ item: item, status: "correct" });
+                    result.push({ item: item[0], status: "correct" });
                     correctCount++;
                     let index = optMats.indexOf(item[0]);
                     optMats.splice(index, 1);
                     found = true;
 
                 } else if (!found) {
-                    result.push({ item: item, status: "wrong" });
+                    result.push({ item: item[0], status: "wrong" });
                     wrongMat = true;
                 }
             };
@@ -261,10 +263,5 @@ export class RecipeFunctions {
         const solved = reqMats.length == 0 && !wrongMat;
 
         return { result: result, matches: correctCount, solved: solved };
-    }
-
-    static checkTutorialScript(group: string, numberOfGuess: number) {
-        const scriptedTip = ["planks0", "armorStand0", "rail0", "piston0", "axe0"];
-        return group == scriptedTip[numberOfGuess]
     }
 }

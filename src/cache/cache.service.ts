@@ -55,7 +55,6 @@ export class CacheService implements OnModuleInit {
         for(const item of items) {
             convertedItems.push({
                 id: item.item_id,
-                dbId: item.id,
                 name: item.name,
                 src: item.src,
             });
