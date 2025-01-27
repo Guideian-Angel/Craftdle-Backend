@@ -2,6 +2,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { IUser } from '../interfaces/IUserData';
 import { createToken } from '../../shared/utilities/tokenCreation';
 import * as bcrypt from 'bcrypt';
+import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 
 export async function createAccount(
     prisma: PrismaService,
@@ -15,7 +16,10 @@ export async function createAccount(
 
         if (isGuest) {
             // Vendég felhasználó adatai
-            userData = { is_guest: true };
+            userData = { 
+                is_guest: true,
+                registration_date: getCurrentDate(),
+            };
         } else {
             // Normál felhasználó adatai
             const hashedPassword = await bcrypt.hash(accountData.password, 2); // Jelszó hashelése
@@ -24,6 +28,7 @@ export async function createAccount(
                 email: accountData.email,
                 password: hashedPassword,
                 is_guest: false,
+                registration_date: getCurrentDate(),
             };
         }
 

@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ExpressAdapter } from '@nestjs/platform-express';
+import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import * as express from 'express';
+import { resolve } from 'path';
 
 async function init() {
   const server = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(server));
 
   // CORS engedélyezése
   app.enableCors({
@@ -35,6 +36,10 @@ async function init() {
       },
     }),
   );
+
+  app.useStaticAssets(resolve('./public'));
+  app.setBaseViewsDir(resolve('./views'));
+  app.setViewEngine('ejs');
 
   await app.listen(process.env.PORT ?? 3000);
   console.log('Server is running on http://localhost:3000');

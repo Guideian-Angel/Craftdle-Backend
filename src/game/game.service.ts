@@ -7,6 +7,7 @@ import { Game } from './classes/Game';
 import { Riddle } from './classes/Riddle';
 import { IItem } from './interfaces/IItem';
 import { ICheckedTip } from './interfaces/ICheckedTip';
+import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 import { User } from 'src/users/classes/user';
 import { get } from 'http';
 
@@ -98,13 +99,111 @@ export class GameService {
                         tip: tipId,
                         position: index,
                         content: slot.item[0],
-                        status: slot.status == "wrong"? 3: slot.status == "semi-correct"? 2: 1
+                        status: slot.status == "wrong" ? 3 : slot.status == "semi-correct" ? 2 : 1
                     }
                 });
             };
         });
     }
 
+    async getUsersGames(userId: number) {
+        return await this.prisma.games.findMany({
+            select: {
+                date: true,
+                is_solved: true,
+                gamemodes: {
+                    select: {
+                        id: true,
+                        name: true,
+                        difficulties: {
+                            select: {
+                                id: true,
+                                color_code: true
+                            }
+                        }
+                    }
+                },
+                _count: {
+                    select: {
+                        tips: true
+                    }
+                }
+            },
+            where: {
+                player: userId
+            }
+        });
+    }
+
+    async sortGames(userId: number) {
+        const games = {};
+        const userGames = await this.getUsersGames(userId);
+        userGames.forEach(game => {
+            if (games[game.gamemodes.id]) {
+                games[game.gamemodes.id].played++;
+                if (game.is_solved) {
+                    games[game.gamemodes.id].solved++;
+                    if (game._count.tips > 0) {
+                        if (
+                            games[game.gamemodes.id].fastestSolve === null ||
+                            game._count.tips < games[game.gamemodes.id].fastestSolve
+                        ) {
+                            games[game.gamemodes.id].fastestSolve = game._count.tips;
+                        }
+                    }
+                }
+            } else {
+                games[game.gamemodes.id] = {
+                    gamemodeName: game.gamemodes.name,
+                    played: 1,
+                    solved: game.is_solved ? 1 : 0,
+                    fastestSolve: game.is_solved && game._count.tips > 0 ? game._count.tips : null,
+                    color: game.gamemodes.difficulties.color_code
+                };
+            }
+        });
+        return Object.keys(games).sort().map(key => games[key]);
+    }
+
+    async getStreak(userId: number) {
+        const playedDailyGames = await this.prisma.games.findMany({
+            where: {
+                player: userId,
+                is_solved: true,
+                gamemodes: {
+                    name: "Daily"
+                }
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
+
+        let streak = 0;
+        const uniqueDates = new Set<number>();
+        let lastDate = new Date(playedDailyGames[0]?.date);
+        lastDate.setHours(0, 0, 0, 0);
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+        
+        if (lastDate.getTime() > yesterday.getTime()) {
+            for (let game of playedDailyGames) {
+                const gameDate = new Date(game.date);
+                gameDate.setHours(0, 0, 0, 0);
+                if (uniqueDates.has(gameDate.getTime())) {
+                    continue;
+                }
+                if (gameDate.getTime() !== lastDate.getTime()) {
+                    break;
+                }
+                uniqueDates.add(gameDate.getTime());
+                streak++;
+                lastDate.setDate(lastDate.getDate() - 1);
+            }
+        }
+        return streak;
+    }
     checkTutorialScript(group: string, numberOfGuess: number) {
         const scriptedTip = ["planks0", "armorStand0", "rail0", "piston0", "axe0"];
         return group == scriptedTip[numberOfGuess]

@@ -6,10 +6,14 @@ import { RegistDataDto } from './dtos/RegistData.dto';
 import { UpdateSettingsDto } from './dtos/SettingsData.dto';
 import { ISettings } from './interfaces/ISettings';
 import { ProfileDto } from './dtos/Profile.dto';
+import { EmailService } from 'src/email/emailSender';
 
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) { }
+    constructor(
+        private readonly usersService: UsersService,
+        private readonly emailService: EmailService,
+    ) { }
 
 
     //######################################################### USER LOGIN/REGIST ENDPOINTS #########################################################
@@ -152,6 +156,29 @@ export class UsersController {
             const result = await this.usersService.updateProfile(authorization, body);
             console.log(result)
             return { data: result };
+        } catch (err) {
+            return { message: err.message };
+        }
+    }
+
+    @Get('stats')
+    async getStats(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.getStats(authorization)
+            return { data: result }
+        } catch (err) {
+            return { message: err.message }
+        }
+    }
+
+    @Post('password')
+    async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<ApiResponse> {
+        try {
+            const result = await this.usersService.requestPasswordReset(authorization, body.email);
+            const item = result.items.find(image => image.isRight)
+            delete item.id;
+            this.emailService.sendVerifyEmail(body.email, { token: result.token, items: result.items });
+            return { data: { item: item } };
         } catch (err) {
             return { message: err.message };
         }
