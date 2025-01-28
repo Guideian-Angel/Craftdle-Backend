@@ -996,9 +996,9 @@ INSERT INTO collections (`item_id`, `name`, `src`) VALUES
 TRUNCATE TABLE guess_types;
 
 INSERT INTO guess_types (`id`, `type`) VALUES
-(1, 'Correct'),
-(2, 'Semi-Correct'),
-(3, 'Wrong');
+(1, 'correct'),
+(2, 'semi-correct'),
+(3, 'wrong');
 
 -- items
 

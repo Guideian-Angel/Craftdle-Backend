@@ -3,7 +3,6 @@ import { CacheService } from 'src/cache/cache.service';
 import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ICheckedTip } from '../interfaces/ICheckedTip';
-import { User } from 'src/users/classes/user';
 import { GameService } from '../game.service';
 
 type RecipeData = {
@@ -51,7 +50,7 @@ export class Riddle {
         if (validGroups.length === 0) {
             throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
         }
-        const randomGroupKey = "book0"//this.getRandomItem(validGroups);
+        const randomGroupKey = this.gamemode == 1? "axe0": this.getRandomItem(validGroups);
         const selectedGroup = recipes[randomGroupKey];
 
         this.recipe = selectedGroup;

@@ -199,13 +199,13 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new HttpException('Érvénytelen felhasználónév vagy email.', HttpStatus.UNAUTHORIZED);
+            return {errors: {username: ["Username or email is not correct!"]}};
         }
 
         // Jelszó ellenőrzése
         const isPasswordValid = await userAuthorization.validatePassword(userData.password, user.password);
         if (!isPasswordValid) {
-            throw new HttpException('Érvénytelen jelszó.', HttpStatus.UNAUTHORIZED);
+            return {errors: {username: ["Password is not correct!"]}};
         }
 
         // Token generálása és párosítása
