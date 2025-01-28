@@ -15,6 +15,8 @@ model achievements {
   goal               Int
   is_secret          Boolean
   parent             Int?
+  event              String?              @db.VarChar(255)
+  target             String?               @db.VarChar(255)
   achievements       achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
   other_achievements achievements[]       @relation("achievementsToachievements")
   rewards            rewards[]
@@ -245,6 +247,7 @@ model users_achievements {
   achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_1")
   users        users        @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_2")
 
+  @@unique([user, achievement], name: "user_achievement")
   @@index([achievement], map: "achievement")
   @@index([user], map: "user")
 }

@@ -1,6 +1,6 @@
 import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 import { IShapelessRecipeData, IShapedRecipeData } from '../interfaces/IRecipeData';
-import { RecipeFunctions } from './RecipeFunctions';
+import { RecipeFunctions } from '../utilities/RecipeFunctions';
 
 export class Recipe {
     name: string;

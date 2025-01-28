@@ -1,8 +1,8 @@
 import { CacheService } from "src/cache/cache.service";
 import { IShapedRecipeData, IShapelessRecipeData } from "../interfaces/IRecipeData";
-import { Recipe } from "./Recipe";
+import { Recipe } from "../classes/Recipe";
 import { mergeMatrixRows } from "src/shared/utilities/arrayFunctions";
-import { Riddle } from "./Riddle";
+import { Riddle } from "../classes/Riddle";
 import { IMatrixCompareResponse } from "../interfaces/IMatrixCompareResponse";
 import { ITip } from "../interfaces/ITip";
 

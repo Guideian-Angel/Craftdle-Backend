@@ -11,11 +11,13 @@ import { UsersService } from 'src/users/users.service';
 import { Game } from 'src/game/classes/Game';
 import { Riddle } from 'src/game/classes/Riddle';
 import { CacheService } from 'src/cache/cache.service';
-import { RecipeFunctions } from 'src/game/classes/RecipeFunctions';
+import { RecipeFunctions } from 'src/game/utilities/RecipeFunctions';
 import { createMatrixFromArray } from 'src/shared/utilities/arrayFunctions';
 import { ITip } from 'src/game/interfaces/ITip';
 import { GameService } from 'src/game/game.service';
 import { Maintenance } from 'src/admin/classes/Maintenance';
+import { AchievementManager } from 'src/achievements/AchievementManager';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -31,7 +33,9 @@ export class SocketGateway
     private readonly usersService: UsersService,
     private readonly cacheService: CacheService,
     private readonly maintenanceService: Maintenance,
-    private readonly gameService: GameService
+    private readonly gameService: GameService,
+    private readonly achievementManager: AchievementManager,
+    private readonly prisma: PrismaService
   ) { }
 
   afterInit(server: Server) {
@@ -142,6 +146,9 @@ export class SocketGateway
           if(result.solved){
             game.riddle.solved = true
             await this.gameService.changeGameStatus(game.id);
+            const gamemode = await this.prisma.gamemodes.findFirst({where: {id:game.riddle.gamemode}})
+            await this.achievementManager.updateAchievementProgress(game.user.id, 'solve', gamemode.name, 1);
+            await this.achievementManager.updateAchievementProgress(game.user.id, 'craft', game.riddle.recipe[0].id, 1);
             SocketGateway.gameToClient.delete(client.id)
           }
         }
