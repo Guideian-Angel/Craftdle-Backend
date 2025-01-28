@@ -66,8 +66,9 @@ export class AchievementManager {
             });
     
             // Ha a progressz elérte a célt, a felhasználó megkapja az achievementet
-            if (userAchievement?.progress + increment >= achievement.goal) {
+            if (userAchievement?.progress + increment >= achievement.goal || achievement.goal == 1) {
                 // Achievment unlocked logika
+                console.log("Adom a rewardokat báttya")
                 await this.giveRewards(achievement.id, userId);
                 console.log(`Achievement unlocked: ${achievement.title}`);
     
@@ -85,9 +86,6 @@ export class AchievementManager {
         if (unlockedAchievements.length > 0) {
             return unlockedAchievements;
         }
-    
-        // Ha nem volt új achievement, visszaadhatsz valami mást vagy semmit
-        return null;
     }
 
     async giveRewards(achievementId: number, userId: number){
@@ -96,8 +94,8 @@ export class AchievementManager {
                 achievement: achievementId
             }
         });
-        rewards.map((reward) => {
-            if (reward.reward_type === 1) {
+        rewards.map(async (reward) => {
+            if (reward.reward_type == 1) {
                 // Profilkép hozzáadása
                 return this.prisma.users_profile_pictures.create({
                     data: {
