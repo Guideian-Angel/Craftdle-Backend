@@ -219,7 +219,6 @@ export class GameService {
 
     async loadLastGame(user: User, gamemode: number) {
         const lastGames = await GamemodeFunctions.getLastGameByGamemode(this.prisma, user.id);
-        console.log(lastGames)
         return await this.getGameById(lastGames[gamemode].id);
     };
 

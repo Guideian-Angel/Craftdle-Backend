@@ -123,7 +123,6 @@ export class SocketGateway
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
-    console.log(game.riddle.guessedRecipes, payload.item.group)
     if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = RecipeFunctions.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
@@ -146,7 +145,7 @@ export class SocketGateway
           if(result.solved){
             game.riddle.solved = true
             await this.gameService.changeGameStatus(game.id);
-            const gamemode = await this.prisma.gamemodes.findFirst({where: {id:game.riddle.gamemode}})
+            const gamemode = await this.prisma.gamemodes.findFirst({where: {id:Number(game.riddle.gamemode)}})
             await this.achievementManager.updateAchievementProgress(game.user.id, 'solve', gamemode.name, 1);
             await this.achievementManager.updateAchievementProgress(game.user.id, 'craft', game.riddle.recipe[0].id, 1);
             SocketGateway.gameToClient.delete(client.id)

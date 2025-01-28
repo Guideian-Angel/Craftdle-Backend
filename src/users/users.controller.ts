@@ -72,7 +72,6 @@ export class UsersController {
         @Body() body: LoginDataDto
     ) {
         try {
-            console.log(authorization)
             const result = await this.usersService.loginUser(authorization, body);
             return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
         } catch (err) {
@@ -143,9 +142,7 @@ export class UsersController {
     @Get('collection')
     async getCollection(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
-            console.log("Collection endpoint asd");
             const result = await this.usersService.getCollection(authorization);
-            console.log("Collection endpoint");
             return { data: result };
         } catch (err) {
             return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
@@ -156,7 +153,6 @@ export class UsersController {
     async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileDto): Promise<ApiResponse> {
         try {
             const result = await this.usersService.updateProfile(authorization, body);
-            console.log(result)
             return { data: result };
         } catch (err) {
             return { message: err.message };
@@ -188,11 +184,9 @@ export class UsersController {
     @Get('userVerify')
     @Render('passwordResetResponse')
     async verifyUser(@Query('token') token: string, @Query('id') id: string) {
-        console.log("Token + id", token, id);
         try {
             const result = await this.usersService.verifyUser(token, id);
             this.emailGateway.emitUserVerification(result.userId, result.token, result.success);
-            console.log("Result", result);
             return {
                 text: result.text,
                 color: result.color

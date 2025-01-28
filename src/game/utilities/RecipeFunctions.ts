@@ -230,7 +230,6 @@ export class RecipeFunctions {
         let reqMats = baseRecipe.required.filter(Boolean);
         let optMats = [...baseRecipe.optionalMaterials ?? []];
         let wrongMat = false;
-        console.log("kell: ", reqMats, " opt: ", optMats);
 
         tip.flat().forEach(item => {
             if (item === null) {

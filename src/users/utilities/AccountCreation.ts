@@ -37,6 +37,22 @@ export async function createAccount(
             data: userData
         });
 
+        await prisma.users_profile_pictures.create({
+            data: {
+                user: createdUser.id,
+                profile_picture: 15,
+                is_set: true
+            }
+        })
+
+        await prisma.users_profile_borders.create({
+            data: {
+                user: createdUser.id,
+                profile_border: 15,
+                is_set: true
+            }
+        })
+
         // Törzsadatok generálása
         return {
             id: createdUser.id,
