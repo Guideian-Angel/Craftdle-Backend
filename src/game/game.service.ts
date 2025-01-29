@@ -98,7 +98,7 @@ export class GameService {
                     data: {
                         tip: tipId,
                         position: index,
-                        content: slot.item[0],
+                        content: slot.item,
                         status: slot.status == "wrong" ? 3 : slot.status == "semi-correct" ? 2 : 1
                     }
                 });
@@ -219,7 +219,6 @@ export class GameService {
 
     async loadLastGame(user: User, gamemode: number) {
         const lastGames = await GamemodeFunctions.getLastGameByGamemode(this.prisma, user.id);
-        console.log(lastGames)
         return await this.getGameById(lastGames[gamemode].id);
     };
 
@@ -292,7 +291,7 @@ export class GameService {
                 item: {
                     id: tip.item,
                     name: tip.collections.name,
-                    src: tip.collections.image
+                    src: tip.collections.src
                 },
                 table: table,  // A 9 elemű table, ami már tartalmazza a pozíciókat
                 date: tip.date
