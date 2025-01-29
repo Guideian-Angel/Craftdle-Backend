@@ -9,6 +9,7 @@ import { AdminModule } from './admin/admin.module';
 import { SocketModule } from './socket/socket.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
+import { AchievementsModule } from './achievements/achievements.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EmailModule } from './email/email.module';
     AssetsModule,
     PrismaModule,
     EmailModule,
+    AchievementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

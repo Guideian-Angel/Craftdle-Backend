@@ -33,6 +33,8 @@ import { RandomizePasswordResetImages } from './utilities/RandomizePasswordReset
 import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailService } from 'src/email/email.service';
+import { AchievementManager } from 'src/achievements/AchievementManager';
+import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 import * as bcrypt from 'bcrypt';
 
 
@@ -200,13 +202,13 @@ export class UsersService {
         });
 
         if (!user) {
-            throw new HttpException('Érvénytelen felhasználónév vagy email.', HttpStatus.UNAUTHORIZED);
+            return {errors: {username: ["Username or email is not correct!"]}};
         }
 
         // Jelszó ellenőrzése
         const isPasswordValid = await userAuthorization.validatePassword(userData.password, user.password);
         if (!isPasswordValid) {
-            throw new HttpException('Érvénytelen jelszó.', HttpStatus.UNAUTHORIZED);
+            return {errors: {username: ["Password is not correct!"]}};
         }
 
         // Token generálása és párosítása
