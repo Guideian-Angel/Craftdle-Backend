@@ -29,14 +29,14 @@ INSERT INTO gamemodes (id, icon, name, description, difficulty) VALUES
 TRUNCATE TABLE achievements;
 
 INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secret`, `parent`, `event`, `target`) VALUES
-(1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 0, NULL, 'regist', NULL),
-(2, 'The collector', 'Collect 100 items', 'The_Collector.png', 1, 0, NULL, 'craft', NULL),
-(3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'craft', NULL),
+(1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 0, NULL, 'regist', 'regist'),
+(2, 'The collector', 'Collect 100 items', 'The_Collector.png', 1, 0, NULL, 'craft', 'any'),
+(3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'craft', "axe"),
 (4, 'The first of all', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 0, NULL, 'solve', 'number1'),
 (5, 'Still a beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 1, NULL, 'solve', 'Tutorial'),
-(6, 'The master chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'Resource'),
+(6, 'The master chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'food'),
 (7, 'Cheater?!', 'Solve a riddle with only one guess', 'Cheat.png', 1, 1, NULL, 'solve', 'zero'),
-(8, 'Wish I Had an Angel', 'Craft the Guideian Angel logo', 'GA.png', 1, 1, NULL, 'guess', NULL),
+(8, 'Wish I Had an Angel', 'Craft the Guideian Angel logo', 'GA.png', 1, 1, NULL, 'guess', "ga"),
 (9, 'Casual Player I', 'Solve 5 Classic games', 'Classic.png', 5, 0, NULL, 'solve', 'Classic'),
 (10, 'Casual Player II', 'Solve 10 Classic games', 'Classic.png', 10, 0, 9, 'solve', 'Classic'),
 (11, 'Casual Player III', 'Solve 25 Classic games', 'Classic.png', 25, 0, 10, 'solve', 'Classic'),

@@ -34,6 +34,7 @@ import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailService } from 'src/email/email.service';
 import { AchievementManager } from 'src/achievements/AchievementManager';
+import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 
 
 @Injectable()
@@ -47,7 +48,6 @@ export class UsersService {
         private readonly assetsService: AssetsService,
         private readonly gameService: GameService,
         private readonly emailService: EmailService,
-        private readonly achievementManager: AchievementManager
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -138,7 +138,6 @@ export class UsersService {
         const newUser = await createAccount(this.prisma, { username, email, password, stayLoggedIn });
         await this.createNewUser(newUser, !stayLoggedIn);
         await createDefaultSettings(this.prisma, newUser.id);
-        this.achievementManager.updateAchievementProgress(newUser.id, 'regist', null, 1);
 
         const { id, ...userData } = newUser;
         return userData as IUserData;

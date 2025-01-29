@@ -18,6 +18,7 @@ import { GameService } from 'src/game/game.service';
 import { Maintenance } from 'src/admin/classes/Maintenance';
 import { AchievementManager } from 'src/achievements/AchievementManager';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -35,6 +36,7 @@ export class SocketGateway
     private readonly maintenanceService: Maintenance,
     private readonly gameService: GameService,
     private readonly achievementManager: AchievementManager,
+    private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService
   ) { }
 
@@ -75,6 +77,10 @@ export class SocketGateway
 
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
+    if(!user.isGuest){
+      const achievements = await this.achievementManager.achievementEventListener(user.id, [{name: "regist", targets: ["regist"]}]);
+      this.achievementGateway.emitAchievements(client.id, achievements)
+    }
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
     const maintenance = await this.maintenanceService.getCurrentMaintenance();
     client.emit('maintenance', maintenance);
@@ -146,15 +152,31 @@ export class SocketGateway
             game.riddle.solved = true
             await this.gameService.changeGameStatus(game.id);
             const gamemode = await this.prisma.gamemodes.findFirst({where: {id:Number(game.riddle.gamemode)}})
-            await this.achievementManager.updateAchievementProgress(game.user.id, 'solve', gamemode.name, 1);
-            await this.achievementManager.updateAchievementProgress(game.user.id, 'craft', game.riddle.recipe[0].id, 1);
+            const events = [
+              {
+                name: 'solve',
+                targets: [gamemode.name]
+              },
+              {
+                name: 'craft',
+                targets: [game.riddle.recipe[0].id] 
+              }
+            ];
+            const achievements = await this.achievementManager.achievementEventListener(game.user.id, events , game, payload);
+            this.achievementGateway.emitAchievements(client.id, achievements);
             SocketGateway.gameToClient.delete(client.id)
           }
         }
         client.emit('guess', game.riddle.toJSON());
       }
     }
+  }
 
+  @SubscribeMessage('credits')
+  async handleCredits(client: Socket){
+    const user = this.usersService.getUserBySocketId(client.id);
+    const achievements = await this.achievementManager.achievementEventListener(user.id, [{name: "credits", targets: ["watched"]}])
+    this.achievementGateway.emitAchievements(client.id, achievements)
   }
 
   emitMaintenanceUpdate(maintenance: {
