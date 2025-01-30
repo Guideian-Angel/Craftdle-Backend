@@ -560,7 +560,7 @@ export class UsersService {
                 gamemodes: await this.gameService.sortGames(user.id),
                 registrationDate: user.registration_date.toLocaleDateString(),
                 performedAchievements: {
-                    collected: (await this.getUsersAchievements(user.id)).length,
+                    collected: (await this.getUsersAchievements(user.id)).filter(achievement => achievement.progress === achievement.achievements.goal).length,
                     collectable: (await this.assetsService.getAllAchievements()).length
                 },
                 collectedRecipes: {
@@ -688,6 +688,19 @@ export class UsersService {
             } else {
                 return { message: "User not found" };
             }
+        } catch (error) {
+            return { message: error.message };
+        }
+    }
+
+    async addItemToCollection(userId: number, itemId: number) {
+        try {
+            await this.prisma.users_collections.create({
+                data: {
+                    user: userId,
+                    collection: itemId
+                }
+            })
         } catch (error) {
             return { message: error.message };
         }
