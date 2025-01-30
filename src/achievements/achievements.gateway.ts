@@ -10,9 +10,8 @@ export class AchievementsGateway {
   afterInit(server: Server) {
     this.server = server;
   }
-  
+
   emitAchievements(userId: string, achievements: IAchievement[]) {
-    console.log(achievements)
-    this.server.to(userId)?.emit("achivements", {data: achievements});
+    this.server.to(userId)?.emit("achievements", achievements);
   }
 }

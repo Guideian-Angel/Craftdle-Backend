@@ -15,6 +15,7 @@ export class User{
             isRight: boolean;
         }>;
         verified: boolean;
+        email: string;
     }
 
     constructor(id: number, username: string, isGuest: boolean, token: string){

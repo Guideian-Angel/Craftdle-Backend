@@ -164,6 +164,7 @@ export class SocketGateway
             ];
             const achievements = await this.achievementManager.achievementEventListener(game.user.id, events , game, payload);
             this.achievementGateway.emitAchievements(client.id, achievements);
+            this.usersService.addItemToCollection(game.user.id, game.riddle.tips[game.riddle.tips.length - 1].item.dbId);
             SocketGateway.gameToClient.delete(client.id)
           }
         }
