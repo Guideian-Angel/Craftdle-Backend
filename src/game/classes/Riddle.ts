@@ -4,6 +4,7 @@ import { shuffleArray } from 'src/shared/utilities/arrayFunctions';
 import { IItem } from '../interfaces/IItem';
 import { ICheckedTip } from '../interfaces/ICheckedTip';
 import { GameService } from '../game.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -21,7 +22,11 @@ export class Riddle {
     inventory: IItem[];
     solved: boolean = false;
 
-    constructor(private readonly cacheService: CacheService, private readonly gameService: GameService) { }
+    constructor(
+        private readonly cacheService: CacheService, 
+        private readonly gameService: GameService,
+        private readonly prismaSevice: PrismaService
+    ) { }
 
     async initializeExistingGame(user, gamemode) {
         this.gamemode = gamemode;
@@ -59,6 +64,24 @@ export class Riddle {
         this.inventory = Number(this.gamemode) === 6? this.collectMaterialsForGraph(recipes, items): items;
         this.hints = Number(this.gamemode) !== 7? this.generateHints(recipes): null;
     }
+
+    async hasDailyRiddleBeenPlayed() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Dátumot nullázzuk, hogy csak a nap számítson
+      
+        const existingGame = await this.prismaSevice.games.findFirst({
+          where: {
+            type: 3, // Daily riddle gamemode
+            date: {
+              gte: today, // Mai nap eleje
+              lt: new Date(today.getTime() + 86400000), // Holnap eleje (tehát csak ma)
+            },
+          },
+        });
+      
+        return existingGame; // Ha van találat, akkor már volt játék, ha nincs, akkor még nem
+      }
+      
 
     private gatherItems(items, itemIds: Set<string>) {
         let result = [];
