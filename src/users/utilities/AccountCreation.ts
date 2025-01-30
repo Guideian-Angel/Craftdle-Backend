@@ -44,11 +44,11 @@ export async function createAccount(
                 is_set: true
             }
         })
-        
+
         await prisma.users_profile_borders.create({
             data: {
                 user: createdUser.id,
-                profile_border: 15,
+                profile_border: 7,
                 is_set: true
             }
         })

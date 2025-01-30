@@ -36,6 +36,7 @@ import { EmailService } from 'src/email/email.service';
 import { AchievementManager } from 'src/achievements/AchievementManager';
 import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 import * as bcrypt from 'bcrypt';
+import { IItem } from 'src/game/interfaces/IItem';
 
 
 @Injectable()
@@ -49,6 +50,8 @@ export class UsersService {
         private readonly assetsService: AssetsService,
         private readonly gameService: GameService,
         private readonly emailService: EmailService,
+        private readonly achievementManager: AchievementManager,
+        private readonly achievementsGateway: AchievementsGateway
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -693,14 +696,29 @@ export class UsersService {
         }
     }
 
-    async addItemToCollection(userId: number, itemId: number) {
+    async addItemToCollection(userId: number, item: IItem, clientId) {
         try {
-            await this.prisma.users_collections.create({
+            const addedItem = await this.prisma.users_collections.create({
                 data: {
                     user: userId,
-                    collection: itemId
+                    collection: item.dbId
                 }
-            })
+            });
+            if(addedItem){
+                const events = [
+                    {
+                        name: "collect",
+                        targets: ["any"]
+                    }
+                ]
+                if(item.name.split(" ")[1] == "Axe") {
+                    events[0].targets.push("axe")
+                }
+                const achievements = await this.achievementManager.achievementEventListener(userId, events);
+                if(achievements){
+                    this.achievementsGateway.emitAchievements(clientId, achievements);
+                }
+            }
         } catch (error) {
             return { message: error.message };
         }

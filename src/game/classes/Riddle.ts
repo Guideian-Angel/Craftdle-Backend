@@ -50,7 +50,7 @@ export class Riddle {
         if (validGroups.length === 0) {
             throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
         }
-        const randomGroupKey = "cauldron0"//this.gamemode == 1? "axe0": this.getRandomItem(validGroups);
+        const randomGroupKey = this.gamemode == 1? "axe0": this.getRandomItem(validGroups);
         const selectedGroup = recipes[randomGroupKey];
 
         this.recipe = selectedGroup;

@@ -66,10 +66,10 @@ export class AchievementManager {
 
     watchSpecialCraftCases(tip: ITip): string[]{
         let additionalTargets = []
-        const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["GALogo0"];
-        if(RecipeFunctions.compareShapedRecipes(gaRecipe.recipe, gaRecipe, createMatrixFromArray(tip.table), 3).solved){
-            additionalTargets.push("ga");
-        }
+        // const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["gaLogo0"];
+        // if(RecipeFunctions.compareShapedRecipes(gaRecipe.recipe, gaRecipe, createMatrixFromArray(tip.table), 3).solved){
+        //     additionalTargets.push("ga");
+        // }
         return additionalTargets
     }
 
