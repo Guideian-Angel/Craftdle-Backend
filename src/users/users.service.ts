@@ -194,7 +194,7 @@ export class UsersService {
      * Bejelentkezés felhasználónév/jelszó párossal.
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó adatait.
      */
-    private async handleBodyLogin(userData: LoginDataDto) {
+    async handleBodyLogin(userData: LoginDataDto) {
         // Felhasználó keresése felhasználónév vagy email alapján
         const user = await userAuthorization.findUser(this.prisma, {
             username: userData.usernameOrEmail,

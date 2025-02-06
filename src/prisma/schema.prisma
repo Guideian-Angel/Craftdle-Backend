@@ -26,10 +26,11 @@ model achievements {
 }
 
 model admin_rights {
-  admin        Int     @unique(map: "admin")
-  is_super     Boolean
-  delete_users Boolean
   id           Int     @id @default(autoincrement())
+  admin        Int     @unique(map: "admin")
+  modify_admins Boolean
+  modify_users Boolean
+  modify_maintenance Boolean
   users        users   @relation(fields: [admin], references: [id], onUpdate: Restrict, map: "admin_rights_ibfk_1")
 }
 
@@ -53,11 +54,11 @@ model controls {
 }
 
 model crafting_table_slots {
+  id          Int         @id @default(autoincrement())
   tip         Int
   position    Int
   content     String      @db.VarChar(255)
   status      Int
-  id          Int         @id @default(autoincrement())
   tips        tips        @relation(fields: [tip], references: [id], onUpdate: Restrict, map: "crafting_table_slots_ibfk_1")
   guess_types guess_types @relation(fields: [status], references: [id], onUpdate: Restrict, map: "crafting_table_slots_ibfk_2")
 
@@ -108,19 +109,19 @@ model guess_types {
 }
 
 model hints {
+  id      Int     @id @default(autoincrement())
   game    Int
   number  Int
   content String? @db.VarChar(255)
-  id      Int     @id @default(autoincrement())
   games   games   @relation(fields: [game], references: [id], onUpdate: Restrict, map: "hints_ibfk_1")
 
   @@index([game], map: "game")
 }
 
 model inventories_items {
+  id    Int   @id @default(autoincrement())
   game  Int
   item  Int
-  id    Int   @id @default(autoincrement())
   games games @relation(fields: [game], references: [id], onUpdate: Restrict, map: "inventories_items_ibfk_1")
   items items @relation(fields: [item], references: [id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
 
@@ -167,10 +168,10 @@ model reward_types {
 }
 
 model rewards {
+  id           Int          @id @default(autoincrement())
   achievement  Int
   reward       Int
   reward_type  Int
-  id           Int          @id @default(autoincrement())
   achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "rewards_ibfk_1")
   reward_types reward_types @relation(fields: [reward_type], references: [id], onUpdate: Restrict, map: "rewards_ibfk_2")
 
@@ -213,10 +214,10 @@ model tips {
 }
 
 model tokens {
+  id          Int     @id @default(autoincrement())
   user        Int     @unique(map: "user")
   login_token String  @unique(map: "login_token") @db.VarChar(255)
   is_expire   Boolean
-  id          Int     @id @default(autoincrement())
   users       users   @relation(fields: [user], references: [id], onUpdate: Restrict, map: "tokens_ibfk_1")
 }
 
@@ -240,10 +241,10 @@ model users {
 }
 
 model users_achievements {
+  id           Int          @id @default(autoincrement())
   user         Int
   achievement  Int
   progress     Int
-  id           Int          @id @default(autoincrement())
   achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_1")
   users        users        @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_2")
 
@@ -253,9 +254,9 @@ model users_achievements {
 }
 
 model users_collections {
+  id          Int         @id @default(autoincrement())
   user        Int
   collection  Int
-  id          Int         @id @default(autoincrement())
   users       users       @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_1")
   collections collections @relation(fields: [collection], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_2")
 
@@ -264,10 +265,10 @@ model users_collections {
 }
 
 model users_profile_borders {
+  id              Int             @id @default(autoincrement())
   user            Int
   profile_border  Int
   is_set          Boolean
-  id              Int             @id @default(autoincrement())
   users           users           @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_profile_borders_ibfk_1")
   profile_borders profile_borders @relation(fields: [profile_border], references: [id], onUpdate: Restrict, map: "users_profile_borders_ibfk_2")
 
@@ -276,10 +277,10 @@ model users_profile_borders {
 }
 
 model users_profile_pictures {
+  id               Int              @id @default(autoincrement())
   user             Int
   profile_picture  Int
   is_set           Boolean
-  id               Int              @id @default(autoincrement())
   users            users            @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_1")
   profile_pictures profile_pictures @relation(fields: [profile_picture], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_2")
 

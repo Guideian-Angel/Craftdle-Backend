@@ -1,10 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { Maintenance } from './classes/Maintenance';
 import { SocketGateway } from 'src/socket/socket.gateway';
+import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 
 @Controller('admins')
 export class AdminController {
@@ -14,29 +13,22 @@ export class AdminController {
     private readonly socketGateway: SocketGateway
   ) {}
 
-  @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminService.create(createAdminDto);
+  @Post("login")
+  async login(@Body() loginDataDto: LoginDataDto) {
+    try{
+      return await this.adminService.login(loginDataDto);
+    } catch (err) {
+      return {error: err.message}
+    }
   }
 
-  @Get()
-  findAll() {
-    return this.adminService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adminService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminService.update(+id, updateAdminDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminService.remove(+id);
+  @Delete("login")
+  logout(@Headers('authorization') authHeader: string) {
+    try{
+      return this.adminService.logout(authHeader);
+    } catch (err) {
+      return {error: err.message}
+    }
   }
 
   @Post("maintenance")
