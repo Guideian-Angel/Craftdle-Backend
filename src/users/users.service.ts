@@ -54,13 +54,31 @@ export class UsersService {
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
             await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+            const admin_rights = await this.getAdminRights(newUser.id);
+            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
             //console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
         }
     };
+
+    async getAdminRights(id: number) {
+        try {
+            const admin_rights = await this.prisma.admin_rights.findUniqueOrThrow({
+                where: {
+                    admin: id
+                }
+            })
+            return {
+                modifyUsers: admin_rights.modify_users,
+                modifyMaintenance: admin_rights.modify_maintenance,
+                modifyAdmins: admin_rights.modify_admins
+            }
+        } catch (error) {
+            return null;
+        }
+    }
 
     /**
      * Társítja a socket ID-t a felhasználóhoz a token alapján.

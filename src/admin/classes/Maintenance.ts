@@ -2,18 +2,37 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { CreateMaintenanceDto } from "../dto/create-maintenance.dto";
 import { getCurrentDate } from "src/shared/utilities/CurrentDate";
 import { Injectable } from "@nestjs/common";
+import { UsersService } from "src/users/users.service";
+import tokenValidation from "src/shared/utilities/tokenValidation";
+import { AdminService } from "../admin.service";
+import e from "express";
 
 @Injectable()
 export class Maintenance {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly usersService: UsersService,
+    ) { }
 
-    async createMaintenance(createMaintenanceDto: CreateMaintenanceDto) {
-        return await this.prisma.maintenance.create({
-            data: {
-                user: 1,
-                ...createMaintenanceDto
+    async createMaintenance(createMaintenanceDto: CreateMaintenanceDto, authHeader: string) {
+        try {
+            const token = authHeader.replace('Bearer ', '');
+
+            const user = await this.usersService.getUserByToken(token);
+
+            if (user?.adminRights?.modifyMaintenance) {
+                return await this.prisma.maintenance.create({
+                    data: {
+                        user: user.id,
+                        ...createMaintenanceDto
+                    }
+                });
+            } else {
+                throw new Error('User does not have permission to modify maintenance');
             }
-        });
+        } catch (err) {
+            throw new Error(err.message);
+        }
     }
 
     async getUpcomingMaintenance() {
@@ -21,8 +40,35 @@ export class Maintenance {
             where: {
                 end: { gt: getCurrentDate() },
             },
-            orderBy: { start: 'asc' },
+            orderBy: {
+                start: 'asc'
+            },
         });
+    }
+
+    async getAllMaintenance(authHeader: string) {
+        try {
+            const token = authHeader.replace('Bearer ', '');
+            const user = await tokenValidation.validateToken(token, this.prisma);
+            if (!user) {
+                throw new Error('Invalid token');
+            }
+
+            const maintenances = await this.prisma.maintenance.findMany({
+                orderBy: {
+                    start: 'asc'
+                },
+            });
+
+            return maintenances.map(maintenance => {
+                return {
+                    ...maintenance,
+                    active: maintenance.end > getCurrentDate()
+                };
+            })
+        } catch (err) {
+            throw new Error(err.message);
+        }
     }
 
     async getCurrentMaintenance() {
@@ -48,5 +94,49 @@ export class Maintenance {
             started: started,
             countdown: countdown > 0 ? countdown : null
         };
+    }
+
+    async updateMaintenance(id: string, createMaintenanceDto: CreateMaintenanceDto, authHeader: string) {
+        try {
+            const token = authHeader.replace('Bearer ', '');
+
+            const user = await this.usersService.getUserByToken(token);
+
+            if (user?.adminRights?.modifyMaintenance) {
+                return await this.prisma.maintenance.update({
+                    where: {
+                        id: parseInt(id)
+                    },
+                    data: {
+                        user: user.id,
+                        ...createMaintenanceDto
+                    }
+                });
+            } else {
+                throw new Error('User does not have permission to modify maintenance');
+            }
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async deleteMaintenance(id: string, authHeader: string) {
+        try {
+            const token = authHeader.replace('Bearer ', '');
+
+            const user = await this.usersService.getUserByToken(token);
+
+            if (user?.adminRights?.modifyMaintenance) {
+                return await this.prisma.maintenance.delete({
+                    where: {
+                        id: parseInt(id)
+                    }
+                });
+            } else {
+                throw new Error('User does not have permission to modify maintenance');
+            }
+        } catch (err) {
+            throw new Error(err.message);
+        }
     }
 }

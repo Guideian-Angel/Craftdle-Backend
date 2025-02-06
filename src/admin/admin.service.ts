@@ -21,22 +21,10 @@ export class AdminService {
             if (!('id' in user)) {
                 throw new Error('User does not have an id property');
             }
-            await this.getAdminRights(user.id);
+            await this.usersService.getUserByToken(user.loginToken);
             return { user };
         } catch (err) {
             throw err;
-        }
-    }
-
-    async getAdminRights(id: any) {
-        try {
-            return this.prisma.admin_rights.findUniqueOrThrow({
-                where: {
-                    admin: id
-                }
-            });
-        } catch (err) {
-            throw new Error(err.message);
         }
     }
 
