@@ -1,4 +1,4 @@
-interface PasswordReset{
+export interface PasswordReset{
     token: string;
     expiration: Date;
     images: Array<{
@@ -18,6 +18,12 @@ interface AdminRights{
     modifyAdmins: boolean;
 }
 
+export interface AdminVerification{
+    code: string;
+    expiration: Date;
+    verified: boolean;
+}
+
 export class User{
     id: number;
     username: string;
@@ -26,6 +32,7 @@ export class User{
     socketId?: string;
     passwordReset?: PasswordReset
     adminRights?: AdminRights
+    adminVerification?: AdminVerification
 
     constructor(id: number, username: string, isGuest: boolean, token: string, adminRights: AdminRights){
         this.id = id;
@@ -35,5 +42,6 @@ export class User{
         this.socketId = undefined;
         this.passwordReset = undefined;
         this.adminRights = adminRights;
+        this.adminVerification = undefined;
     }
 }

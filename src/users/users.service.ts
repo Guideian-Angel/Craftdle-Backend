@@ -16,7 +16,7 @@ import { UpdateSettingsDto } from './dtos/SettingsData.dto';
 // *** Interfészek és osztályok ***
 import { IUser, IUserData } from './interfaces/IUserData';
 import { ISettings } from './interfaces/ISettings';
-import { User } from './classes/user';
+import { PasswordReset, User } from './classes/user';
 
 // *** Utility funkciók ***
 import { createAccount } from './utilities/AccountCreation';
@@ -612,7 +612,7 @@ export class UsersService {
             const verifyToken = uuidv4()
             const images = await RandomizePasswordResetImages(this.prisma);
             if (await this.findEmail(email)) {
-                const paswordReset = {
+                const paswordReset: PasswordReset = {
                     token: verifyToken,
                     expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
                     images: images,
@@ -624,7 +624,8 @@ export class UsersService {
                 UsersService.passwordChangeTokenToUser.set(verifyToken, user);
                 return { 
                     items: images,
-                    token: verifyToken
+                    token: verifyToken,
+                    name: user.username
                 };
             } else {
                 errors.email = ['Email does not exists.'];

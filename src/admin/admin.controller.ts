@@ -4,19 +4,33 @@ import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
 import { Maintenance } from './classes/Maintenance';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Controller('admins')
 export class AdminController {
     constructor(
         private readonly adminService: AdminService,
         private readonly maintenanceService: Maintenance,
-        private readonly socketGateway: SocketGateway
+        private readonly socketGateway: SocketGateway,
+        private readonly emailService: EmailService
     ) { }
 
     @Post("login")
     async login(@Body() loginDataDto: LoginDataDto) {
         try {
-            return await this.adminService.login(loginDataDto);
+            const result = await this.adminService.login(loginDataDto);
+            await this.emailService.sendAdminVerificationEmail(result.email, { code: result.code, name: result.name });
+            return { token: result.token };
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Post("verifyAdmin")
+    async verifyAdmin(@Headers('authorization') authHeader: string, @Body() body: { code: string}) {
+        console.log(body.code);
+        try {
+            return await this.adminService.verifyAdmin(authHeader, body.code);
         } catch (err) {
             return { error: err.message }
         }
