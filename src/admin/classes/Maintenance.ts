@@ -4,8 +4,6 @@ import { getCurrentDate } from "src/shared/utilities/CurrentDate";
 import { Injectable } from "@nestjs/common";
 import { UsersService } from "src/users/users.service";
 import tokenValidation from "src/shared/utilities/tokenValidation";
-import { AdminService } from "../admin.service";
-import e from "express";
 
 @Injectable()
 export class Maintenance {
@@ -20,16 +18,20 @@ export class Maintenance {
 
             const user = await this.usersService.getUserByToken(token);
 
-            if (user?.adminRights?.modifyMaintenance) {
-                return await this.prisma.maintenance.create({
-                    data: {
-                        user: user.id,
-                        ...createMaintenanceDto
-                    }
-                });
-            } else {
-                throw new Error('User does not have permission to modify maintenance');
+            if(!user?.adminRights?.modifyMaintenance){
+                throw new Error('You do not have permission to modify maintenance');
             }
+
+            if(!user?.adminVerification?.verified){
+                throw new Error('You are not verified');
+            }
+
+            return await this.prisma.maintenance.create({
+                data: {
+                    user: user.id,
+                    ...createMaintenanceDto
+                }
+            });
         } catch (err) {
             throw new Error(err.message);
         }
@@ -49,9 +51,13 @@ export class Maintenance {
     async getAllMaintenance(authHeader: string) {
         try {
             const token = authHeader.replace('Bearer ', '');
-            const user = await tokenValidation.validateToken(token, this.prisma);
+            const user = await this.usersService.getUserByToken(token);
             if (!user) {
                 throw new Error('Invalid token');
+            }
+
+            if (!user.adminVerification?.verified) {
+                throw new Error('User does not have permission to modify maintenance');
             }
 
             const maintenances = await this.prisma.maintenance.findMany({
@@ -102,19 +108,23 @@ export class Maintenance {
 
             const user = await this.usersService.getUserByToken(token);
 
-            if (user?.adminRights?.modifyMaintenance) {
-                return await this.prisma.maintenance.update({
-                    where: {
-                        id: parseInt(id)
-                    },
-                    data: {
-                        user: user.id,
-                        ...createMaintenanceDto
-                    }
-                });
-            } else {
-                throw new Error('User does not have permission to modify maintenance');
+            if (!user?.adminRights?.modifyMaintenance) {
+                throw new Error('You do not have permission to modify maintenance');
             }
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            return await this.prisma.maintenance.update({
+                where: {
+                    id: parseInt(id)
+                },
+                data: {
+                    user: user.id,
+                    ...createMaintenanceDto
+                }
+            });
         } catch (err) {
             throw new Error(err.message);
         }
@@ -126,15 +136,19 @@ export class Maintenance {
 
             const user = await this.usersService.getUserByToken(token);
 
-            if (user?.adminRights?.modifyMaintenance) {
-                return await this.prisma.maintenance.delete({
-                    where: {
-                        id: parseInt(id)
-                    }
-                });
-            } else {
-                throw new Error('User does not have permission to modify maintenance');
+            if (!user?.adminRights?.modifyMaintenance) {
+                throw new Error('You do not have permission to modify maintenance');
             }
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            return await this.prisma.maintenance.delete({
+                where: {
+                    id: parseInt(id)
+                }
+            });
         } catch (err) {
             throw new Error(err.message);
         }
