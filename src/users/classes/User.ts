@@ -12,7 +12,7 @@ export interface PasswordReset{
     email: string;
 }
 
-interface AdminRights{
+export interface AdminRights{
     modifyUsers: boolean;
     modifyMaintenance: boolean;
     modifyAdmins: boolean;

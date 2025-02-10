@@ -5,6 +5,8 @@ import { Maintenance } from './classes/Maintenance';
 import { SocketGateway } from 'src/socket/socket.gateway';
 import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 import { EmailService } from 'src/email/email.service';
+import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
+import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
 
 @Controller('admins')
 export class AdminController {
@@ -82,6 +84,42 @@ export class AdminController {
             const deletedMaintenance = await this.maintenanceService.deleteMaintenance(id, authHeader);
             this.socketGateway.emitMaintenanceUpdate(await this.maintenanceService.getCurrentMaintenance());
             return deletedMaintenance;
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Get("admin")
+    async getAdmins(@Headers('authorization') authHeader: string) {
+        try {
+            return await this.adminService.getAllAdmins(authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Post("admin/:id")
+    async addAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string, @Body() body: AddAdminRightsDto) {
+        try {
+            return await this.adminService.addAdmin(+id, authHeader, body);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Patch("admin/:id")
+    async updateAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string, @Body() body: UpdateAdminRightsDto) {
+        try {
+            return await this.adminService.updateAdmin(+id, authHeader, body);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Delete("admin/:id")
+    async deleteAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string) {
+        try {
+            return await this.adminService.deleteAdmin(+id, authHeader);
         } catch (err) {
             return { error: err.message }
         }

@@ -56,10 +56,6 @@ export class Maintenance {
                 throw new Error('Invalid token');
             }
 
-            if (!user.adminVerification?.verified) {
-                throw new Error('User does not have permission to modify maintenance');
-            }
-
             const maintenances = await this.prisma.maintenance.findMany({
                 orderBy: {
                     start: 'asc'

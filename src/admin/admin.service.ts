@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 import { UsersService } from 'src/users/users.service';
-import { AdminVerification } from 'src/users/classes/user';
+import { AdminRights, AdminVerification } from 'src/users/classes/user';
 import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
+import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
 
 @Injectable()
 export class AdminService {
@@ -17,14 +17,14 @@ export class AdminService {
     generateVerificationCode() {
         let code = '';
         for (let i = 0; i < 6; i++) {
-          code += Math.floor(Math.random() * 10); // Generál egy véletlen számjegyet (0–9)
+            code += Math.floor(Math.random() * 10); // Generál egy véletlen számjegyet (0–9)
         }
         return code;
-      }
+    }
 
     async login(loginDataDto: LoginDataDto) {
         try {
-            if(!await this.usersService.findEmail(loginDataDto.usernameOrEmail)){
+            if (!await this.usersService.findEmail(loginDataDto.usernameOrEmail)) {
                 throw new Error('User not found with this email');
             }
             const user = await this.usersService.handleBodyLogin({
@@ -54,12 +54,12 @@ export class AdminService {
     }
 
     async verifyAdmin(authHeader: string, code: string) {
-        try{
+        try {
             const admin = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
-            if(admin.adminVerification?.code !== code){
+            if (admin.adminVerification?.code !== code) {
                 throw new Error('Invalid code');
             }
-            if(admin.adminVerification?.expiration < getCurrentDate()){
+            if (admin.adminVerification?.expiration < getCurrentDate()) {
                 throw new Error('Code expired');
             }
             admin.adminVerification.verified = true;
@@ -72,6 +72,111 @@ export class AdminService {
     logout(authHeader: string) {
         try {
             return this.usersService.logoutUser(authHeader);
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    compareAdminRights(admin1: AdminRights, admin2: AddAdminRightsDto | UpdateAdminRightsDto) {
+        const result = {};
+        for (const admin1Key in admin1) {
+            const admin2Key = admin1Key.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`)
+            if (admin2.hasOwnProperty(admin2Key)) {
+                result[admin2Key] = admin1[admin1Key] && admin2[admin2Key];
+            }
+        }
+        return result as AddAdminRightsDto;
+    }
+
+    async getAllAdmins(authHeader: string) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            return this.prisma.users.findMany({
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    admin_rights: true
+                },
+                where: {
+                    admin_rights: {
+                        isNot: null
+                    }
+                }
+            })
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async addAdmin(userId: number, authHeader: string, body: AddAdminRightsDto) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            if (!user.adminRights?.modifyAdmins) {
+                throw new Error('You do not have permission to modify admins');
+            }
+
+            return this.prisma.admin_rights.create({
+                data: {
+                    admin: userId,
+                    ...this.compareAdminRights(user.adminRights, body)
+                }
+            });
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async updateAdmin(userId: number, authHeader: string, body: UpdateAdminRightsDto) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            if (!user.adminRights?.modifyAdmins) {
+                throw new Error('You do not have permission to modify admins');
+            }
+
+            return this.prisma.admin_rights.update({
+                where: {
+                    admin: userId
+                },
+                data: this.compareAdminRights(user.adminRights, body)
+            });
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async deleteAdmin(userId: number, authHeader: string) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            if (!user.adminRights?.modifyAdmins) {
+                throw new Error('You do not have permission to modify admins');
+            }
+
+            return this.prisma.admin_rights.delete({
+                where: {
+                    admin: userId
+                }
+            });
         } catch (err) {
             throw new Error(err.message);
         }
