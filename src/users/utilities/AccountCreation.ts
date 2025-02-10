@@ -2,7 +2,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { IUser } from '../interfaces/IUserData';
 import { createToken } from '../../shared/utilities/tokenCreation';
 import * as bcrypt from 'bcrypt';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { getCurrentDate } from 'src/shared/utilities/Date';
 
 export async function createAccount(
     prisma: PrismaService,

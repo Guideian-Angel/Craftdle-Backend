@@ -30,7 +30,7 @@ import { AssetsService } from 'src/assets/assets.service';
 import { ProfileDto } from './dtos/Profile.dto';
 import { GameService } from 'src/game/game.service';
 import { RandomizePasswordResetImages } from './utilities/RandomizePasswordResetImages';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { getCurrentDate } from 'src/shared/utilities/Date';
 import { v4 as uuidv4 } from 'uuid';
 import { EmailService } from 'src/email/email.service';
 import { AchievementManager } from 'src/achievements/AchievementManager';

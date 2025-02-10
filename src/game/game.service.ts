@@ -7,9 +7,10 @@ import { Game } from './classes/Game';
 import { Riddle } from './classes/Riddle';
 import { IItem } from './interfaces/IItem';
 import { ICheckedTip } from './interfaces/ICheckedTip';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { getCurrentDate } from 'src/shared/utilities/Date';
 import { User } from 'src/users/classes/user';
 import { get } from 'http';
+import { formatDate } from 'src/shared/utilities/Date';
 
 @Injectable()
 export class GameService {
@@ -297,5 +298,38 @@ export class GameService {
                 date: tip.date
             };
         });
+    }
+
+    async getLastGameDate(userId: number) {
+        const lastGame = await this.prisma.games.findFirst({
+            where: {
+                player: userId
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
+        return lastGame.date;
+    }
+
+    async getFavoriteGamemode(userId: number) {
+        const gamemodes = await this.sortGames(userId);
+        return gamemodes.reduce((favorite, gamemode) => 
+            gamemode.played > favorite.played ? gamemode : favorite, gamemodes[0]);
+    }
+
+    async getUserStatistics(userId: number) {
+        const games = await this.getUsersGames(userId);
+        const statistics: { [key: string]: { [key: string]: number } } = {};
+
+        games.forEach(game => {
+            const date = formatDate(game.date);
+            if (!statistics[date]) {
+                statistics[date] = {};
+            }
+            statistics[date][game.gamemodes.name] = (statistics[date][game.gamemodes.name] || 0) + 1;
+        });
+
+        return statistics;
     }
 }

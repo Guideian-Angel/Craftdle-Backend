@@ -3,15 +3,19 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 import { UsersService } from 'src/users/users.service';
 import { AdminRights, AdminVerification } from 'src/users/classes/user';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { formatDate, getCurrentDate } from 'src/shared/utilities/Date';
 import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
 import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
+import { GameService } from 'src/game/game.service';
+import { AssetsService } from 'src/assets/assets.service';
 
 @Injectable()
 export class AdminService {
     constructor(
         private prisma: PrismaService,
         private readonly usersService: UsersService,
+        private readonly gameService: GameService,
+        private readonly assetsService: AssetsService
     ) { }
 
     generateVerificationCode() {
@@ -177,6 +181,72 @@ export class AdminService {
                     admin: userId
                 }
             });
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async getAllUsers(authHeader: string) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            const userDatas = await this.prisma.users.findMany({
+                select: {
+                    id: true,
+                    username: true,
+                    admin_rights: true
+                }
+            })
+
+            return userDatas.map(userData => {
+                return {
+                    ...userData,
+                    streak: this.gameService.getStreak(userData.id),
+                    lastPlayed: this.gameService.getLastGameDate(userData.id),
+                }
+            })
+        } catch (err) {
+            throw new Error(err.message);
+        }
+    }
+
+    async getUser(userId: number, authHeader: string) {
+        try {
+            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+            if (!user?.adminVerification?.verified) {
+                throw new Error('You are not verified');
+            }
+
+            const userData = await this.prisma.users.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    username: true,
+                    registration_date: true
+                }
+            });
+
+            const favoriteGamemode = await this.gameService.getFavoriteGamemode(userData.id);
+            const statistics = await this.gameService.getUserStatistics(userData.id);
+
+            const collectedAchievements = (await this.usersService.getAchievements(userData.id)).filter(a => a.collected).length;
+            const totalAchievements = (await this.assetsService.getAllAchievements()).length;
+
+            const collectedItems = (await this.usersService.getInventoryCollection(userData.id)).filter(c => c.collected).length;
+            const totalItems = (await this.assetsService.getAllInventoryItems()).length;
+
+            return {
+                ...userData,
+                streak: this.gameService.getStreak(userData.id),
+                achievements: { collected: collectedAchievements, total: totalAchievements },
+                collection: { collected: collectedItems, total: totalItems },
+                favoriteGamemode: favoriteGamemode.name,
+                playedGamemodes: statistics
+            };
         } catch (err) {
             throw new Error(err.message);
         }

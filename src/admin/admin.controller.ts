@@ -124,4 +124,22 @@ export class AdminController {
             return { error: err.message }
         }
     }
+
+    @Get("users")
+    async getUsers(@Headers('authorization') authHeader: string) {
+        try {
+            return await this.adminService.getAllUsers(authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Get("user/:id")
+    async getUser(@Headers('authorization') authHeader: string, @Param('id') id: string) {
+        try {
+            return await this.adminService.getUser(+id, authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
 }
