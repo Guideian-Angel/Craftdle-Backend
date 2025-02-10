@@ -8,6 +8,7 @@ import { AssetsModule } from 'src/assets/assets.module';
 import { GameModule } from 'src/game/game.module';
 import { EmailModule } from 'src/email/email.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { StatisticsModule } from 'src/statistics/statistics.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     GameModule,
     EmailModule,
     AdminModule,
-    PrismaModule
+    PrismaModule,
+    StatisticsModule
   ],
   controllers: [AdminController],
   providers: [AdminService, Maintenance],

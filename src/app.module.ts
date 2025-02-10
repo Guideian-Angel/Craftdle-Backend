@@ -10,6 +10,7 @@ import { SocketModule } from './socket/socket.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AchievementsModule } from './achievements/achievements.module';
     PrismaModule,
     EmailModule,
     AchievementsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,6 +7,7 @@ import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 import { EmailService } from 'src/email/email.service';
 import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
 import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
+import { StatisticsService } from 'src/statistics/statistics.service';
 
 @Controller('admins')
 export class AdminController {
@@ -14,7 +15,8 @@ export class AdminController {
         private readonly adminService: AdminService,
         private readonly maintenanceService: Maintenance,
         private readonly socketGateway: SocketGateway,
-        private readonly emailService: EmailService
+        private readonly emailService: EmailService,
+        private readonly statisticsService: StatisticsService
     ) { }
 
     @Post("login")
@@ -138,6 +140,15 @@ export class AdminController {
     async getUser(@Headers('authorization') authHeader: string, @Param('id') id: string) {
         try {
             return await this.adminService.getUser(+id, authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Get("statistics")
+    async getStatistics(@Headers('authorization') authHeader: string) {
+        try {
+            return await this.statisticsService.getStatistics(authHeader);
         } catch (err) {
             return { error: err.message }
         }
