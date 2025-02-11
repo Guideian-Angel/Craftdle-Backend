@@ -65,15 +65,22 @@ export class UsersService {
 
     async getAdminRights(id: number) {
         try {
-            const admin_rights = await this.prisma.admin_rights.findUniqueOrThrow({
+            const adminRights = (await this.prisma.users_rights.findMany({
                 where: {
-                    admin: id
+                    user: id
+                },
+                select: {
+                    rights: {
+                        select: {
+                            name: true
+                        }
+                    }
                 }
-            })
+            })).map(right => right.rights.name);
             return {
-                modifyUsers: admin_rights.modify_users,
-                modifyMaintenance: admin_rights.modify_maintenance,
-                modifyAdmins: admin_rights.modify_admins
+                modifyUsers: adminRights.includes('Modify Users'),
+                modifyMaintenance: adminRights.includes('Modify Maintenance'),
+                modifyAdmins: adminRights.includes('Modify Admins'),
             }
         } catch (error) {
             return null;
@@ -511,7 +518,7 @@ export class UsersService {
                         title: achievement.title,
                         description: achievement.description,
                         goal: achievement.goal,
-                        progress: progress,
+                        progress: progress > achievement.goal ? achievement.goal : progress,
                         rarity: achievement.is_secret ? 2 : 1,
                         collected: owned ? true : false,
                     };

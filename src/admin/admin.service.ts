@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDataDto } from 'src/users/dtos/LoginData.dto';
 import { UsersService } from 'src/users/users.service';
-import { AdminRights, AdminVerification } from 'src/users/classes/user';
-import { formatDate, getCurrentDate } from 'src/shared/utilities/Date';
-import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
+import { AdminVerification } from 'src/users/classes/user';
+import { getCurrentDate } from 'src/shared/utilities/Date';
 import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
 import { GameService } from 'src/game/game.service';
 import { AssetsService } from 'src/assets/assets.service';
@@ -81,15 +80,16 @@ export class AdminService {
         }
     }
 
-    compareAdminRights(admin1: AdminRights, admin2: AddAdminRightsDto | UpdateAdminRightsDto) {
-        const result = {};
-        for (const admin1Key in admin1) {
-            const admin2Key = admin1Key.replace(/[A-Z]/g, (match) => `_${match.toLowerCase()}`)
-            if (admin2.hasOwnProperty(admin2Key)) {
-                result[admin2Key] = admin1[admin1Key] && admin2[admin2Key];
+    convertAdminRights(adminRights: UpdateAdminRightsDto) {
+        const result: string[] = [];
+
+        Object.keys(adminRights).forEach(key => {
+            if (adminRights[key]) {
+                result.push(key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '));
             }
-        }
-        return result as AddAdminRightsDto;
+        })
+
+        return result;
     }
 
     async getAllAdmins(authHeader: string) {
@@ -105,37 +105,14 @@ export class AdminService {
                     id: true,
                     username: true,
                     email: true,
-                    admin_rights: true
+                    admin_right: true
                 },
                 where: {
-                    admin_rights: {
-                        isNot: null
+                    admin_right: {
+                        not: null
                     }
                 }
             })
-        } catch (err) {
-            throw new Error(err.message);
-        }
-    }
-
-    async addAdmin(userId: number, authHeader: string, body: AddAdminRightsDto) {
-        try {
-            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
-
-            if (!user?.adminVerification?.verified) {
-                throw new Error('You are not verified');
-            }
-
-            if (!user.adminRights?.modifyAdmins) {
-                throw new Error('You do not have permission to modify admins');
-            }
-
-            return this.prisma.admin_rights.create({
-                data: {
-                    admin: userId,
-                    ...this.compareAdminRights(user.adminRights, body)
-                }
-            });
         } catch (err) {
             throw new Error(err.message);
         }
@@ -153,34 +130,27 @@ export class AdminService {
                 throw new Error('You do not have permission to modify admins');
             }
 
-            return this.prisma.admin_rights.update({
+            const adminRightsNames = this.convertAdminRights(body);
+
+            const adminRights = (await this.prisma.rights.findMany({where: {name: {in: adminRightsNames}}})).map(right => right.id);
+
+            await this.prisma.users_rights.deleteMany({
                 where: {
-                    admin: userId
-                },
-                data: this.compareAdminRights(user.adminRights, body)
-            });
-        } catch (err) {
-            throw new Error(err.message);
-        }
-    }
-
-    async deleteAdmin(userId: number, authHeader: string) {
-        try {
-            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
-
-            if (!user?.adminVerification?.verified) {
-                throw new Error('You are not verified');
-            }
-
-            if (!user.adminRights?.modifyAdmins) {
-                throw new Error('You do not have permission to modify admins');
-            }
-
-            return this.prisma.admin_rights.delete({
-                where: {
-                    admin: userId
+                    right: {
+                        notIn: adminRights
+                    },
+                    user: userId
                 }
-            });
+            })
+
+            await this.prisma.users_rights.createMany({
+                data: adminRights.map(right => {
+                    return {
+                        user: userId,
+                        right
+                    }
+                })
+            })
         } catch (err) {
             throw new Error(err.message);
         }
@@ -198,7 +168,7 @@ export class AdminService {
                 select: {
                     id: true,
                     username: true,
-                    admin_rights: true
+                    users_rights: true
                 }
             })
 

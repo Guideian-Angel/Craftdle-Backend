@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { StatisticsModule } from './statistics/statistics.module';
+import { CliModule } from './cli/cli.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { StatisticsModule } from './statistics/statistics.module';
     EmailModule,
     AchievementsModule,
     StatisticsModule,
+    CliModule,
   ],
   controllers: [AppController],
   providers: [AppService],

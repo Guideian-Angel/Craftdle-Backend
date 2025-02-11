@@ -8,6 +8,7 @@ import { EmailService } from 'src/email/email.service';
 import { AddAdminRightsDto } from './dto/add-admin-rights.dto';
 import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
 import { StatisticsService } from 'src/statistics/statistics.service';
+import { CliService } from 'src/cli/cli.service';
 
 @Controller('admins')
 export class AdminController {
@@ -16,7 +17,8 @@ export class AdminController {
         private readonly maintenanceService: Maintenance,
         private readonly socketGateway: SocketGateway,
         private readonly emailService: EmailService,
-        private readonly statisticsService: StatisticsService
+        private readonly statisticsService: StatisticsService,
+        private readonly cliService: CliService
     ) { }
 
     @Post("login")
@@ -100,28 +102,10 @@ export class AdminController {
         }
     }
 
-    @Post("admin/:id")
-    async addAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string, @Body() body: AddAdminRightsDto) {
-        try {
-            return await this.adminService.addAdmin(+id, authHeader, body);
-        } catch (err) {
-            return { error: err.message }
-        }
-    }
-
     @Patch("admin/:id")
     async updateAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string, @Body() body: UpdateAdminRightsDto) {
         try {
             return await this.adminService.updateAdmin(+id, authHeader, body);
-        } catch (err) {
-            return { error: err.message }
-        }
-    }
-
-    @Delete("admin/:id")
-    async deleteAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string) {
-        try {
-            return await this.adminService.deleteAdmin(+id, authHeader);
         } catch (err) {
             return { error: err.message }
         }
@@ -149,6 +133,24 @@ export class AdminController {
     async getStatistics(@Headers('authorization') authHeader: string) {
         try {
             return await this.statisticsService.getStatistics(authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Get("cli")
+    async getCommands(@Headers('authorization') authHeader: string) {
+        try {
+            return await this.cliService.getCommands(authHeader);
+        } catch (err) {
+            return { error: err.message }
+        }
+    }
+
+    @Post("cli")
+    async executeCommand(@Headers('authorization') authHeader: string, @Body() body: { command: string }) {
+        try {
+            return await this.cliService.executeCommand(authHeader, body.command);
         } catch (err) {
             return { error: err.message }
         }

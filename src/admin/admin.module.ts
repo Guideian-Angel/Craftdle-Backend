@@ -9,6 +9,7 @@ import { GameModule } from 'src/game/game.module';
 import { EmailModule } from 'src/email/email.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { StatisticsModule } from 'src/statistics/statistics.module';
+import { CliModule } from 'src/cli/cli.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { StatisticsModule } from 'src/statistics/statistics.module';
     EmailModule,
     AdminModule,
     PrismaModule,
-    StatisticsModule
+    StatisticsModule,
+    CliModule
   ],
   controllers: [AdminController],
   providers: [AdminService, Maintenance],

@@ -9,14 +9,14 @@ datasource db {
 
 model achievements {
   id                 Int                  @id @default(autoincrement())
-  title              String               @db.VarChar(255)
+  title              String               @unique(map: "title") @db.VarChar(255)
   description        String               @db.VarChar(255)
   icon               String               @db.VarChar(255)
   goal               Int
   is_secret          Boolean
   parent             Int?
   event              String?              @db.VarChar(255)
-  target             String?               @db.VarChar(255)
+  target             String?              @db.VarChar(255)
   achievements       achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
   other_achievements achievements[]       @relation("achievementsToachievements")
   rewards            rewards[]
@@ -25,13 +25,10 @@ model achievements {
   @@index([parent], map: "parent")
 }
 
-model admin_rights {
-  id           Int     @id @default(autoincrement())
-  admin        Int     @unique(map: "admin")
-  modify_admins Boolean
-  modify_users Boolean
-  modify_maintenance Boolean
-  users        users   @relation(fields: [admin], references: [id], onUpdate: Restrict, map: "admin_rights_ibfk_1")
+model rights {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique(map: "admin") @db.VarChar(255)
+  users_rights users_rights[]
 }
 
 model collections {
@@ -208,7 +205,7 @@ model tips {
   item                 String                 @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
   games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, map: "tips_ibfk_1")
-  collections          collections                  @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
+  collections          collections            @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
 
   @@index([game], map: "game")
 }
@@ -229,7 +226,7 @@ model users {
   registration_date      DateTime                 @db.DateTime(0)
   is_guest               Boolean
   socket_id              String?                  @db.VarChar(255)
-  admin_rights           admin_rights?
+  admin_right            Int?
   games                  games[]
   maintenance            maintenance[]
   settings               settings[]
@@ -238,6 +235,9 @@ model users {
   users_collections      users_collections[]
   users_profile_borders  users_profile_borders[]
   users_profile_pictures users_profile_pictures[]
+  users_rights           users_rights[]
+
+  @@index([admin_right], map: "admin_right")
 }
 
 model users_achievements {
@@ -285,5 +285,16 @@ model users_profile_pictures {
   profile_pictures profile_pictures @relation(fields: [profile_picture], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_2")
 
   @@index([profile_picture], map: "profile_picture")
+  @@index([user], map: "user")
+}
+
+model users_rights {
+  user   Int
+  right  Int
+  users  users  @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_1")
+  rights rights @relation(fields: [right], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_2")
+
+  @@unique([user, right])
+  @@index([right], map: "right")
   @@index([user], map: "user")
 }
