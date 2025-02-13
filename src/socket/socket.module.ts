@@ -4,7 +4,6 @@ import { UsersModule } from '../users/users.module';
 import { CacheModule } from '../cache/cache.module';
 import { GameModule } from '../game/game.module';
 import { Maintenance } from 'src/admin/classes/Maintenance';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { AchievementsModule } from 'src/achievements/achievements.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
@@ -20,4 +19,3 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     exports: [SocketGateway],
 })
 export class SocketModule { }
-

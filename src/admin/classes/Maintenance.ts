@@ -1,7 +1,7 @@
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateMaintenanceDto } from "../dto/create-maintenance.dto";
-import { getCurrentDate } from "src/shared/utilities/CurrentDate";
+import { CreateMaintenanceDto } from "../dto/createMaintenance.dto";
 import { Injectable } from "@nestjs/common";
+import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
 
 @Injectable()
 export class Maintenance {

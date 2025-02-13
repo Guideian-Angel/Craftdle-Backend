@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
+import { CreateAdminDto } from './dto/createAdmin.dto';
+import { CreateMaintenanceDto } from './dto/createMaintenance.dto';
+import { UpdateAdminDto } from './dto/updateAdmin.dto';
 import { Maintenance } from './classes/Maintenance';
 import { SocketGateway } from 'src/socket/socket.gateway';
 

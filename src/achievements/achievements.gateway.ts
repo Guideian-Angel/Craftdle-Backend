@@ -1,6 +1,6 @@
 import { WebSocketGateway } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { IAchievement } from './interfaces/IAchievement';
+import { IAchievement } from './interfaces/achievement.interface';
 
 @WebSocketGateway({ cors: true })
 export class AchievementsGateway {
@@ -11,7 +11,10 @@ export class AchievementsGateway {
     this.server = server;
   }
 
-  emitAchievements(userId: string, achievements: IAchievement[]) {
-    this.server.to(userId)?.emit("achievements", achievements);
+  async emitAchievements(userId: string, achievements: IAchievement[]) {
+    console.log("Emitting achievements to user: " + userId, " Achievements: ", achievements);
+    if(achievements.length > 0){
+      this.server.to(userId)?.emit("achievements", achievements);
+    }
   }
 }
