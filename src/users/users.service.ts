@@ -313,9 +313,6 @@ export class UsersService {
         try {
             const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
             const userId = user.id
-            if (user.is_guest) {
-                throw new HttpException('No No Collection', HttpStatus.UNAUTHORIZED);
-            }
             return {
                 profilePictures: await this.getProfilePicturesCollection(userId),
                 profileBorders: await this.getProfileBordersCollection(userId),
