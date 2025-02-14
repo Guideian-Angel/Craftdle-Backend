@@ -5,6 +5,7 @@ import { RecipesService } from "src/recipes/recipes.service";
 import { IItem } from "src/sharedComponents/interfaces/item.interface";
 import { shuffleArray } from "src/sharedComponents/utilities/array.util";
 import { ICheckedTip } from "src/tip/interfaces/tip.interface";
+import { RiddlesService } from "src/riddles/riddles.service";
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -25,7 +26,8 @@ export class Riddle {
     constructor(
         private readonly cacheService: CacheService, 
         private readonly gameService: GameService,
-        private readonly recipesService: RecipesService
+        private readonly recipesService: RecipesService,
+        private readonly riddlesService: RiddlesService
     ) { }
 
     async initializeExistingGame(user, gamemode) {
@@ -45,17 +47,23 @@ export class Riddle {
         return game.id;
     }
 
-    initializeNewGame(gamemode): void {
+    async initializeNewGame(gamemode) {
         this.gamemode = gamemode;
         const recipes = this.cacheService.getCachedData('recipes');
         const items = this.cacheService.getCachedData('items');
+        let randomGroupKey;
 
-        const validGroups = this.getValidGroups(recipes);
-
-        if (validGroups.length === 0) {
-            throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
+        // Daily gamemode esetén ellenőrizzük, játszottak-e ma már, ha igen, beállítjuk azt riddlenek, ha nem akkor újat sorsolunk
+        if(gamemode == 3){
+            const existingDailyGame = await this.riddlesService.findDailyGameToday();
+            if(existingDailyGame){
+                randomGroupKey = existingDailyGame.riddle;
+            } else {
+                randomGroupKey = this.drawNewRiddle(items, recipes);
+            }
+        } else{
+            randomGroupKey = this.drawNewRiddle(items, recipes);
         }
-        const randomGroupKey = this.gamemode == 1? "axe0": this.getRandomItem(validGroups);
         const selectedGroup = recipes[randomGroupKey];
 
         this.recipe = selectedGroup;
@@ -63,6 +71,17 @@ export class Riddle {
         this.recipeGroup = randomGroupKey;
         this.inventory = Number(this.gamemode) === 6? this.createResourceInventory(recipes, items): items;
         this.hints = Number(this.gamemode) !== 7? this.generateHints(recipes): null;
+    }
+
+    private drawNewRiddle(items, recipes){
+        const validGroups = this.getValidGroups(recipes);
+
+        if (validGroups.length === 0) {
+            throw new Error('Nincs olyan group, amelyik támogatná ezt a gamemode-ot.');
+        }
+        const randomGroupKey = this.gamemode == 1? "axe0": this.getRandomItem(validGroups);
+
+        return randomGroupKey
     }
 
     private gatherItems(items, itemIds: Set<string>) {

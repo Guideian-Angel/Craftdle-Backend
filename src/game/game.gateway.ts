@@ -14,6 +14,7 @@ import { TipService } from 'src/tip/tip.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AssetsService } from 'src/assets/assets.service';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
+import { RiddlesService } from 'src/riddles/riddles.service';
 
 @WebSocketGateway({ cors: true })
 export class GameGateway {
@@ -28,7 +29,8 @@ export class GameGateway {
     private readonly tipService: TipService,
     private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService,
-    private readonly assetsService: AssetsService
+    private readonly assetsService: AssetsService,
+    private readonly riddlesService: RiddlesService
   ) { }
 
   afterInit(server: Server) {
@@ -37,7 +39,7 @@ export class GameGateway {
 
   @SubscribeMessage('startGame')
   async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
-    const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService);
+    const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
     const game = new Game(riddle, this.usersService.getUserBySocketId(client.id));
     if (payload.newGame) {
       riddle.initializeNewGame(payload.gamemode);
@@ -80,7 +82,7 @@ export class GameGateway {
             }
           ]
           if (result.solved) {
-            achievementsCollection.addTemporalAchievementToList("Riddle solved!", tip.item.name, tip.item.src, 0)
+            achievementsCollection.addTemporalAchievementToList("Riddle solved!", tip.item.name, tip.item.src, 0, 3, game.user)
             game.riddle.solved = true
             await this.gameService.changeGameStatus(game.id);
             const gamemode = await this.prisma.gamemodes.findFirst({ where: { id: Number(game.riddle.gamemode) } })
@@ -88,13 +90,13 @@ export class GameGateway {
               name: 'solve',
               targets: [gamemode.name]
             });
-            const collectionClaimed = await this.assetsService.addItemToCollection(game.user.id, game.riddle.tips[game.riddle.tips.length - 1].item);
-            if(collectionClaimed.added){
-              achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0)
+            const collectionClaimed = await this.assetsService.addItemToCollection(game.user, game.riddle.tips[game.riddle.tips.length - 1].item);
+            if(collectionClaimed && collectionClaimed.added){
+              achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0, 3, game.user)
               events.push(collectionClaimed.event)
             }
           }
-          await achievementsCollection.achievementEventListener(game.user.id, events, game, payload);
+          await achievementsCollection.achievementEventListener(game.user, events, game, payload);
           await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList);
           client.emit('guess', game.riddle.toJSON());
           if (result.solved) {

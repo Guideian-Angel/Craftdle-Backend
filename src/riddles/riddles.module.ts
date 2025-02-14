@@ -5,6 +5,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [RecipesModule, PrismaModule],
-  providers: [RiddlesService]
+  providers: [RiddlesService],
+  exports: [RiddlesService],
 })
 export class RiddlesModule {}

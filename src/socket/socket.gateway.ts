@@ -26,7 +26,6 @@ export class SocketGateway
   ) { }
 
   afterInit(server: Server) {
-    console.log("asd")
     this.server = server;
     this.logger.log('Socket Gateway initialized!');
   }
@@ -65,7 +64,7 @@ export class SocketGateway
     this.usersService.associateSocketId(token, client.id);
     if (!user.isGuest) {
       const achievementsCollection = new AchievementsCollection(this.prisma)
-      await achievementsCollection.achievementEventListener(user.id, [{ name: "regist", targets: ["regist"] }]);
+      await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
       await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList)
     }
     this.logger.log(`Client connected: ${client.id} (User: ${user.username})`);
@@ -103,7 +102,7 @@ export class SocketGateway
       const achievementsCollection = new AchievementsCollection(this.prisma);
       
       // Várjuk meg, hogy a listener befejezze!
-      await achievementsCollection.achievementEventListener(user.id, [{ name: "credits", targets: ["watched"] }]);
+      await achievementsCollection.achievementEventListener(user, [{ name: "credits", targets: ["watched"] }]);
       
       // Csak akkor emitálunk, ha már biztosan kész a lista!
       await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList);

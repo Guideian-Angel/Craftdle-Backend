@@ -5,6 +5,7 @@ import { ProfileAssetsDataDto } from './dtos/profileAssets.dto';
 import { IItem } from 'src/sharedComponents/interfaces/item.interface';
 import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 import { getUserById } from 'src/users/utilities/user.util';
+import { User } from 'src/users/classes/user.class';
 
 @Injectable()
 export class AssetsService {
@@ -377,42 +378,44 @@ export class AssetsService {
      * @returns A hozzáadás eredménye.
      * @throws HttpException - Ha hiba történik az adatlekérdezés során.
      */
-    async addItemToCollection(userId: number, item: IItem): Promise<{added: boolean, event: {name: string, targets: Array<string>}}> {
+    async addItemToCollection(user: User, item: IItem): Promise<{ added: boolean, event: { name: string, targets: Array<string> } }> {
         try {
-            // Először keresd meg a collection ID-t
-            const collection = await this.prisma.collections.findFirst({
-                where: {
-                    item_id: item.id
-                },
-                select: {
-                    id: true
+            if (!user.isGuest) {
+                // Először keresd meg a collection ID-t
+                const collection = await this.prisma.collections.findFirst({
+                    where: {
+                        item_id: item.id
+                    },
+                    select: {
+                        id: true
+                    }
+                });
+
+                // Ellenőrizd, hogy létezik-e a collection
+                if (!collection) {
+                    throw new Error('Collection not found for the given item.');
                 }
-            });
-    
-            // Ellenőrizd, hogy létezik-e a collection
-            if (!collection) {
-                throw new Error('Collection not found for the given item.');
+
+                // Utána használd fel a megtalált ID-t a create() hívásban
+                const addedItem = await this.prisma.users_collections.create({
+                    data: {
+                        user: user.id,
+                        collection: collection.id  // Csak az ID-t adjuk át
+                    }
+                });
+
+                let event;
+                if (addedItem) {
+                    event = {
+                        name: "collect",
+                        targets: ["any"]
+                    };
+                    if (item.name.split(" ")[1] === "Axe") {
+                        event.targets.push("axe");
+                    }
+                }
+                return { added: !!addedItem, event: event };
             }
-    
-            // Utána használd fel a megtalált ID-t a create() hívásban
-            const addedItem = await this.prisma.users_collections.create({
-                data: {
-                    user: userId,
-                    collection: collection.id  // Csak az ID-t adjuk át
-                }
-            });
-    
-            let event;
-            if (addedItem) {
-                event = {
-                    name: "collect",
-                    targets: ["any"]
-                };
-                if (item.name.split(" ")[1] === "Axe") {
-                    event.targets.push("axe");
-                }
-            }
-            return {added: !!addedItem, event: event};
         } catch (error) {
             console.log(error);
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);

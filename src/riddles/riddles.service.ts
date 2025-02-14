@@ -22,6 +22,8 @@ export class RiddlesService {
             },
         });
 
+        console.log("Játék: ",existingGame)
+
         return existingGame; // Ha van találat, akkor már volt játék, ha nincs, akkor még nem
     }
 }

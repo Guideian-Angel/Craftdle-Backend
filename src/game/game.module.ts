@@ -10,9 +10,10 @@ import { AchievementsModule } from 'src/achievements/achievements.module';
 import { CacheModule } from 'src/cache/cache.module';
 import { RecipesModule } from 'src/recipes/recipes.module';
 import { TipModule } from 'src/tip/tip.module';
+import { RiddlesModule } from 'src/riddles/riddles.module';
 
 @Module({
-    imports: [PrismaModule, TokenModule, AssetsModule, AchievementsModule, UsersModule, CacheModule, RecipesModule, TipModule],
+    imports: [PrismaModule, TokenModule, AssetsModule, AchievementsModule, UsersModule, CacheModule, RecipesModule, TipModule, RiddlesModule],
     controllers: [GameController],
     providers: [GameService, GameGateway],
     exports: [GameService],

@@ -3,6 +3,7 @@ import { IAchievement } from '../interfaces/achievement.interface';
 import { Game } from 'src/game/classes/game.class';
 import { ITip } from 'src/tip/interfaces/tip.interface';
 import { getStreak } from 'src/users/utilities/user.util';
+import { User } from 'src/users/classes/user.class';
 
 export class AchievementsCollection {
 
@@ -10,17 +11,25 @@ export class AchievementsCollection {
 
     constructor(
         private readonly prisma: PrismaService
-    ) {}
+    ) { }
 
-    addTemporalAchievementToList(title: string, description: string, src: string, rarity: number){
-        this.achievementList.push(this.generateTemporalAchievement(title, description, src, rarity));
+    addTemporalAchievementToList(title: string, description: string, src: string, rarity: number, route: number, user: User) {
+        if(!user.isGuest || title == "Riddle solved!") {
+            this.achievementList.push(this.generateTemporalAchievement(title, description, src, rarity, route));
+        }
     }
 
-    generateTemporalAchievement(title: string, description: string, src: string, rarity: number): IAchievement {
+    generateTemporalAchievement(title: string, description: string, src: string, rarity: number, route: number): IAchievement {
+        const routeMap = {
+            0: "achievements",
+            1: "profilePictures",
+            2: "profileBorders",
+            3: "items",
+        }
         return {
             title: title,
             description: description,
-            icon: src,
+            icon: routeMap[route] + "/" + src,
             rarity: rarity
         }
     }
@@ -32,8 +41,8 @@ export class AchievementsCollection {
             if (foods.includes(game.riddle.recipeGroup)) {
                 additionalTargets.push("food");
             }
-        } else if(Number(game.riddle.gamemode) == 3){
-            if(await getStreak(userId, this.prisma) >= 365){
+        } else if (Number(game.riddle.gamemode) == 3) {
+            if (await getStreak(userId, this.prisma) >= 365) {
                 additionalTargets.push("365");
             }
         }
@@ -62,7 +71,7 @@ export class AchievementsCollection {
         return additionalTargets;
     }
 
-    watchSpecialCraftCases(tip: ITip): string[]{
+    watchSpecialCraftCases(tip: ITip): string[] {
         let additionalTargets = []
         // const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["gaLogo0"];
         // if(RecipeFunctions.compareShapedRecipes(gaRecipe.recipe, gaRecipe, createMatrixFromArray(tip.table), 3).solved){
@@ -71,24 +80,25 @@ export class AchievementsCollection {
         return additionalTargets
     }
 
-    async achievementEventListener(userId: number, events: Array<{ name: string, targets: string[] }>, game?: Game, tip?: ITip) {
-
-        for (const event of events) {
-            switch (event.name) {
-                case "solve":
-                    event.targets = event.targets.concat(await this.watchSpecialSolveCases(game, userId));
-                    break;
-                case "craft":
-                    event.targets = event.targets.concat(this.watchSpecialCraftCases(tip));
-                    break;
+    async achievementEventListener(user: User, events: Array<{ name: string, targets: string[] }>, game?: Game, tip?: ITip) {
+        if (!user.isGuest) {
+            for (const event of events) {
+                switch (event.name) {
+                    case "solve":
+                        event.targets = event.targets.concat(await this.watchSpecialSolveCases(game, user.id));
+                        break;
+                    case "craft":
+                        event.targets = event.targets.concat(this.watchSpecialCraftCases(tip));
+                        break;
+                }
             }
+
+            // Várjuk meg az összes updateAchievementProgress lefutását!
+            await Promise.all(events.flatMap(event =>
+                event.targets.map((target) => this.updateAchievementProgress(user.id, event.name, target))
+            ));
         }
-    
-        // Várjuk meg az összes updateAchievementProgress lefutását!
-        await Promise.all(events.flatMap(event => 
-            event.targets.map((target) => this.updateAchievementProgress(userId, event.name, target))
-        ));
-    }    
+    }
 
     async updateAchievementProgress(userId: number, event: string, target: string | null, increment: number = 1) {
         // Achievementek lekérdezése a megadott event és target alapján
@@ -142,7 +152,8 @@ export class AchievementsCollection {
                     "Achievement unlocked!",
                     achievement.title,
                     achievement.icon,
-                    achievement.is_secret ? 1 : 2
+                    achievement.is_secret ? 1 : 2,
+                    0
                 ));
 
                 await this.giveRewards(achievement.id, userId);
@@ -180,7 +191,7 @@ export class AchievementsCollection {
             }
 
             const rewardData = await this.findDataOfTemporaryAchievement(reward.reward, reward.reward_type);
-            this.achievementList.push(this.generateTemporalAchievement("Reward collected!", rewardData.name, rewardData.src, 0));
+            this.achievementList.push(this.generateTemporalAchievement("Reward collected!", rewardData.name, rewardData.src, 0, reward.reward_type));
             return result;
         }));
     }
