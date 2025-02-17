@@ -291,7 +291,7 @@ export class AssetsService {
                     if (achievement.is_secret && achievement.goal > progress) {
                         return {
                             id: achievement.id,
-                            icon: "Secret.png",
+                            icon: "achievements/Secret.png",
                             title: "???",
                             description: "???",
                             goal: null,

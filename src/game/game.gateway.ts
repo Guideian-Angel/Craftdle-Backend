@@ -42,7 +42,7 @@ export class GameGateway {
     const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
     const user = this.usersService.getUserBySocketId(client.id);
     const game = new Game(riddle, user);
-    if (payload.newGame) {
+    if (payload.newGame || payload.gamemode == 3) {
       await riddle.initializeNewGame(payload.gamemode, game);
     } else {
       game.id = await riddle.initializeExistingGame(this.usersService.getUserBySocketId(client.id), payload.gamemode)
@@ -90,10 +90,12 @@ export class GameGateway {
               name: 'solve',
               targets: [gamemode.name]
             });
-            const collectionClaimed = await this.assetsService.addItemToCollection(game.user, game.riddle.tips[game.riddle.tips.length - 1].item);
-            if(collectionClaimed && collectionClaimed.added){
-              achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0, 3, game.user)
-              events.push(collectionClaimed.event)
+            if(game.riddle.gamemode != 1){
+              const collectionClaimed = await this.assetsService.addItemToCollection(game.user, game.riddle.tips[game.riddle.tips.length - 1].item);
+              if(collectionClaimed && collectionClaimed.added){
+                achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0, 3, game.user)
+                events.push(collectionClaimed.event)
+              }
             }
           }
           await achievementsCollection.achievementEventListener(game.user, events, game, payload);
