@@ -303,7 +303,7 @@ export class AssetsService {
 
                     return {
                         id: achievement.id,
-                        icon: achievement.icon,
+                        icon: `achievements/${achievement.icon}`,
                         title: achievement.title,
                         description: achievement.description,
                         goal: achievement.goal,

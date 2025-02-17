@@ -6,6 +6,7 @@ import { IItem } from "src/sharedComponents/interfaces/item.interface";
 import { shuffleArray } from "src/sharedComponents/utilities/array.util";
 import { ICheckedTip } from "src/tip/interfaces/tip.interface";
 import { RiddlesService } from "src/riddles/riddles.service";
+import { Game } from "src/game/classes/game.class";
 
 type RecipeData = {
     [key: string]: Recipe[];
@@ -47,7 +48,7 @@ export class Riddle {
         return game.id;
     }
 
-    async initializeNewGame(gamemode) {
+    async initializeNewGame(gamemode: number, game: Game) {
         this.gamemode = gamemode;
         const recipes = this.cacheService.getCachedData('recipes');
         const items = this.cacheService.getCachedData('items');
@@ -55,14 +56,18 @@ export class Riddle {
 
         // Daily gamemode esetén ellenőrizzük, játszottak-e ma már, ha igen, beállítjuk azt riddlenek, ha nem akkor újat sorsolunk
         if(gamemode == 3){
-            const existingDailyGame = await this.riddlesService.findDailyGameToday();
+            const existingDailyGame = await this.riddlesService.findPlayersDailyGameToday(game.user.id);
             if(existingDailyGame){
+                console.log(existingDailyGame.player, " szarszarszar ", game.user)
+                if(existingDailyGame.player == game.user.id){
+                    return await this.initializeExistingGame(game.user, gamemode);
+                }
                 randomGroupKey = existingDailyGame.riddle;
             } else {
-                randomGroupKey = this.drawNewRiddle(items, recipes);
+                randomGroupKey = this.drawNewRiddle(recipes);
             }
         } else{
-            randomGroupKey = this.drawNewRiddle(items, recipes);
+            randomGroupKey = this.drawNewRiddle(recipes);
         }
         const selectedGroup = recipes[randomGroupKey];
 
@@ -71,9 +76,11 @@ export class Riddle {
         this.recipeGroup = randomGroupKey;
         this.inventory = Number(this.gamemode) === 6? this.createResourceInventory(recipes, items): items;
         this.hints = Number(this.gamemode) !== 7? this.generateHints(recipes): null;
+
+        game.id = await this.gameService.saveGame(game);
     }
 
-    private drawNewRiddle(items, recipes){
+    private drawNewRiddle(recipes){
         const validGroups = this.getValidGroups(recipes);
 
         if (validGroups.length === 0) {

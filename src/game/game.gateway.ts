@@ -40,10 +40,10 @@ export class GameGateway {
   @SubscribeMessage('startGame')
   async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
     const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
-    const game = new Game(riddle, this.usersService.getUserBySocketId(client.id));
+    const user = this.usersService.getUserBySocketId(client.id);
+    const game = new Game(riddle, user);
     if (payload.newGame) {
-      riddle.initializeNewGame(payload.gamemode);
-      game.id = await this.gameService.saveGame(game);
+      await riddle.initializeNewGame(payload.gamemode, game);
     } else {
       game.id = await riddle.initializeExistingGame(this.usersService.getUserBySocketId(client.id), payload.gamemode)
     }
@@ -98,7 +98,8 @@ export class GameGateway {
           }
           await achievementsCollection.achievementEventListener(game.user, events, game, payload);
           await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList);
-          client.emit('guess', game.riddle.toJSON());
+          const { items, recipes, ...filteredRiddle } = game.riddle.toJSON();
+          client.emit('guess', filteredRiddle);
           if (result.solved) {
             SocketGateway.gameToClient.delete(client.id)
           }

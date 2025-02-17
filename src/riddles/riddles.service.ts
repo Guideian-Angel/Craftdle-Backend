@@ -8,22 +8,32 @@ export class RiddlesService {
         private readonly prisma: PrismaService
     ){}
 
-    async findDailyGameToday() {
+    async findPlayersDailyGameToday(playerId){
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Dátumot nullázzuk, hogy csak a nap számítson
 
-        const existingGame = await this.prisma.games.findFirst({
-            where: {
-                type: 3, // Daily riddle gamemode
-                date: {
-                    gte: today, // Mai nap eleje
-                    lt: new Date(today.getTime() + 86400000), // Holnap eleje (tehát csak ma)
-                },
+        let dailyGame = await this.findDailyGameToday(playerId, today);
+        if(!dailyGame){
+            console.log("Nincs ma még játék, keresünk másikat")
+            dailyGame = await this.findDailyGameToday(null, today);
+        }
+        return dailyGame;
+    }
+
+    async findDailyGameToday(playerId, today) {
+        const whereCondition = {
+            type: 3, // Daily riddle gamemode
+            date: {
+                gte: today,                      // Nap eleje
+                lt: new Date(today.getTime() + 86400000), // Másnap eleje (tehát csak az adott nap)
             },
+            ...(playerId && { player: playerId }) // Csak akkor adja hozzá, ha létezik
+        };
+    
+        const game = await this.prisma.games.findFirst({
+            where: whereCondition,
         });
 
-        console.log("Játék: ",existingGame)
-
-        return existingGame; // Ha van találat, akkor már volt játék, ha nincs, akkor még nem
+        return game;
     }
 }
