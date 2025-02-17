@@ -30,8 +30,8 @@ TRUNCATE TABLE achievements;
 
 INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secret`, `parent`, `event`, `target`) VALUES
 (1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 0, NULL, 'regist', 'regist'),
-(2, 'The collector', 'Collect 100 items', 'The_Collector.png', 1, 0, NULL, 'craft', 'any'),
-(3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'craft', "axe"),
+(2, 'The collector', 'Collect 100 items', 'The_Collector.png', 100, 0, NULL, 'collect', 'any'),
+(3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'collect', "axe"),
 (4, 'The first of all', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 0, NULL, 'solve', 'number1'),
 (5, 'Still a beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 1, NULL, 'solve', 'Tutorial'),
 (6, 'The master chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'food'),

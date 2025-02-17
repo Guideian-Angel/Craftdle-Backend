@@ -16,7 +16,7 @@ model achievements {
   is_secret          Boolean
   parent             Int?
   event              String?              @db.VarChar(255)
-  target             String?               @db.VarChar(255)
+  target             String?              @db.VarChar(255)
   achievements       achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
   other_achievements achievements[]       @relation("achievementsToachievements")
   rewards            rewards[]
@@ -38,8 +38,8 @@ model collections {
   item_id           String              @unique(map: "item_id") @db.VarChar(255)
   name              String              @db.VarChar(255)
   src               String              @db.VarChar(255)
-  users_collections users_collections[]
   tips              tips[]
+  users_collections users_collections[]
 }
 
 model controls {
@@ -207,9 +207,10 @@ model tips {
   item                 String                 @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
   games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, map: "tips_ibfk_1")
-  collections          collections                  @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
+  collections          collections            @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
 
   @@index([game], map: "game")
+  @@index([item], map: "tips_ibfk_2")
 }
 
 model tokens {
@@ -247,7 +248,7 @@ model users_achievements {
   achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_1")
   users        users        @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_2")
 
-  @@unique([user, achievement], name: "user_achievement")
+  @@unique([user, achievement])
   @@index([achievement], map: "achievement")
   @@index([user], map: "user")
 }

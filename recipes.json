@@ -16387,9 +16387,6 @@
         "id": "turtle_shell",
         "name": "Turtle Shell",
         "recipe": [
-          null,
-          null,
-          null,
           [
             "turtle_scute"
           ],

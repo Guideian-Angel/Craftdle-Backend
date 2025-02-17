@@ -1,42 +1,40 @@
-import { Controller, Get, Post, Put, Delete, Headers, Body, UnauthorizedException, UsePipes, ValidationPipe, Param, HttpException, HttpStatus, Render, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UnauthorizedException, Param, Headers, HttpException, HttpStatus, Render, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiResponse } from '../shared/interfaces/APIResponse'
-import { LoginDataDto } from './dtos/LoginData.dto';
-import { RegistDataDto } from './dtos/RegistData.dto';
-import { UpdateSettingsDto } from './dtos/SettingsData.dto';
-import { ISettings } from './interfaces/ISettings';
-import { ProfileDto } from './dtos/Profile.dto';
+import { LoginDataDto } from './dtos/login.dto';
+import { RegistDataDto } from './dtos/regist.dto';
 import { EmailService } from 'src/email/email.service';
 import { EmailGateway } from 'src/email/email.gateway';
+import { SettingsService } from 'src/settings/settings.service';
+import { AssetsService } from 'src/assets/assets.service';
+import { ApiResponse } from 'src/sharedComponents/interfaces/response.interface';
+import { UpdateSettingsDto } from 'src/settings/dtos/settings.dto';
+import { ProfileAssetsDataDto } from 'src/assets/dtos/profileAssets.dto';
 
 @Controller('users')
 export class UsersController {
     constructor(
         private readonly usersService: UsersService,
         private readonly emailService: EmailService,
-        private readonly emailGateway: EmailGateway
+        private readonly emailGateway: EmailGateway,
+        private readonly settingsService: SettingsService,
+        private readonly assetsService: AssetsService
     ) { }
-
 
     //######################################################### USER LOGIN/REGIST ENDPOINTS #########################################################
 
-    @Post('register')
-    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     /**
      * Regisztrációs végpont, amely új felhasználót hoz létre, vagy hibaüzenetet ad vissza.
      * @param userDto Az új felhasználó adatai (DTO formában).
      * @returns API válasz: siker esetén az új felhasználó adatai, hiba esetén az üzenet.
      */
+    @Post('register')
     async register(@Body() userDto: RegistDataDto): Promise<ApiResponse> {
         try {
             const result = await this.usersService.register(userDto);
-
             if (!('loginToken' in result)) {
-                // Ha nincs loginToken az adatban, hiba történt..
                 throw new HttpException({ errors: result }, HttpStatus.BAD_REQUEST);
             }
-
-            return { data: result }; // Sikeres regisztráció válasza.
+            return { data: result }; 
         } catch (err) {
             throw new HttpException(
                 { message: err.response || err.message },
@@ -55,7 +53,6 @@ export class UsersController {
             const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
         } catch (err) {
-            // Hiba kezelése, a részletek megjelenítése naplózásban
             console.error("Hiba történt vendégfiók létrehozásakor:", err.message);
             return { message: err.message };
         }
@@ -65,18 +62,17 @@ export class UsersController {
      * Bejelentkezési végpont, amely vagy Bearer tokent, vagy felhasználónév/jelszó párost fogad.
      * @param authorization - Az `authorization` header tartalma (opcionális).
      * @param body - A `LoginDataDto` objektum, amely tartalmazza a bejelentkezési adatokat.
+     * @returns API válasz: sikeres bejelentkezés esetén a felhasználói adatokkal.
+     * @throws UnauthorizedException ha hibás a bejelentkezés.
      */
     @Post('login')
-    async login(
-        @Headers('authorization') authorization: string,
-        @Body() body: LoginDataDto
-    ) {
+    async login(@Headers('authorization') authorization: string, @Body() body: LoginDataDto) {
         try {
             const result = await this.usersService.loginUser(authorization, body);
-            return { data: result }; // Sikeres bejelentkezés esetén visszatér a felhasználói adatokkal
+            return { data: result }; 
         } catch (err) {
             console.error("Bejelentkezési hiba:", err.message);
-            throw new UnauthorizedException(); // Általános jogosultsági hiba dobása
+            throw new UnauthorizedException();
         }
     }
 
@@ -98,8 +94,7 @@ export class UsersController {
         }
     }
 
-
-    //######################################################### SETTINGS ENDPOINTS #########################################################
+    //######################################################### USER'S SETTINGS ENDPOINTS #########################################################
 
     /**
      * Felhasználó beállításainak lekérdezése (settings).
@@ -109,10 +104,10 @@ export class UsersController {
     @Get('settings')
     async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
-            const result: ISettings[] = await this.usersService.collectSettings(authorization);
-            return { data: result }; // Beállítások sikeres lekérdezése
+            const result = await this.settingsService.collectSettings(authorization);
+            return { data: result }; 
         } catch (err) {
-            return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
+            return { message: err.message };
         }
     }
 
@@ -125,40 +120,54 @@ export class UsersController {
      * @throws {HttpException} - Ha a token érvénytelen, vagy ha valamilyen hiba történik a beállítások módosítása során.
      */
     @Put('settings/:id')
-    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-    async updateSettings(
-        @Param('id') settingsId: number,
-        @Headers('authorization') authorization: string,
-        @Body() updateSettingsData: UpdateSettingsDto,
-    ) {
+    async updateSettings(@Param('id') settingsId: number, @Headers('authorization') authorization: string, @Body() updateSettingsData: UpdateSettingsDto) {
         try {
-            await this.usersService.updateSettings(settingsId, authorization, updateSettingsData);
+            await this.settingsService.modifySettings(settingsId, authorization, updateSettingsData);
             return { message: "Settings successfully changed" }
         } catch (err) {
             return { message: err.message }
         }
     }
 
+
+    //######################################################### USER'S ASSETS ENDPOINTS #########################################################
+
+    /**
+     * A felhasználó gyűjteményének lekérdezése.
+     * @param authorization - A Bearer token azonosításhoz.
+     * @returns A felhasználó gyűjteménye.
+     */
     @Get('collection')
     async getCollection(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
-            const result = await this.usersService.getCollection(authorization);
-            return { data: result };
-        } catch (err) {
-            return { message: err.message }; // Hiba esetén visszatérünk az üzenettel
-        }
-    }
-
-    @Put('profile')
-    async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileDto): Promise<ApiResponse> {
-        try {
-            const result = await this.usersService.updateProfile(authorization, body);
+            const result = await this.assetsService.getCollection(authorization);
             return { data: result };
         } catch (err) {
             return { message: err.message };
         }
     }
 
+    /**
+     * A felhasználó profiljának frissítése.
+     * @param authorization - A Bearer token azonosításhoz.
+     * @param body - A frissítendő profil adatai.
+     * @returns A frissített profil adatai.
+     */
+    @Put('profile')
+    async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileAssetsDataDto): Promise<ApiResponse> {
+        try {
+            const result = await this.assetsService.updateProfile(authorization, body);
+            return { data: result };
+        } catch (err) {
+            return { message: err.message };
+        }
+    }
+
+    /**
+     * A felhasználó statisztikáinak lekérdezése.
+     * @param authorization - A Bearer token azonosításhoz.
+     * @returns A felhasználó statisztikái.
+     */
     @Get('stats')
     async getStats(@Headers('authorization') authorization: string): Promise<ApiResponse> {
         try {
@@ -169,6 +178,14 @@ export class UsersController {
         }
     }
 
+    //######################################################### PASSWORD RESET ENDPOINTS #########################################################
+
+    /**
+     * Jelszó visszaállító kérés küldése a felhasználónak emailben.
+     * @param authorization - Az autentikációs token (opcionális).
+     * @param body - A felhasználó email címe.
+     * @returns A jelszó visszaállítási információ.
+     */
     @Post('password')
     async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<ApiResponse> {
         try {
@@ -181,6 +198,12 @@ export class UsersController {
         }
     }
 
+    /**
+     * Felhasználói ellenőrzés végrehajtása a token és id alapján a jelszó visszaállításához.
+     * @param token - A jelszó visszaállító token.
+     * @param id - A felhasználó egyedi azonosítója.
+     * @returns A sikeres vagy sikertelen ellenőrzés üzenete.
+     */
     @Get('userVerify')
     @Render('passwordResetResponse')
     async verifyUser(@Query('token') token: string, @Query('id') id: string) {
@@ -196,6 +219,12 @@ export class UsersController {
         }
     }
 
+    /**
+     * Jelszó visszaállítása a felhasználó számára.
+     * @param authorization - Az autentikációs token.
+     * @param body - A jelszó visszaállításához szükséges token és az új jelszó.
+     * @returns A sikeres jelszó változtatásról szóló üzenet.
+     */
     @Put('password')
     async resetPassword(@Headers('authorization') authorization: string, @Body() body: { token: string, password: string }): Promise<ApiResponse> {
         try {
