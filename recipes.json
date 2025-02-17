@@ -15730,6 +15730,18 @@
         ]
       }
     ],
+    "gaLogo0": [
+      {
+        "id": "ga_logo",
+        "name": "GA Logo",
+        "recipe": {
+          "required": ["black_dye", "red_dye", "iron_sword", "feather"]
+        },
+        "shapeless": true,
+        "src": "GA_Logo.png",
+        "enabledGamemodes": []
+      }
+    ],
     "hangingSign0": [
       {
         "id": "oak_hanging_sign",
@@ -27707,7 +27719,7 @@
     ],
     "tintedGlass0": [
       {
-        "id": "tined_glass",
+        "id": "tinted_glass",
         "name": "Tinted Glass",
         "recipe": [
           null,
