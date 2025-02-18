@@ -4,17 +4,23 @@ import { Game } from 'src/game/classes/game.class';
 import { ITip } from 'src/tip/interfaces/tip.interface';
 import { getStreak } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
+import { Recipe } from 'src/recipes/classes/recipe.class';
+import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
+import { CacheService } from 'src/cache/cache.service';
+import { RecipesService } from 'src/recipes/recipes.service';
 
 export class AchievementsCollection {
 
     achievementList: IAchievement[] = [];
 
     constructor(
-        private readonly prisma: PrismaService
+        private readonly prisma: PrismaService,
+        private readonly cacheService: CacheService,
+        private readonly recipesService: RecipesService
     ) { }
 
     addTemporalAchievementToList(title: string, description: string, src: string, rarity: number, route: number, user: User) {
-        if(!user.isGuest || title == "Riddle solved!") {
+        if (!user.isGuest || title == "Riddle solved!") {
             this.achievementList.push(this.generateTemporalAchievement(title, description, src, rarity, route));
         }
     }
@@ -73,10 +79,10 @@ export class AchievementsCollection {
 
     watchSpecialCraftCases(tip: ITip): string[] {
         let additionalTargets = []
-        // const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["gaLogo0"];
-        // if(RecipeFunctions.compareShapedRecipes(gaRecipe.recipe, gaRecipe, createMatrixFromArray(tip.table), 3).solved){
-        //     additionalTargets.push("ga");
-        // }
+/*         const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["gaLogo0"];
+        if (this.recipesService.compareShapelessRecipes(createMatrixFromArray(tip.table), gaRecipe).solved) {
+            additionalTargets.push("ga");
+        } */
         return additionalTargets
     }
 

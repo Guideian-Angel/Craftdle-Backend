@@ -56,7 +56,7 @@ model crafting_table_slots {
   position    Int
   content     String      @db.VarChar(255)
   status      Int
-  tips        tips        @relation(fields: [tip], references: [id], onUpdate: Restrict, map: "crafting_table_slots_ibfk_1")
+  tips        tips        @relation(fields: [tip], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "crafting_table_slots_ibfk_1")
   guess_types guess_types @relation(fields: [status], references: [id], onUpdate: Restrict, map: "crafting_table_slots_ibfk_2")
 
   @@index([status], map: "status")
@@ -110,7 +110,7 @@ model hints {
   game    Int
   number  Int
   content String? @db.VarChar(255)
-  games   games   @relation(fields: [game], references: [id], onUpdate: Restrict, map: "hints_ibfk_1")
+  games   games   @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "hints_ibfk_1")
 
   @@index([game], map: "game")
 }
@@ -119,7 +119,7 @@ model inventories_items {
   id    Int   @id @default(autoincrement())
   game  Int
   item  Int
-  games games @relation(fields: [game], references: [id], onUpdate: Restrict, map: "inventories_items_ibfk_1")
+  games games @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "inventories_items_ibfk_1")
   items items @relation(fields: [item], references: [id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
 
   @@index([game], map: "game")
@@ -204,7 +204,7 @@ model tips {
   date                 DateTime               @db.DateTime(0)
   item                 String                 @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
-  games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, map: "tips_ibfk_1")
+  games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "tips_ibfk_1")
   collections          collections            @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
 
   @@index([game], map: "game")

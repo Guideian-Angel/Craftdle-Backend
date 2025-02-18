@@ -74,7 +74,7 @@ export class GameGateway {
           }
           game.riddle.tips.push(tip);
           await this.gameService.saveTip(tip, game.id);
-          const achievementsCollection = new AchievementsCollection(this.prisma);
+          const achievementsCollection = new AchievementsCollection(this.prisma, this.cacheService, this.recipesService);
           let events = [
             {
               name: 'craft',

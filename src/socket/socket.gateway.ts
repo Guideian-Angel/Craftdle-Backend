@@ -7,6 +7,8 @@ import { WebSocketGateway, OnGatewayInit, OnGatewayConnection, OnGatewayDisconne
 import { Logger } from '@nestjs/common';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RecipesService } from 'src/recipes/recipes.service';
+import { CacheService } from 'src/cache/cache.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -23,6 +25,8 @@ export class SocketGateway
     private readonly maintenanceService: Maintenance,
     private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService,
+    private readonly recipesService: RecipesService
   ) { }
 
   afterInit(server: Server) {
@@ -63,7 +67,7 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     if (!user.isGuest) {
-      const achievementsCollection = new AchievementsCollection(this.prisma)
+      const achievementsCollection = new AchievementsCollection(this.prisma, this.cacheService, this.recipesService);
       await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
       await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList)
     }
@@ -99,7 +103,7 @@ export class SocketGateway
   @SubscribeMessage('credits')
   async handleCredits(client: Socket) {
       const user = this.usersService.getUserBySocketId(client.id);
-      const achievementsCollection = new AchievementsCollection(this.prisma);
+      const achievementsCollection = new AchievementsCollection(this.prisma, this.cacheService, this.recipesService);
       
       // Várjuk meg, hogy a listener befejezze!
       await achievementsCollection.achievementEventListener(user, [{ name: "credits", targets: ["watched"] }]);

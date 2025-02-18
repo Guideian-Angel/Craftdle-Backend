@@ -94,11 +94,11 @@ export class GameService {
                 }
             }
         });
-    
+
         return tips.map(tip => {
             // Kezdetben létrehozzuk a table-t, ami 9 null értékű elem
             const table = new Array(9).fill(null);
-    
+
             // A table feltöltése a megfelelő slot.position értékek alapján
             tip.crafting_table_slots.forEach(slot => {
                 // Slot position alapján beállítjuk az itemet a megfelelő indexre
@@ -109,7 +109,7 @@ export class GameService {
                     };
                 }
             });
-    
+
             return {
                 item: {
                     id: tip.item,
@@ -133,6 +133,35 @@ export class GameService {
         }).catch(error => {
             console.error("Hiba történt a játék állapotának frissítésekor:", error);
         });
+    }
+
+    async deleteLastGameByGamemodeIfThereIsNoTip(userId: number, gamemode: number) {
+        const lastGame = await this.prisma.games.findFirst({
+            select: {
+                id: true,
+                tips: { select: { id: true } },
+                hints: { select: { id: true } },
+                inventories_items: { select: { id: true } }
+            },
+            where: { player: userId, type: gamemode },
+            orderBy: { date: 'desc' }
+        });
+
+        if (!lastGame) return;
+
+        if (lastGame.tips.length === 0) {
+            await this.prisma.games.delete({ where: { id: lastGame.id } });
+        } else {
+            for (const tip of lastGame.tips) {
+                await this.prisma.crafting_table_slots.deleteMany({ where: { tip: tip.id } });
+            }
+            for (const hint of lastGame.hints) {
+                await this.prisma.hints.delete({ where: { id: hint.id } });
+            }
+            for (const inventory of lastGame.inventories_items) {
+                await this.prisma.inventories_items.delete({ where: { id: inventory.id } });
+            }
+        }
     }
 
     async saveGame(game: Game) {
@@ -203,12 +232,12 @@ export class GameService {
         });
     }
 
-    
+
 
     //######################################################### GAMEMODE RELATED FUNCTIONS #########################################################
 
 
-    
+
     async getGamemodes() {
         return await this.prisma.gamemodes.findMany({
             include: {
@@ -234,10 +263,10 @@ export class GameService {
 
         return games.reduce((acc, game) => {
             if (!acc[game.type]) {
-                acc[game.type] = {id: game.id ,solved: game.is_solved};
+                acc[game.type] = { id: game.id, solved: game.is_solved };
             }
             return acc;
-        }, {} as Record<number, {id: number, solved: boolean}>);
+        }, {} as Record<number, { id: number, solved: boolean }>);
     }
 
     async fetchGameModesWithLastUnsolvedGame(
@@ -250,7 +279,7 @@ export class GameService {
             ]);
 
             return gamemodes.map((gamemode) => {
-                const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id]? false: lastGameStatusByGamemode[gamemode.id].solved === false;
+                const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id] ? false : lastGameStatusByGamemode[gamemode.id].solved === false;
 
                 return {
                     id: gamemode.id,
@@ -284,7 +313,7 @@ export class GameService {
 
     async getFavoriteGamemode(userId: number) {
         const gamemodes = await this.usersService.sortGames(userId);
-        return gamemodes.reduce((favorite, gamemode) => 
+        return gamemodes.reduce((favorite, gamemode) =>
             gamemode.played > favorite.played ? gamemode : favorite, gamemodes[0]);
     }
 
