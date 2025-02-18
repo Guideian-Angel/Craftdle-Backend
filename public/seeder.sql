@@ -1,5 +1,14 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- rights
+
+TRUNCATE TABLE rights;
+
+INSERT INTO rights ( id, name ) VALUES
+(1, 'Modify Users'),
+(2, 'Modify Admins'),
+(3, 'Modify Maintenance');
+
 -- difficulties
 
 TRUNCATE TABLE difficulties;

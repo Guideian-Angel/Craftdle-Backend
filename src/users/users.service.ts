@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { TokenService } from 'src/token/token.service';
-import { User } from './classes/user.class';
+import { PasswordReset, User } from './classes/user.class';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AssetsService } from 'src/assets/assets.service';
 import { IUser, IUserData } from './interfaces/user.interface';
@@ -29,7 +29,8 @@ export class UsersService {
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
             await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
-            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+            const admin_rights = await this.getAdminRights(newUser.id);
+            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
             //console.error("Hiba a createNewUser-ben:", error);
@@ -169,7 +170,7 @@ export class UsersService {
      * Bejelentkezés felhasználónév/jelszó párossal.
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó adatait.
      */
-    private async handleBodyLogin(userData: LoginDataDto) {
+    async handleBodyLogin(userData: LoginDataDto) {
         // Felhasználó keresése felhasználónév vagy email alapján
         const user = await this.findUserByName({
             username: userData.usernameOrEmail,
@@ -349,7 +350,7 @@ export class UsersService {
             const verifyToken = uuidv4()
             const images = await this.RandomizePasswordResetImages();
             if (await this.findEmail(email)) {
-                const paswordReset = {
+                const paswordReset: PasswordReset = {
                     token: verifyToken,
                     expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
                     images: images,
@@ -361,7 +362,8 @@ export class UsersService {
                 UsersService.passwordChangeTokenToUser.set(verifyToken, user);
                 return {
                     items: images,
-                    token: verifyToken
+                    token: verifyToken,
+                    name: user.username
                 };
             } else {
                 errors.email = ['Email does not exists.'];
@@ -574,5 +576,29 @@ export class UsersService {
             }
         });
         return Object.keys(games).sort().map(key => games[key]);
+    }
+
+        async getAdminRights(id: number) {
+        try {
+            const adminRights = (await this.prisma.users_rights.findMany({
+                where: {
+                    user: id
+                },
+                select: {
+                    rights: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            })).map(right => right.rights.name);
+            return {
+                modifyUsers: adminRights.includes('Modify Users'),
+                modifyMaintenance: adminRights.includes('Modify Maintenance'),
+                modifyAdmins: adminRights.includes('Modify Admins'),
+            }
+        } catch (error) {
+            return null;
+        }
     }
 }

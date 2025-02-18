@@ -53,10 +53,6 @@ export class AssetsService {
     async getCollection(authHeader: string) {
         try {
             const userId = (await this.tokenService.validateBearerToken(authHeader));
-            const user = await getUserById(userId, this.prisma);
-            if (user.is_guest) {
-                throw new HttpException('No No Collection', HttpStatus.UNAUTHORIZED);
-            }
             return {
                 profilePictures: await this.getProfilePicturesCollection(userId),
                 profileBorders: await this.getProfileBordersCollection(userId),
@@ -307,7 +303,7 @@ export class AssetsService {
                         title: achievement.title,
                         description: achievement.description,
                         goal: achievement.goal,
-                        progress: progress,
+                        progress: progress > achievement.goal ? achievement.goal : progress,
                         rarity: achievement.is_secret ? 2 : 1,
                         collected: owned ? true : false,
                     };

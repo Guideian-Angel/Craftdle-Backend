@@ -191,7 +191,7 @@ export class UsersController {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
             const item = result.items.find(image => image.isRight)
-            this.emailService.sendVerifyEmail(body.email, { token: result.token, items: result.items });
+            this.emailService.sendVerifyEmail(body.email, {name: result.name, token: result.token, items: result.items });
             return { data: { item: item } };
         } catch (err) {
             return { message: err.message };
