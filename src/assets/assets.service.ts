@@ -1,5 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenService } from 'src/token/token.service';
+import { ProfileAssetsDataDto } from './dtos/profileAssets.dto';
+import { IItem } from 'src/sharedComponents/interfaces/item.interface';
+import { AchievementsGateway } from 'src/achievements/achievements.gateway';
+import { getUserById } from 'src/users/utilities/user.util';
+import { User } from 'src/users/classes/user.class';
 
 @Injectable()
 export class AssetsService {

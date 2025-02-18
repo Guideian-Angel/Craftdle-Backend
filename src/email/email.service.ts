@@ -39,6 +39,7 @@ export class EmailService {
             console.error('Error sending email:', error);
         }
     }
+    
     async sendAdminVerificationEmail(email: string, context: { code: string, name: string }) {
         const html = await ejs.renderFile(
             path.resolve('./views/adminVerificationEmail.ejs'),

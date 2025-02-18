@@ -13,20 +13,27 @@ import { CacheModule } from './cache/cache.module';
 import { AssetsModule } from './assets/assets.module';
 import { AdminModule } from './admin/admin.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { SettingsModule } from './settings/settings.module';
+import { TipModule } from './tip/tip.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CliModule } from './cli/cli.module';
 
 @Module({
   imports: [
-    UsersModule,
-    GameModule,
-    CacheModule,
-    AdminModule,
-    SocketModule,
-    AssetsModule,
-    PrismaModule,
-    EmailModule,
-    AchievementsModule,
+    UsersModule, 
+    SocketModule, 
+    PrismaModule, 
+    GameModule, 
+    RiddlesModule, 
+    RecipesModule, 
+    TokenModule, 
+    EmailModule, 
+    CacheModule, 
+    AssetsModule, 
+    AdminModule, 
+    AchievementsModule, 
+    SettingsModule, 
+    TipModule,
     StatisticsModule,
     CliModule,
   ],

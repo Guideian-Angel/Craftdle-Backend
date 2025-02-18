@@ -2,30 +2,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { TokenService } from 'src/token/token.service';
 import { PasswordReset, User } from './classes/user.class';
 import { PrismaService } from 'src/prisma/prisma.service';
-
-// *** DTO-k ***
-import { LoginDataDto } from './dtos/LoginData.dto';
-import { RegistDataDto } from './dtos/RegistData.dto';
-import { UpdateSettingsDto } from './dtos/SettingsData.dto';
-
-// *** Interfészek és osztályok ***
-import { IUser, IUserData } from './interfaces/IUserData';
-import { ISettings } from './interfaces/ISettings';
-import { User } from './classes/user';
-
-// *** Utility funkciók ***
-import { createAccount } from './utilities/AccountCreation';
-import { pairTokenWithUser } from './utilities/TokenPairingWithUser';
-import { deleteToken } from '../shared/utilities/tokenDeletion';
-import userAuthorization, { findUser } from './utilities/userAuthorization.util';
-import { createDefaultSettings } from './utilities/DefaultSettingsCreation';
-import { modifySettings } from './utilities/SettingsModification';
-import { geatherSettings } from './utilities/SettingsCollection';
 import { AssetsService } from 'src/assets/assets.service';
-import { ProfileDto } from './dtos/Profile.dto';
-import { GameService } from 'src/game/game.service';
-import { RandomizePasswordResetImages } from './utilities/RandomizePasswordResetImages';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
+import { IUser, IUserData } from './interfaces/user.interface';
+import { RegistDataDto } from './dtos/regist.dto';
+import { SettingsService } from 'src/settings/settings.service';
+import { LoginDataDto } from './dtos/login.dto';
+import * as bcrypt from 'bcrypt';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
 
@@ -45,38 +28,15 @@ export class UsersService {
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
-            await pairTokenWithUser(this.prisma, newUser.id, newUser.loginToken, isExpire);
-            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken));
+            await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
+            const admin_rights = await this.getAdminRights(newUser.id);
+            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
             //console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
         }
     };
-
-    async getAdminRights(id: number) {
-        try {
-            const adminRights = (await this.prisma.users_rights.findMany({
-                where: {
-                    user: id
-                },
-                select: {
-                    rights: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            })).map(right => right.rights.name);
-            return {
-                modifyUsers: adminRights.includes('Modify Users'),
-                modifyMaintenance: adminRights.includes('Modify Maintenance'),
-                modifyAdmins: adminRights.includes('Modify Admins'),
-            }
-        } catch (error) {
-            return null;
-        }
-    }
 
     /**
      * Társítja a socket ID-t a felhasználóhoz a token alapján.
@@ -287,45 +247,38 @@ export class UsersService {
         accountData?: { username?: string; email?: string; password?: string; stayLoggedIn?: boolean }
     ): Promise<IUser> {
         try {
-            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
-            modifySettings(settingsId, userId, settingsData, this.prisma);
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    async getCollection(authHeader: string) {
-        try {
-            const user = (await tokenValidation.validateBearerToken(authHeader, this.prisma));
-            const userId = user.id
-            if (user.is_guest) {
-                throw new HttpException('No No Collection', HttpStatus.UNAUTHORIZED);
+            // Döntés: vendég vagy normál felhasználó
+            const isGuest = !accountData || !accountData.username || !accountData.email || !accountData.password;
+    
+            let userData;
+    
+            if (isGuest) {
+                // Vendég felhasználó adatai
+                userData = { 
+                    is_guest: true,
+                    registration_date: getCurrentDate(),
+                };
+            } else {
+                // Normál felhasználó adatai
+                const hashedPassword = await bcrypt.hash(accountData.password, 2); // Jelszó hashelése
+                userData = {
+                    username: accountData.username,
+                    email: accountData.email,
+                    password: hashedPassword,
+                    is_guest: false,
+                    registration_date: getCurrentDate(),
+                };
             }
-            return {
-                profilePictures: await this.getProfilePicturesCollection(userId),
-                profileBorders: await this.getProfileBordersCollection(userId),
-                inventory: await this.getInventoryCollection(userId),
-                achievements: await this.getAchievements(userId)
-            }
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    async getUsersProfilePicture(userId: number) {
-        try {
-            const ownedProfilePictures = await this.prisma.users_profile_pictures.findMany({
-                where: {
-                    user: userId
-                },
-                select: {
-                    profile_pictures: {
-                        select: {
-                            id: true,
-                            name: true,
-                            src: true
-                        }
-                    },
+    
+            // Felhasználó létrehozása
+            const createdUser = await prisma.users.create({
+                data: userData
+            });
+    
+            await prisma.users_profile_pictures.create({
+                data: {
+                    user: createdUser.id,
+                    profile_picture: 15,
                     is_set: true
                 }
             })
@@ -337,185 +290,25 @@ export class UsersService {
                     is_set: true
                 }
             })
-            return ownedProfileBorders;
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getProfileBordersCollection(userId: number) {
-        try {
-            const allProfileBorders = await this.assetsService.getAllProfileBorders();
-            const ownedProfileBorders = await this.getUsersProfileBorders(userId);
-            return allProfileBorders.map(border => {
-                const owned = ownedProfileBorders.find(owned => owned.profile_borders.id === border.id);
-                return {
-                    id: border.id,
-                    name: border.name,
-                    src: border.src,
-                    collected: !!owned,
-                    active: owned?.is_set
-                }
-            })
-                .sort((a, b) => {
-                    if (a.collected && !b.collected) return -1;
-                    return 0;
-                })
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getUsersInventory(userId: number) {
-        try {
-            const ownedItems = await this.prisma.users_collections.findMany({
-                where: {
-                    user: userId
-                },
-                select: {
-                    collections: {
-                        select: {
-                            id: true,
-                            name: true,
-                            src: true
-                        }
-                    },
-                }
-            })
-            return ownedItems;
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getInventoryCollection(userId: number) {
-        try {
-            const allItems = await this.assetsService.getAllInventoryItems();
-            const ownedItems = await this.getUsersInventory(userId);
-            return allItems.map(item => {
-                const owned = ownedItems.find(owned => owned.collections.id === item.id);
-                return {
-                    id: item.id,
-                    name: item.name,
-                    src: item.src,
-                    collected: !!owned
-                }
-            })
-                .sort((a, b) => {
-                    if (a.collected && !b.collected) return -1;
-                    return 0;
-                })
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getUsersAchievements(userId: number) {
-        try {
-            const ownedAchievements = await this.prisma.users_achievements.findMany({
-                where: {
-                    user: userId
-                },
-                select: {
-                    achievements: {
-                        select: {
-                            id: true,
-                            icon: true,
-                            title: true,
-                            description: true,
-                            goal: true,
-                            is_secret: true
-                        },
-                    },
-                    progress: true,
-                }
-            })
-            return ownedAchievements;
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async getAchievements(userId: number) {
-        try {
-            const allAchievements = await this.assetsService.getAllAchievements();
-            const ownedAchievements = await this.getUsersAchievements(userId);
-            return allAchievements
-                .map(achievement => {
-                    const owned = ownedAchievements.find(owned => owned.achievements.id === achievement.id);
-                    const progress = owned?.progress || 0;
-
-                    // Ha titkos az achievement, helyettesítő adatokat állítunk be
-                    if (achievement.is_secret && achievement.goal > progress) {
-                        return {
-                            id: achievement.id,
-                            icon: "Secret.png",
-                            title: "???",
-                            description: "???",
-                            goal: null,
-                            progress: null,
-                            rarity: 2,
-                            collected: false,
-                        };
-                    }
-
-                    return {
-                        id: achievement.id,
-                        icon: achievement.icon,
-                        title: achievement.title,
-                        description: achievement.description,
-                        goal: achievement.goal,
-                        progress: progress,
-                        rarity: achievement.is_secret ? 2 : 1,
-                        collected: owned ? true : false,
-                    };
-                })
-                .sort((a, b) => {
-                    // Titkos achievementek kerüljenek a lista végére
-                    if (a.rarity === 2 && b.rarity === 2 && !a.collected && !b.collected) return 0; // Mindkettő titkos
-                    if (a.rarity === 2 && !a.collected) return 1; // `a` titkos, tehát mögé kerül
-                    if (b.rarity === 2 && !b.collected) return -1; // `b` titkos, tehát elé kerül
-
-                    // Normál achievementeknél a progress alapján rendezünk
-                    const aProgress = a.goal ? (a.progress / a.goal) : 0;
-                    const bProgress = b.goal ? (b.progress / b.goal) : 0;
-                    return bProgress - aProgress; // Csökkenő sorrendben
-                });
-
-        } catch (error) {
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    async updateProfile(authHeader: string, profile: ProfileDto) {
-        try {
-            const userId = (await tokenValidation.validateBearerToken(authHeader, this.prisma)).id;
-
-            // Helper function for updating is_set fields
-            const updateIsSet = async (model: any, identifierField: string, identifierValue: number | null) => {
-                await model.updateMany({
-                    where: { user: userId },
-                    data: { is_set: false },
-                });
-
-                if (identifierValue) {
-                    await model.updateMany({
-                        where: { user: userId, [identifierField]: identifierValue },
-                        data: { is_set: true },
-                    });
-                }
-            };
-
-            // Update profile pictures
-            const profilePictureUpdate = await updateIsSet(this.prisma.users_profile_pictures, 'profile_picture', profile.profilePicture);
-
-            // Update profile borders
-            const profileBorderUpdate = await updateIsSet(this.prisma.users_profile_borders, 'profile_border', profile.profileBorder);
-
+    
+            // Törzsadatok generálása
             return {
-                profilePicture: profilePictureUpdate,
-                profileBorder: profileBorderUpdate
-            }
+                id: createdUser.id,
+                loginToken: await this.tokenService.createToken(),
+                username: isGuest ? `Guest${createdUser.id}` : createdUser.username,
+                profilePicture: {
+                    id: 15,
+                    name: "Desert Villager Base",
+                    src: "Desert_Villager_Base.png"
+                },
+                isGuest: isGuest,
+                profileBorder: {
+                    id: 7,
+                    name: "Grass",
+                    src: "Grass.png"
+                },
+                stayLoggedIn: isGuest ? false : !!accountData?.stayLoggedIn,
+            };
         } catch (error) {
             console.error("Error creating account:", error);
             throw new Error("Failed to create account.");

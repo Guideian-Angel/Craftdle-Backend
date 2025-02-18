@@ -1,15 +1,14 @@
 import { Injectable, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { GamemodeFunctions } from './classes/GamemodeFunctions';
-import { IGamemode } from './interfaces/IGamemode';
-import tokenValidation from '../shared/utilities/tokenValidation';
-import { Game } from './classes/Game';
-import { Riddle } from './classes/Riddle';
-import { IItem } from './interfaces/IItem';
-import { ICheckedTip } from './interfaces/ICheckedTip';
-import { getCurrentDate } from 'src/shared/utilities/CurrentDate';
-import { User } from 'src/users/classes/user';
-import { get } from 'http';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenService } from 'src/token/token.service';
+import { IGamemode } from './interfaces/gamemode.interface';
+import { User } from 'src/users/classes/user.class';
+import { IItem } from 'src/sharedComponents/interfaces/item.interface';
+import { ICheckedTip } from 'src/tip/interfaces/tip.interface';
+import { Game } from './classes/game.class';
+import { Riddle } from 'src/riddles/classes/riddle.class';
+import { UsersService } from 'src/users/users.service';
+import { formatDate } from 'src/sharedComponents/utilities/date.util';
 
 @Injectable()
 export class GameService {
@@ -121,5 +120,186 @@ export class GameService {
                 date: tip.date
             };
         });
+    }
+
+    //######################################################### SAVE GAME FUNCTIONS #########################################################
+
+    async changeGameStatus(gameId: number) {
+        this.prisma.games.update({
+            where: { id: gameId },
+            data: {
+                is_solved: true
+            }
+        }).catch(error => {
+            console.error("Hiba történt a játék állapotának frissítésekor:", error);
+        });
+    }
+
+    async saveGame(game: Game) {
+        const gameRecord = await this.prisma.games.create({
+            data: {
+                type: Number(game.riddle.gamemode),
+                player: game.user.id,
+                riddle: game.riddle.recipeGroup,
+                date: new Date(),
+                is_solved: game.riddle.solved,
+            },
+        });
+        if (game.riddle.gamemode != 7) {
+            await this.saveHints(game.riddle, gameRecord.id);
+        }
+        if (game.riddle.gamemode == 6) {
+            this.saveInventory(game.riddle.inventory, gameRecord.id);
+        }
+        return gameRecord.id;
+    }
+
+    async saveHints(riddle: Riddle, gameId: number) {
+        riddle.hints.forEach(async (hint, index) => {
+            await this.prisma.hints.create({
+                data: {
+                    game: gameId,
+                    number: index,
+                    content: hint
+                }
+            });
+        });
+    }
+
+    saveInventory(items: IItem[], gameId: number) {
+        items.forEach(async (item) => {
+            await this.prisma.inventories_items.create({
+                data: {
+                    game: gameId,
+                    item: item.dbId
+                }
+            })
+        })
+    }
+
+    async saveTip(tip: ICheckedTip, gameId: number) {
+        const tipRecord = await this.prisma.tips.create({
+            data: {
+                game: gameId,
+                date: new Date(),
+                item: tip.item.id
+            }
+        });
+        await this.saveCraftingTableContent(tip, tipRecord.id);
+    }
+
+    async saveCraftingTableContent(tip: ICheckedTip, tipId: number) {
+        tip.table.forEach(async (slot, index) => {
+            if (slot) {
+                await this.prisma.crafting_table_slots.create({
+                    data: {
+                        tip: tipId,
+                        position: index,
+                        content: slot.item,
+                        status: slot.status == "wrong" ? 3 : slot.status == "semi-correct" ? 2 : 1
+                    }
+                });
+            };
+        });
+    }
+
+    
+
+    //######################################################### GAMEMODE RELATED FUNCTIONS #########################################################
+
+
+    
+    async getGamemodes() {
+        return await this.prisma.gamemodes.findMany({
+            include: {
+                difficulties: true
+            }
+        });
+    }
+
+    async getLastGameByGamemode(userId: number) {
+        const games = await this.prisma.games.findMany({
+            where: {
+                player: userId
+            },
+            orderBy: {
+                date: 'desc'
+            },
+            select: {
+                id: true,
+                type: true,
+                is_solved: true
+            },
+        });
+
+        return games.reduce((acc, game) => {
+            if (!acc[game.type]) {
+                acc[game.type] = {id: game.id ,solved: game.is_solved};
+            }
+            return acc;
+        }, {} as Record<number, {id: number, solved: boolean}>);
+    }
+
+    async fetchGameModesWithLastUnsolvedGame(
+        userId: number
+    ): Promise<IGamemode[]> {
+        try {
+            const [gamemodes, lastGameStatusByGamemode] = await Promise.all([
+                this.getGamemodes(),
+                this.getLastGameByGamemode(userId)
+            ]);
+
+            return gamemodes.map((gamemode) => {
+                const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id]? false: lastGameStatusByGamemode[gamemode.id].solved === false;
+
+                return {
+                    id: gamemode.id,
+                    icon: gamemode.icon,
+                    name: gamemode.name,
+                    description: gamemode.description,
+                    difficulty: {
+                        name: gamemode.difficulties.name,
+                        color: gamemode.difficulties.color_code
+                    },
+                    continueGame: lastGameUnsolved
+                };
+            })
+        } catch (error) {
+            console.error("Error in fetchGameModesWithLastUnsolvedGame:", error);
+            throw new Error("Failed to fetch game modes with the last unsolved game.");
+        }
+    }
+
+    async getLastGameDate(userId: number) {
+        const lastGame = await this.prisma.games.findFirst({
+            where: {
+                player: userId
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
+        return lastGame.date;
+    }
+
+    async getFavoriteGamemode(userId: number) {
+        const gamemodes = await this.usersService.sortGames(userId);
+        return gamemodes.reduce((favorite, gamemode) => 
+            gamemode.played > favorite.played ? gamemode : favorite, gamemodes[0]);
+    }
+
+    async getUserStatistics(userId: number) {
+        const games = await this.usersService.getUsersGames(userId);
+        const statistics: { [key: string]: { [key: string]: number } } = {};
+
+        games.forEach(game => {
+            const date = formatDate(game.date);
+            if (!statistics[date]) {
+                statistics[date] = {};
+            }
+            statistics[date][game.gamemodes.name] = (statistics[date][game.gamemodes.name] || 0) + 1;
+        });
+
+        return statistics;
     }
 }

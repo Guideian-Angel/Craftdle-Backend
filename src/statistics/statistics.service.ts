@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { getCurrentDate } from 'src/shared/utilities/Date';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -145,7 +145,7 @@ export class StatisticsService {
                 registration_date: 'asc'
             }
         });
-        
+
         const registrations: { [key: string]: number } = {};
 
         users.forEach(user => {

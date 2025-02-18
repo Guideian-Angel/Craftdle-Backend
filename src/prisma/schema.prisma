@@ -298,14 +298,3 @@ model users_rights {
   @@index([right], map: "right")
   @@index([user], map: "user")
 }
-
-model users_rights {
-  user   Int
-  right  Int
-  users  users  @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_1")
-  rights rights @relation(fields: [right], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_2")
-
-  @@unique([user, right])
-  @@index([right], map: "right")
-  @@index([user], map: "user")
-}
