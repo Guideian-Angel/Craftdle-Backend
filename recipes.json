@@ -16399,9 +16399,6 @@
         "id": "turtle_shell",
         "name": "Turtle Shell",
         "recipe": [
-          null,
-          null,
-          null,
           [
             "turtle_scute"
           ],
@@ -27722,7 +27719,7 @@
     ],
     "tintedGlass0": [
       {
-        "id": "tined_glass",
+        "id": "tinted_glass",
         "name": "Tinted Glass",
         "recipe": [
           null,
