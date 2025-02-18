@@ -9,6 +9,7 @@ import { AchievementsCollection } from 'src/achievements/classes/achievementsCol
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { CacheService } from 'src/cache/cache.service';
+import { GameService } from 'src/game/game.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -26,7 +27,8 @@ export class SocketGateway
     private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
-    private readonly recipesService: RecipesService
+    private readonly recipesService: RecipesService,
+    private readonly gameService: GameService
   ) { }
 
   afterInit(server: Server) {
@@ -94,7 +96,10 @@ export class SocketGateway
     const user = this.usersService.getUserBySocketId(client.id);
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
-      // Opció: törölheted a socketIdToUser map-ből, ha szükséges
+      this.usersService.removeUserBySocketId(client.id);
+      if(this.usersService.deleteUnnecessaryGuestsData(user)){
+        this.gameService.deleteAllUnnecessaryGamesDataByUser(user.id);
+      }
     } else {
       this.logger.log(`Client disconnected: ${client.id} (No associated user found)`);
     }

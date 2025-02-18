@@ -135,7 +135,14 @@ export class GameService {
         });
     }
 
-    async deleteLastGameByGamemodeIfThereIsNoTip(userId: number, gamemode: number) {
+    async deleteAllUnnecessaryGamesDataByUser(userId: number) {
+        const gamemodes = await this.prisma.gamemodes.findMany();
+        gamemodes.forEach(async (gamemode) => {
+            await this.deleteUnnecessaryGamesDataByUser(userId, gamemode.id)
+        });
+    }
+
+    async deleteUnnecessaryGamesDataByUser(userId: number, gamemode: number) {
         const lastGame = await this.prisma.games.findFirst({
             select: {
                 id: true,

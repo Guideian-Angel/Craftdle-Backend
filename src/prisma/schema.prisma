@@ -90,7 +90,7 @@ model games {
   date              DateTime            @db.DateTime(0)
   is_solved         Boolean
   gamemodes         gamemodes           @relation(fields: [type], references: [id], onUpdate: Restrict, map: "games_ibfk_1")
-  users             users               @relation(fields: [player], references: [id], onUpdate: Restrict, map: "games_ibfk_2")
+  users             users               @relation(fields: [player], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "games_ibfk_2")
   hints             hints[]
   inventories_items inventories_items[]
   tips              tips[]
@@ -215,7 +215,7 @@ model tokens {
   user        Int     @unique(map: "user")
   login_token String  @unique(map: "login_token") @db.VarChar(255)
   is_expire   Boolean
-  users       users   @relation(fields: [user], references: [id], onUpdate: Restrict, map: "tokens_ibfk_1")
+  users       users   @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "tokens_ibfk_1")
 }
 
 model users {
@@ -269,7 +269,7 @@ model users_profile_borders {
   user            Int
   profile_border  Int
   is_set          Boolean
-  users           users           @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_profile_borders_ibfk_1")
+  users           users           @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "users_profile_borders_ibfk_1")
   profile_borders profile_borders @relation(fields: [profile_border], references: [id], onUpdate: Restrict, map: "users_profile_borders_ibfk_2")
 
   @@index([profile_border], map: "profile_border")
@@ -281,7 +281,7 @@ model users_profile_pictures {
   user             Int
   profile_picture  Int
   is_set           Boolean
-  users            users            @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_1")
+  users            users            @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "users_profile_pictures_ibfk_1")
   profile_pictures profile_pictures @relation(fields: [profile_picture], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_2")
 
   @@index([profile_picture], map: "profile_picture")
