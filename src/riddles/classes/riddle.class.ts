@@ -8,10 +8,6 @@ import { ICheckedTip } from "src/tip/interfaces/tip.interface";
 import { RiddlesService } from "src/riddles/riddles.service";
 import { Game } from "src/game/classes/game.class";
 
-type RecipeData = {
-    [key: string]: Recipe[];
-};
-
 export class Riddle {
     recipeGroup: string;
     recipe: Recipe[];
@@ -58,7 +54,6 @@ export class Riddle {
         if(gamemode == 3){
             const existingDailyGame = await this.riddlesService.findPlayersDailyGameToday(game.user.id);
             if(existingDailyGame){
-                console.log(existingDailyGame.player, " szarszarszar ", game.user)
                 if(existingDailyGame.player == game.user.id){
                     return await this.initializeExistingGame(game.user, gamemode);
                 }
@@ -178,7 +173,7 @@ export class Riddle {
         return [
             `This recipe requires minimum ${this.countRequiredSlots(this.templateRecipe)} slots.`,
             hint2result ? `At least 1 material is shared with this recipe: ${hint2result}` : `Materials used in this recipe are not included in any other recipe!`,
-            `Random material from this recipe: ${this.selectRandomMaterial()}`,
+            `Random material from this recipe: ${this.cacheService.getItemById(this.selectRandomMaterial()).name}`,
             `The item you need to think about is ${this.templateRecipe.name}`
         ]
     }
@@ -187,7 +182,7 @@ export class Riddle {
         if (recipe.shapeless) {
             return recipe.required.length;
         }
-        return recipe.recipe.filter(Boolean).length;
+        return recipe.recipe.flat().filter(Boolean).length;
     }
 
     private findCommonItem(recipes): string | null {
@@ -197,7 +192,7 @@ export class Riddle {
             if (groupName === this.recipeGroup) continue;
 
             for (const recipe of recipes[groupName]) {
-                for (const mat in this.templateRecipe.required) {
+                for (const mat of this.templateRecipe.required) {
                     if (this.recipeMatchesTemplate(recipe, mat)) {
                         foundRecipe = recipe.name;
                         break;
@@ -211,23 +206,24 @@ export class Riddle {
         return foundRecipe;
     }
 
-    private recipeMatchesTemplate(recipe: any, material: string): boolean {
+    private recipeMatchesTemplate(recipe: any, material: string[]): boolean {
         if (recipe.shapeless) {
-            return recipe.required.some(element => this.matchesMaterial(element, material));
+            return recipe.required.some(element => element? this.matchesMaterial(element, material): false);
         }
 
-        return recipe.recipe.some(row => row.some(element => this.matchesMaterial(element, material)));
+        return recipe.recipe.some(row => row.some(element => element? this.matchesMaterial(element, material): false));
     }
 
-    private matchesMaterial(element: any, material: string): boolean {
+    private matchesMaterial(element: string[], material: string[]): boolean {
         if (Array.isArray(element)) {
-            return element.some(subElement => subElement === material);
+            return element.some(subElement => material.includes(subElement));
         }
         return element === material;
     }
 
     private selectRandomMaterial() {
-        return this.templateRecipe.required[Math.floor(Math.random() * this.templateRecipe.required.length)];
+        const randomMaterial: string[] = this.templateRecipe.required[Math.floor(Math.random() * this.templateRecipe.required.length)]
+        return randomMaterial[Math.floor(Math.random() * randomMaterial.length)];
     }
 
     toJSON() {
