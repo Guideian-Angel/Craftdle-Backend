@@ -91,13 +91,14 @@ export class SocketGateway
   }
 
   // Kliens lecsatlakozása
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     // Felhasználó eltávolítása socket ID alapján
     const user = this.usersService.getUserBySocketId(client.id);
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
       this.usersService.removeUserBySocketId(client.id);
-      if(this.usersService.deleteUnnecessaryGuestsData(user)){
+      if(await this.usersService.deleteUnnecessaryGuestsData(user)){
+        console.log("Guest data deleted");
         this.gameService.deleteAllUnnecessaryGamesDataByUser(user.id);
       }
     } else {
