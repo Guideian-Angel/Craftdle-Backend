@@ -63,7 +63,7 @@ export class Riddle {
                 randomGroupKey = this.drawNewRiddle(recipes);
             }
         } else {
-            randomGroupKey = this.drawNewRiddle(recipes);
+            randomGroupKey = gamemode == 1? "axe0": this.drawNewRiddle(recipes);
         }
         const selectedGroup = recipes[randomGroupKey];
 
