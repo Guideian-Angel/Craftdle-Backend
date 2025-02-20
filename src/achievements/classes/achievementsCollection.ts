@@ -5,9 +5,9 @@ import { ITip } from 'src/tip/interfaces/tip.interface';
 import { getStreak } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
 import { Recipe } from 'src/recipes/classes/recipe.class';
-import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
 import { CacheService } from 'src/cache/cache.service';
 import { RecipesService } from 'src/recipes/recipes.service';
+import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
 
 export class AchievementsCollection {
 
@@ -15,8 +15,6 @@ export class AchievementsCollection {
 
     constructor(
         private readonly prisma: PrismaService,
-        private readonly cacheService: CacheService,
-        private readonly recipesService: RecipesService
     ) { }
 
     addTemporalAchievementToList(title: string, description: string, src: string, rarity: number, route: number, user: User) {
@@ -62,11 +60,12 @@ export class AchievementsCollection {
             if (!tip.item.id.includes("waxed")) {
                 notWaxedRecipesCount++;
             }
-            chickenMaterials.forEach(mat => {
-                if (Object.keys(tip.table).includes(mat)) {
+            for(const slot of tip.table){
+                if(slot && chickenMaterials.includes(slot.item)){
                     chickenMaterialsCount++;
+                    break;
                 }
-            })
+            }
         });
         if (chickenMaterialsCount >= 5) {
             additionalTargets.push("chicken")
@@ -79,10 +78,7 @@ export class AchievementsCollection {
 
     watchSpecialCraftCases(tip: ITip): string[] {
         let additionalTargets = []
-/*         const gaRecipe: Recipe = this.cacheService.getCachedData('recipes')["gaLogo0"];
-        if (this.recipesService.compareShapelessRecipes(createMatrixFromArray(tip.table), gaRecipe).solved) {
-            additionalTargets.push("ga");
-        } */
+        //későbbi egyedi esetek
         return additionalTargets
     }
 
@@ -94,7 +90,7 @@ export class AchievementsCollection {
                         event.targets = event.targets.concat(await this.watchSpecialSolveCases(game, user.id));
                         break;
                     case "craft":
-                        event.targets = event.targets.concat(this.watchSpecialCraftCases(tip));
+                        //event.targets = event.targets.concat(this.watchSpecialCraftCases(tip));
                         break;
                 }
             }

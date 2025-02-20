@@ -89,7 +89,7 @@ INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secr
 (49, 'The Shepherd', 'Solve a Loom riddle', 'Loom.png', 1, 0, NULL, 'craft', 'loom'),
 (50, 'The Toolsmith', 'Solve a Smithing Table riddle', 'Smithing_Table.png', 1, 0, NULL, 'craft', 'smithing_table'),
 (51, 'The Weaponsmith', 'Solve a Grindstone riddle', 'Grindstone.png', 1, 0, NULL, 'craft', 'grindstone'),
-(52, 'Birds of a feather flock together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 5, 0, NULL, 'solve', 'chicken'),
+(52, 'Birds of a feather flock together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 0, NULL, 'solve', 'chicken'),
 (53, 'End of the line', 'Watch the credits', 'Eye.png', 1, 1, NULL, 'credits', 'watched'),
 (54, 'A whole year', 'Have a 365 day streak', 'Fire.png', 1, 0, NULL, 'streak', '365'),
 (55, 'The first riddle of the year', 'Solve a riddle in the first minute of the year!', 'Firework.png', 1, 1, NULL, 'solve', 'first'),

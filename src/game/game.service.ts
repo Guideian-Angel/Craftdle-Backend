@@ -273,7 +273,18 @@ export class GameService {
                 acc[game.type] = { id: game.id, solved: game.is_solved };
             }
             return acc;
-        }, {} as Record<number, { id: number, solved: boolean }>);
+        }, {} as Record<number, {id: number, solved: boolean}>);
+    }
+
+    async checkSolvedTutorialGame(userId: number) {
+        const solvedTutorialGame = await this.prisma.games.findFirst({
+            where: {
+                player: userId,
+                type: 1,
+                is_solved: true
+            }
+        });
+        return solvedTutorialGame? true: false;
     }
 
     async fetchGameModesWithLastUnsolvedGame(
@@ -284,22 +295,29 @@ export class GameService {
                 this.getGamemodes(),
                 this.getLastGameByGamemode(userId)
             ]);
-
-            return gamemodes.map((gamemode) => {
-                const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id] ? false : lastGameStatusByGamemode[gamemode.id].solved === false;
-
-                return {
-                    id: gamemode.id,
-                    icon: gamemode.icon,
-                    name: gamemode.name,
-                    description: gamemode.description,
-                    difficulty: {
-                        name: gamemode.difficulties.name,
-                        color: gamemode.difficulties.color_code
-                    },
-                    continueGame: lastGameUnsolved
-                };
-            })
+    
+            return await Promise.all(
+                gamemodes.map(async (gamemode) => {
+                    const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id] 
+                        ? false 
+                        : lastGameStatusByGamemode[gamemode.id].solved === false;
+    
+                    return {
+                        id: gamemode.id,
+                        icon: gamemode.icon,
+                        name: gamemode.name,
+                        description: gamemode.description,
+                        difficulty: {
+                            name: gamemode.difficulties.name,
+                            color: gamemode.difficulties.color_code
+                        },
+                        continueGame: lastGameUnsolved,
+                        playedBefore: gamemode.id == 1 
+                            ? await this.checkSolvedTutorialGame(userId) 
+                            : null
+                    };
+                })
+            );
         } catch (error) {
             console.error("Error in fetchGameModesWithLastUnsolvedGame:", error);
             throw new Error("Failed to fetch game modes with the last unsolved game.");

@@ -5,6 +5,7 @@ import * as path from 'path';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Recipe } from 'src/recipes/classes/recipe.class';
 import { RecipesService } from 'src/recipes/recipes.service';
+import { IItem } from 'src/sharedComponents/interfaces/item.interface';
 
 @Injectable()
 export class CacheService implements OnModuleInit {
@@ -65,6 +66,11 @@ export class CacheService implements OnModuleInit {
             });
         }
         return convertedItems;
+    }
+
+    getItemById(id: string) {
+        const items = this.cache.get('items') as Array<IItem>;
+        return items.find(item => item.id === id);
     }
 
     getCachedData(key: string): any {

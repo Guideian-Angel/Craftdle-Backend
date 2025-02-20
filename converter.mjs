@@ -77,6 +77,17 @@ function checkForSameMaterial(set, mats) {
     );
 }
 
+function countDifferentMaterials(materials){
+    console.log(materials)
+    let result = new Set();
+    materials.forEach(material => {
+        if(material){
+            result.add(material[0])
+        }
+    });
+    return result.size > 1;
+}
+
 function collectMaterialsForGraph(materials, recipes) {
     let graph = new Set(materials);
     let elementAdded = true;
@@ -118,7 +129,7 @@ function geatherDataAboutRecipe(recipes, recipe) {
     const materialsOfRecipe = getMaterialsForRecipe(recipe);
     const hasGraphScore20 = collectMaterialsForGraph(materialsOfRecipe, recipes);
     const validMatrixForPocketMode = checkRightGridSizeOfRecipe(recipe);
-    const hasMoreThanOneTypeOfMaterial = new Set(materialsOfRecipe).size > 1;
+    const hasMoreThanOneTypeOfMaterial = countDifferentMaterials(recipe.shapeless ? recipe.recipe.required : recipe.recipe);
     const isSelfCraftRecipe = materialsOfRecipe.includes(recipe.id);
 
     const enabledGamemodesForRecipe = [4];
@@ -131,7 +142,6 @@ function geatherDataAboutRecipe(recipes, recipe) {
             enabledGamemodesForRecipe.push(5);
         }
     }
-    console.log(enabledGamemodesForRecipe)
     return enabledGamemodesForRecipe;
 }
 
@@ -142,7 +152,6 @@ function convertDictToValidArray(dict) {
 
 function convertCellsToList(recipe) {
     let result = [];
-    console.log(recipe)
     recipe.forEach(element => {
         let cell = element && !Array.isArray(element) ? [element] : element;
         result.push(cell);
@@ -168,7 +177,6 @@ function convertEveryRecipeToArray(data) {
                     recipe.recipe = convertDictToValidArray(recipe.recipe);
                 };
                 recipe.recipe = convertCellsToList(recipe.recipe);
-                console.log(recipe.recipe)
             };
         });
     });
