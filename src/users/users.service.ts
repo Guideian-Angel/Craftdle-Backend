@@ -506,7 +506,7 @@ export class UsersService {
                 gamemodes: await this.sortGames(user.id),
                 registrationDate: user.registration_date.toLocaleDateString(),
                 performedAchievements: {
-                    collected: (await this.assetsService.getUsersAchievements(user.id)).filter(achievement => achievement.progress === achievement.achievements.goal).length,
+                    collected: (await this.assetsService.getUsersAchievements(user.id)).filter(achievement => achievement.progress >= achievement.achievements.goal).length,
                     collectable: (await this.assetsService.getAllAchievements()).length
                 },
                 collectedRecipes: {

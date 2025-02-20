@@ -69,7 +69,7 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     if (!user.isGuest) {
-      const achievementsCollection = new AchievementsCollection(this.prisma, this.cacheService, this.recipesService);
+      const achievementsCollection = new AchievementsCollection(this.prisma);
       await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
       await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList)
     }
@@ -109,7 +109,7 @@ export class SocketGateway
   @SubscribeMessage('credits')
   async handleCredits(client: Socket) {
       const user = this.usersService.getUserBySocketId(client.id);
-      const achievementsCollection = new AchievementsCollection(this.prisma, this.cacheService, this.recipesService);
+      const achievementsCollection = new AchievementsCollection(this.prisma);
       
       // Várjuk meg, hogy a listener befejezze!
       await achievementsCollection.achievementEventListener(user, [{ name: "credits", targets: ["watched"] }]);

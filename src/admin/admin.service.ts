@@ -204,7 +204,8 @@ export class AdminService {
       const favoriteGamemode = await this.gameService.getFavoriteGamemode(userData.id);
       const statistics = await this.gameService.getUserStatistics(userData.id);
 
-      const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
+      //const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
+      const collectedAchievements = 5
       const totalAchievements = (await this.assetsService.getAllAchievements()).length;
 
       const collectedItems = (await this.assetsService.getInventoryCollection(userData.id)).filter(c => c.collected).length;

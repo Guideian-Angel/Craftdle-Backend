@@ -39,11 +39,11 @@ TRUNCATE TABLE achievements;
 
 INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secret`, `parent`, `event`, `target`) VALUES
 (1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 0, NULL, 'regist', 'regist'),
-(2, 'The collector', 'Collect 100 items', 'The_Collector.png', 100, 0, NULL, 'collect', 'any'),
+(2, 'The Collector', 'Collect 100 items', 'The_Collector.png', 100, 0, NULL, 'collect', 'any'),
 (3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'collect', "axe"),
-(4, 'The first of all', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 0, NULL, 'solve', 'number1'),
-(5, 'Still a beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 1, NULL, 'solve', 'Tutorial'),
-(6, 'The master chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'food'),
+(4, 'The First of All', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 0, NULL, 'solve', 'number1'),
+(5, 'Still a Beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 1, NULL, 'solve', 'Tutorial'),
+(6, 'The Master Chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'food'),
 (7, 'Cheater?!', 'Solve a riddle with only one guess', 'Cheat.png', 1, 1, NULL, 'solve', 'zero'),
 (8, 'Wish I Had an Angel', 'Craft the Guideian Angel logo', 'GA.png', 1, 1, NULL, 'guess', "ga"),
 (9, 'Casual Player I', 'Solve 5 Classic games', 'Classic.png', 5, 0, NULL, 'solve', 'Classic'),
@@ -89,11 +89,11 @@ INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secr
 (49, 'The Shepherd', 'Solve a Loom riddle', 'Loom.png', 1, 0, NULL, 'craft', 'loom'),
 (50, 'The Toolsmith', 'Solve a Smithing Table riddle', 'Smithing_Table.png', 1, 0, NULL, 'craft', 'smithing_table'),
 (51, 'The Weaponsmith', 'Solve a Grindstone riddle', 'Grindstone.png', 1, 0, NULL, 'craft', 'grindstone'),
-(52, 'Birds of a feather flock together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 0, NULL, 'solve', 'chicken'),
-(53, 'End of the line', 'Watch the credits', 'Eye.png', 1, 1, NULL, 'credits', 'watched'),
-(54, 'A whole year', 'Have a 365 day streak', 'Fire.png', 1, 0, NULL, 'streak', '365'),
-(55, 'The first riddle of the year', 'Solve a riddle in the first minute of the year!', 'Firework.png', 1, 1, NULL, 'solve', 'first'),
-(56, 'Wax that copper', 'Solve a riddle with only waxed copper guesses except one', 'Wax.png', 1, 1, NULL, 'solve', 'copper');
+(52, 'Birds of a Feather Flock Together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 0, NULL, 'solve', 'chicken'),
+(53, 'End of the Line', 'Watch the credits', 'Eye.png', 1, 1, NULL, 'credits', 'watched'),
+(54, 'A Whole Year', 'Have a 365 day streak', 'Fire.png', 1, 0, NULL, 'solve', '365'),
+(55, 'The First Riddle of the Year', 'Solve a riddle in the first hour of the year!', 'Firework.png', 1, 1, NULL, 'solve', 'first'),
+(56, 'Wax That Copper', 'Solve a riddle with only waxed copper guesses except one', 'Wax.png', 1, 1, NULL, 'solve', 'copper');
 
 -- collection
 

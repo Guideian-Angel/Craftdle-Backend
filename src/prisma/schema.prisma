@@ -14,11 +14,11 @@ model achievements {
   icon               String               @db.VarChar(255)
   goal               Int
   is_secret          Boolean
-  parent             Int?
+  parent             Int?                 @unique(map: "parentId")
   event              String?              @db.VarChar(255)
   target             String?              @db.VarChar(255)
-  achievements       achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
-  other_achievements achievements[]       @relation("achievementsToachievements")
+  paren_achievement  achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
+  child_achievement  achievements?        @relation("achievementsToachievements")
   rewards            rewards[]
   users_achievements users_achievements[]
 
