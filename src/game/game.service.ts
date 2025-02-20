@@ -7,12 +7,15 @@ import { IItem } from 'src/sharedComponents/interfaces/item.interface';
 import { ICheckedTip } from 'src/tip/interfaces/tip.interface';
 import { Game } from './classes/game.class';
 import { Riddle } from 'src/riddles/classes/riddle.class';
+import { UsersService } from 'src/users/users.service';
+import { formatDate } from 'src/sharedComponents/utilities/date.util';
 
 @Injectable()
 export class GameService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly tokenService: TokenService
+        private readonly tokenService: TokenService,
+        private readonly usersService: UsersService
     ) { }
 
     async getGameModesWithLastUnsolvedGame(authorization: string): Promise<IGamemode[]> {
@@ -283,5 +286,38 @@ export class GameService {
             console.error("Error in fetchGameModesWithLastUnsolvedGame:", error);
             throw new Error("Failed to fetch game modes with the last unsolved game.");
         }
-    }    
+    }
+
+    async getLastGameDate(userId: number) {
+        const lastGame = await this.prisma.games.findFirst({
+            where: {
+                player: userId
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        });
+        return lastGame.date;
+    }
+
+    async getFavoriteGamemode(userId: number) {
+        const gamemodes = await this.usersService.sortGames(userId);
+        return gamemodes.reduce((favorite, gamemode) => 
+            gamemode.played > favorite.played ? gamemode : favorite, gamemodes[0]);
+    }
+
+    async getUserStatistics(userId: number) {
+        const games = await this.usersService.getUsersGames(userId);
+        const statistics: { [key: string]: { [key: string]: number } } = {};
+
+        games.forEach(game => {
+            const date = formatDate(game.date);
+            if (!statistics[date]) {
+                statistics[date] = {};
+            }
+            statistics[date][game.gamemodes.name] = (statistics[date][game.gamemodes.name] || 0) + 1;
+        });
+
+        return statistics;
+    }
 }

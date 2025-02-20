@@ -15716,14 +15716,7 @@
         },
         "shapeless": true,
         "src": "GA_Logo.png",
-        "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6,
-          5
-        ]
+        "enabledGamemodes": []
       }
     ],
     "hangingSign0": [

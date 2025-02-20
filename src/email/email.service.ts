@@ -19,7 +19,7 @@ export class EmailService {
     }
 
     // Email küldése
-    async sendVerifyEmail(email: string, context: { token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
+    async sendVerifyEmail(email: string, context: { name:string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
         const html = await ejs.renderFile(
             path.resolve('./views/passwordResetEmail.ejs'),
             context
@@ -29,6 +29,27 @@ export class EmailService {
             from: 'Craftdle Support',
             to: email,
             subject: 'Password reset',
+            html: html,
+        };
+
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            console.log('Email sent: ' + info.response);
+        } catch (error) {
+            console.error('Error sending email:', error);
+        }
+    }
+    
+    async sendAdminVerificationEmail(email: string, context: { code: string, name: string }) {
+        const html = await ejs.renderFile(
+            path.resolve('./views/adminVerificationEmail.ejs'),
+            context
+        );
+
+        const mailOptions = {
+            from: 'Craftdle Support',
+            to: email,
+            subject: 'Admin verification',
             html: html,
         };
 
