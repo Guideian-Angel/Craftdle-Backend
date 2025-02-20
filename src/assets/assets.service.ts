@@ -3,8 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { ProfileAssetsDataDto } from './dtos/profileAssets.dto';
 import { IItem } from 'src/sharedComponents/interfaces/item.interface';
-import { AchievementsGateway } from 'src/achievements/achievements.gateway';
-import { getUserById } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
 
 @Injectable()
@@ -16,21 +14,46 @@ export class AssetsService {
 
     //######################################################### BASIC FUNCTIONS #########################################################
 
+    async getAchievementByReward(rewards: { id: number, name: string, src: string }[], rewardType: string) {
+        return Promise.all(rewards.map(async (picture) => {
+            const reward = await this.prisma.rewards.findFirst({
+                where: {
+                    reward: picture.id,
+                    reward_types: {
+                        name: rewardType
+                    }
+                },
+            });
+            if (!reward) return { ...picture, unlock: null };
+    
+            const achievement = await this.prisma.achievements.findUniqueOrThrow({
+                where: { id: reward.achievement }
+            });
+    
+            return {
+                ...picture,
+                unlock: achievement.is_secret ? "???" : `"${achievement.title}" achievement`
+            };
+        }));
+    }
+    
     async getAllProfilePictures() {
         try {
-            return await this.prisma.profile_pictures.findMany();
+            const profile_pictures = await this.prisma.profile_pictures.findMany();
+            return this.getAchievementByReward(profile_pictures, "profile_pictures");
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    
     async getAllProfileBorders() {
         try {
-            return await this.prisma.profile_borders.findMany();
+            const profile_borders = await this.prisma.profile_borders.findMany();
+            return this.getAchievementByReward(profile_borders, "profile_borders");
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
+    }    
 
     async getAllInventoryItems() {
         try {
@@ -110,7 +133,8 @@ export class AssetsService {
                     name: picture.name,
                     src: picture.src,
                     collected: !!owned,
-                    active: owned?.is_set
+                    active: owned?.is_set,
+                    unlock: picture.unlock
                 }
             })
                 .sort((a, b) => {
@@ -168,7 +192,8 @@ export class AssetsService {
                     name: border.name,
                     src: border.src,
                     collected: !!owned,
-                    active: owned?.is_set
+                    active: owned?.is_set,
+                    unlock: border.unlock
                 }
             })
                 .sort((a, b) => {
