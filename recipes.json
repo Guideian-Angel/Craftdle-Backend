@@ -330,7 +330,6 @@
         "shapeless": false,
         "src": "Wooden_Axe.png",
         "enabledGamemodes": [
-          1,
           4,
           2,
           3,
@@ -370,7 +369,6 @@
         "shapeless": false,
         "src": "Stone_Axe.png",
         "enabledGamemodes": [
-          1,
           4,
           2,
           3,
@@ -404,7 +402,6 @@
         "shapeless": false,
         "src": "Iron_Axe.png",
         "enabledGamemodes": [
-          1,
           4,
           2,
           3,
@@ -438,7 +435,6 @@
         "shapeless": false,
         "src": "Golden_Axe.png",
         "enabledGamemodes": [
-          1,
           4,
           2,
           3,
@@ -472,7 +468,6 @@
         "shapeless": false,
         "src": "Diamond_Axe.png",
         "enabledGamemodes": [
-          1,
           4,
           2,
           3,
@@ -986,10 +981,7 @@
         "shapeless": true,
         "src": "Beetroot_Soup.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -2756,11 +2748,7 @@
         "shapeless": false,
         "src": "Bowl.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -3549,11 +3537,7 @@
         "shapeless": false,
         "src": "Chest.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -9300,11 +9284,7 @@
         "shapeless": false,
         "src": "Composter.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -10477,11 +10457,7 @@
         "shapeless": false,
         "src": "Crafting_Table.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -13381,11 +13357,7 @@
         "shapeless": false,
         "src": "Furnace.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -15735,7 +15707,12 @@
         "id": "ga_logo",
         "name": "GA Logo",
         "recipe": {
-          "required": ["black_dye", "red_dye", "iron_sword", "feather"]
+          "required": [
+            "black_dye",
+            "red_dye",
+            "iron_sword",
+            "feather"
+          ]
         },
         "shapeless": true,
         "src": "GA_Logo.png",
@@ -18296,11 +18273,7 @@
         "shapeless": true,
         "src": "Muddy_Mangrove_Roots.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          5
+          4
         ]
       }
     ],
@@ -21544,10 +21517,7 @@
         "shapeless": false,
         "src": "Purpur_Slab.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -21666,10 +21636,7 @@
         "shapeless": false,
         "src": "Quartz_Slab.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -21715,10 +21682,7 @@
         "shapeless": false,
         "src": "Quartz_Stairs.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -22094,10 +22058,7 @@
         "shapeless": false,
         "src": "Red_Sandstone_Slab.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -22143,10 +22104,7 @@
         "shapeless": false,
         "src": "Red_Sandstone_Stairs.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7
+          4
         ]
       }
     ],
@@ -22534,11 +22492,7 @@
         "shapeless": false,
         "src": "Sandstone_Slab.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -22584,11 +22538,7 @@
         "shapeless": false,
         "src": "Sandstone_Stairs.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],
@@ -24741,11 +24691,7 @@
         "shapeless": false,
         "src": "Stick.png",
         "enabledGamemodes": [
-          4,
-          2,
-          3,
-          7,
-          6
+          4
         ]
       }
     ],

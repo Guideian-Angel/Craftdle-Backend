@@ -56,11 +56,11 @@ export class AchievementsCollection {
             if (!tip.item.id.includes("waxed")) {
                 notWaxedRecipesCount++;
             }
-            chickenMaterials.forEach(mat => {
-                if (Object.keys(tip.table).includes(mat)) {
+            for(const slot of tip.table){
+                if(chickenMaterials.includes(slot.item)){
                     chickenMaterialsCount++;
                 }
-            })
+            }
         });
         if (chickenMaterialsCount >= 5) {
             additionalTargets.push("chicken")

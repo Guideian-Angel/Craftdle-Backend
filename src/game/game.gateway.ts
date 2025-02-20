@@ -77,8 +77,8 @@ export class GameGateway {
           const achievementsCollection = new AchievementsCollection(this.prisma);
           let events = [
             {
-              name: 'craft',
-              targets: [game.riddle.recipe[0].id]
+              name: 'guess',
+              targets: [payload.item.group]
             }
           ]
           if (result.solved) {
@@ -89,10 +89,13 @@ export class GameGateway {
             events.push({
               name: 'solve',
               targets: [gamemode.name]
+            }, {
+              name: 'craft',
+              targets: [game.riddle.recipe[0].id]
             });
-            if(game.riddle.gamemode != 1){
+            if (game.riddle.gamemode != 1) {
               const collectionClaimed = await this.assetsService.addItemToCollection(game.user, game.riddle.tips[game.riddle.tips.length - 1].item);
-              if(collectionClaimed && collectionClaimed.added){
+              if (collectionClaimed && collectionClaimed.added) {
                 achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0, 3, game.user)
                 events.push(collectionClaimed.event)
               }
