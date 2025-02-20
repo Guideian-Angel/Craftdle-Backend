@@ -77,6 +77,7 @@ export class Riddle {
     }
 
     private drawNewRiddle(recipes) {
+        return "upgrade0"
         const validGroups = this.getValidGroups(recipes);
 
         if (validGroups.length === 0) {

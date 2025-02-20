@@ -164,7 +164,10 @@ export class RecipesService {
         let result;
         for (const recipe of riddle.recipe) {
             if (riddle.templateRecipe.shapeless) {
-                result = this.compareShapelessRecipes(tip, recipe)
+                const tempResult = this.compareShapelessRecipes(tip, recipe)
+                if (!result || (tempResult.matches > result.matches)) {
+                    result = tempResult;
+                }
             } else {
                 const trimmedRiddle = this.trimMatrix(recipe.recipe);
                 const matrices = this.generateMatrices(trimmedRiddle, riddle.gamemode == 5 ? 2 : 3);
