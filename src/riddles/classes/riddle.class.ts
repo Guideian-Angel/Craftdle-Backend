@@ -55,7 +55,7 @@ export class Riddle {
             const existingDailyGame = await this.riddlesService.findPlayersDailyGameToday(game.user.id);
             if (existingDailyGame) {
                 if (existingDailyGame.player == game.user.id) {
-                    return await this.initializeExistingGame(game);
+                    return await this.initializeExistingGame(existingDailyGame);
                 }
                 randomGroupKey = existingDailyGame.riddle;
             } else {
