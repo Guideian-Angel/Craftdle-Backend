@@ -19,7 +19,7 @@ export class AchievementsCollection {
     ) { }
 
     addTemporalAchievementToList(title: string, description: string, src: string, rarity: number, route: number, user: User) {
-        if(!user.isGuest || title == "Riddle solved!") {
+        if (!user.isGuest || title == "Riddle solved!") {
             this.achievementList.push(this.generateTemporalAchievement(title, description, src, rarity, route));
         }
     }

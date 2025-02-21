@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
+import { GameService } from 'src/game/game.service';
 
 
 @Injectable()
@@ -23,7 +24,7 @@ export class UsersService {
         private readonly prisma: PrismaService,
         private readonly assetsService: AssetsService,
         private readonly tokenService: TokenService,
-        private readonly settingsService: SettingsService,
+        private readonly settingsService: SettingsService
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -535,7 +536,7 @@ export class UsersService {
                 gamemodes: await this.sortGames(user.id),
                 registrationDate: user.registration_date.toLocaleDateString(),
                 performedAchievements: {
-                    collected: (await this.assetsService.getUsersAchievements(user.id)).filter(achievement => achievement.progress === achievement.achievements.goal).length,
+                    collected: (await this.assetsService.getUsersAchievements(user.id)).filter(achievement => achievement.progress >= achievement.achievements.goal).length,
                     collectable: (await this.assetsService.getAllAchievements()).length
                 },
                 collectedRecipes: {
@@ -630,5 +631,25 @@ export class UsersService {
         } catch (error) {
             return null;
         }
+    }
+
+    async deleteUnnecessaryGuestsData(user: User) {
+        if (user.isGuest) {
+            const games = await this.prisma.games.findMany({
+                where: {
+                    player: user.id
+                }
+            })
+            if(games.length === 0){
+                await this.prisma.users.delete({
+                    where: {
+                        id: user.id
+                    }
+                })
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 }
