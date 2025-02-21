@@ -1,4 +1,3 @@
-// src/email/email.service.ts
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as ejs from 'ejs';
@@ -7,15 +6,17 @@ import * as path from 'path';
 @Injectable()
 export class EmailService {
     private transporter;
+    private supportName;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GmailUser,
-                pass: process.env.GmailPassword
+                user: process.env.GMAILADDRESS,
+                pass: process.env.GMAILPASSWORD
             },
         });
+        this.supportName = `Craftdle Support <${process.env.GMAILADDRESS}>`;
     }
 
     // Email küldése
@@ -26,7 +27,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Password reset',
             html: html,
@@ -47,7 +48,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Admin verification',
             html: html,
