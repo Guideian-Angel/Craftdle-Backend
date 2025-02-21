@@ -53,8 +53,10 @@ export class UsersController {
             const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
         } catch (err) {
-            console.error("Hiba történt vendégfiók létrehozásakor:", err.message);
-            return { message: err.message };
+            throw new HttpException(
+                { message: err.response},
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -71,8 +73,10 @@ export class UsersController {
             const result = await this.usersService.loginUser(authorization, body);
             return { data: result }; 
         } catch (err) {
-            console.error("Bejelentkezési hiba:", err.message);
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(
+                { message: err.response },
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
@@ -89,8 +93,10 @@ export class UsersController {
             await this.usersService.logoutUser(authHeader);
             return { message: 'Logout successful' };
         } catch (err) {
-            console.error('Logout error:', err.message);
-            return { message: err.message };
+            throw new HttpException(
+                { message: err.response},
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 

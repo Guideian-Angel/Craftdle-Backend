@@ -125,15 +125,17 @@ export class UsersService {
      * @returns {Promise<IUserData>} A guest account adatai azonosító nélkül.
      */
     async loginWithGuestAccount(): Promise<IUserData> {
-        const newGuest = await this.createAccount(this.prisma);
-
-        // Token párosítása a felhasználóhoz, átmeneti státusszal
-        //console.log(newGuest)
-        await this.createNewUser(newGuest, true);
-
-        // Id eltávolítása a válaszból
-        const { id, ...userData } = newGuest;
-        return userData as IUserData;
+        try {
+            const newGuest = await this.createAccount(this.prisma);
+            await this.createNewUser(newGuest, true);
+            const { id, ...userData } = newGuest;
+            return userData as IUserData;
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
 
@@ -143,15 +145,24 @@ export class UsersService {
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
      */
     async loginUser(authorization: string, userData: LoginDataDto) {
-        // Próbálkozás token alapú bejelentkezéssel
-        const user = await this.tokenService.validateBearerToken(authorization, true);
-        if (user) { // Token sikeres validációja
-            const formatedUser = await this.generateLoginResponse(await getUserById(user, this.prisma), authorization.replace('Bearer ', ''), true);
-            await this.createNewUser(formatedUser, false)
-            return formatedUser
+        try {
+            const user = await this.tokenService.validateBearerToken(authorization, true);
+            if (user) {
+                const formatedUser = await this.generateLoginResponse(
+                    await getUserById(user, this.prisma),
+                    authorization.replace('Bearer ', ''),
+                    true
+                );
+                await this.createNewUser(formatedUser, false);
+                return formatedUser;
+            }
+            return await this.handleBodyLogin(userData);
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.UNAUTHORIZED
+            );
         }
-        // Ha tokennel nem sikerült, a body tartalmát használjuk a bejelentkezéshez
-        return await this.handleBodyLogin(userData);
     }
 
     async generateLoginResponse(userData, token, stayLoggedIn) {
@@ -171,30 +182,35 @@ export class UsersService {
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó adatait.
      */
     async handleBodyLogin(userData: LoginDataDto) {
-        // Felhasználó keresése felhasználónév vagy email alapján
-        const user = await this.findUserByName({
-            username: userData.usernameOrEmail,
-            email: userData.usernameOrEmail,
-        });
-
-        if (!user) {
-            return { errors: { username: ["Username or email is not correct!"] } };
+        try {
+            const user = await this.findUserByName({
+                username: userData.usernameOrEmail,
+                email: userData.usernameOrEmail,
+            });
+            if (!user) {
+                throw new HttpException(
+                    { errors: { username: ["Username or email is not correct!"] } },
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+            const isPasswordValid = await this.validatePassword(userData.password, user.password);
+            if (!isPasswordValid) {
+                throw new HttpException(
+                    { errors: { password: ["Password is not correct!"] } },
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+            const newToken = await this.tokenService.createToken();
+            await this.tokenService.pairTokenWithUser(user.id, newToken, !userData.stayLoggedIn);
+            const formatedUser = await this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
+            await this.createNewUser(formatedUser, userData.stayLoggedIn);
+            return formatedUser;
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
-
-        // Jelszó ellenőrzése
-        const isPasswordValid = await this.validatePassword(userData.password, user.password);
-        if (!isPasswordValid) {
-            return { errors: { username: ["Password is not correct!"] } };
-        }
-
-        // Token generálása és párosítása
-        const newToken = await this.tokenService.createToken();
-        await this.tokenService.pairTokenWithUser(user.id, newToken, !userData.stayLoggedIn);
-
-        // Válasz generálása, objektum generálása
-        const formatedUser = await this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
-        await this.createNewUser(formatedUser, userData.stayLoggedIn);
-        return formatedUser;
     }
 
     /**
@@ -207,37 +223,51 @@ export class UsersService {
      */
     async logoutUser(authHeader: string) {
         try {
-            // Felhasználó validálása Basic tokennel
             const user = await this.tokenService.validateBasicToken(authHeader);
-
-            // Token törlése az adatbázisból
             const isDeleted = await this.tokenService.deleteToken(user);
             if (!isDeleted) {
-                throw new Error('A token törlése nem sikerült.');
+                throw new HttpException(
+                    { errors: { message: ['A token törlése nem sikerült.'] } },
+                    HttpStatus.BAD_REQUEST
+                );
             }
-
-            console.log(`Token törölve: Felhasználó ID = ${user}`);
-        } catch (error) {
-            console.error('LogoutUser error:', error.message);
-            throw new HttpException(error.message || 'Szerverhiba történt.', HttpStatus.UNAUTHORIZED);
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.UNAUTHORIZED
+            );
         }
     }
 
     // Felhasználó keresése felhasználónév vagy email alapján.
     async findUserByName(userData: { username?: string; email?: string }) {
-        return await this.prisma.users.findFirst({
-            where: {
-                OR: [
-                    userData.username ? { username: userData.username } : undefined,
-                    userData.email ? { email: userData.email } : undefined,
-                ].filter(Boolean), // Eltávolítja az `undefined` értékeket
-            },
-        });
+        try {
+            return await this.prisma.users.findFirst({
+                where: {
+                    OR: [
+                        userData.username ? { username: userData.username } : undefined,
+                        userData.email ? { email: userData.email } : undefined,
+                    ].filter(Boolean),
+                },
+            });
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
     // Jelszó validálása (hash összehasonlítás).
     async validatePassword(inputPassword: string, storedPassword: string): Promise<boolean> {
-        return await bcrypt.compare(inputPassword, storedPassword);
+        try {
+            return await bcrypt.compare(inputPassword, storedPassword);
+        } catch (err) {
+            throw new HttpException(
+                { errors: err.response?.errors || { message: [err.message] } },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
      //######################################################### USER DATABASE MODIFY FUNCTIONS #########################################################

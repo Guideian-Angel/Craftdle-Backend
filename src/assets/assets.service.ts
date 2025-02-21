@@ -377,26 +377,11 @@ export class AssetsService {
     async addItemToCollection(user: User, item: IItem): Promise<{ added: boolean, event: { name: string, targets: Array<string> } }> {
         try {
             if (!user.isGuest) {
-                // Először keresd meg a collection ID-t
-                const collection = await this.prisma.collections.findFirst({
-                    where: {
-                        item_id: item.id
-                    },
-                    select: {
-                        id: true
-                    }
-                });
-
-                // Ellenőrizd, hogy létezik-e a collection
-                if (!collection) {
-                    throw new Error('Collection not found for the given item.');
-                }
-
                 // Utána használd fel a megtalált ID-t a create() hívásban
                 const addedItem = await this.prisma.users_collections.create({
                     data: {
                         user: user.id,
-                        collection: collection.id  // Csak az ID-t adjuk át
+                        collection: item.id  // Csak az ID-t adjuk át
                     }
                 });
 
