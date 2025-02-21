@@ -74,7 +74,7 @@ export class AssetsService {
                     goal: true,
                     is_secret: true,
                     child_achievement: true,
-                    paren_achievement: true
+                    parent_achievement: true
                 }
             });
         } catch (error) {
@@ -318,14 +318,14 @@ export class AssetsService {
                 .map(achievement => {
                     const ownedAchievement = ownedAchievements.find(owned => owned.achievements.id === achievement.id);
                     if((
-                        !ownedAchievement && achievement.paren_achievement
+                        !ownedAchievement && achievement.parent_achievement
                     ) || (
                         achievement.child_achievement && achievement.goal <= ownedAchievement?.progress
                     ) || (
-                        achievement.paren_achievement && achievement.paren_achievement.goal > ownedAchievements.find(owned => owned.achievements.id === achievement.paren_achievement.id)?.progress
+                        achievement.parent_achievement && achievement.parent_achievement.goal > ownedAchievements.find(owned => owned.achievements.id === achievement.parent_achievement.id)?.progress
                     )) return null;
-                    if(achievement.paren_achievement){
-                        achievement.title = achievement.paren_achievement.title
+                    if(achievement.parent_achievement){
+                        achievement.title = achievement.parent_achievement.title
                     }
                     if(achievement.is_secret && (achievement.goal > ownedAchievement?.progress || !ownedAchievement)){
                         return {
@@ -347,7 +347,7 @@ export class AssetsService {
                         goal: achievement.goal,
                         rarity: achievement.is_secret ? 2 : 1,
                         progress: ownedAchievement?.progress || 0,
-                        collected: !!achievement.paren_achievement || achievement.goal <= ownedAchievement?.progress
+                        collected: !!achievement.parent_achievement || achievement.goal <= ownedAchievement?.progress
                     }
                 }).filter(Boolean).sort((a, b) => {
                     if (a.rarity === 2 && !a.collected) return 1;
