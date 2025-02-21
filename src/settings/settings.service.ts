@@ -190,6 +190,7 @@ export class SettingsService {
             throw new NotFoundException('Settings not found');
         }
 
+        await this.unsetSettings(userId);
         this.updateSettings(settingsId, settingsData);
         const updatedControlsId = (await this.updateControls(settingsId, settingsData)).id;
         this.updateTableMappings(updatedControlsId, settingsData);
@@ -206,9 +207,16 @@ export class SettingsService {
             data: {
                 volume: settingsData.volume,
                 image_size: settingsData.imagesSize,
-                is_set: settingsData.isSet,
+                is_set: true,
             },
         });
+    }
+
+    async unsetSettings(userId: number) {
+        await this.prisma.settings.updateMany({
+            where: { user: userId },
+            data: { is_set: false },
+        })
     }
 
     /**
