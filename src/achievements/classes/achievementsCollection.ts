@@ -44,7 +44,9 @@ export class AchievementsCollection {
         
         // Ellenőrizzük, hogy az év első órájában történt-e a megoldás
         const solvedAt = getCurrentDate();
-        if (solvedAt.getHours() === 0 && solvedAt.getDate() === 1 && solvedAt.getMonth() === 0) {
+        console.log(solvedAt)
+        console.log(solvedAt.getHours(), solvedAt.getDate(), solvedAt.getMonth())
+        if (solvedAt.getHours() === 1 && solvedAt.getDate() === 1 && solvedAt.getMonth() === 0) {
             additionalTargets.push("first");
         }
 
@@ -191,7 +193,7 @@ export class AchievementsCollection {
                     "Achievement unlocked!",
                     achievement.title,
                     achievement.icon,
-                    achievement.is_secret ? 1 : 2,
+                    achievement.is_secret ? 2 : 1,
                     0
                 ));
 
