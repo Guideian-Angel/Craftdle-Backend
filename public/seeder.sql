@@ -92,7 +92,7 @@ INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secr
 (52, 'Birds of a feather flock together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 0, NULL, 'solve', 'chicken'),
 (53, 'End of the line', 'Watch the credits', 'Eye.png', 1, 1, NULL, 'credits', 'watched'),
 (54, 'A whole year', 'Have a 365 day streak', 'Fire.png', 1, 0, NULL, 'streak', '365'),
-(55, 'The first riddle of the year', 'Solve a riddle in the first minute of the year!', 'Firework.png', 1, 1, NULL, 'solve', 'first'),
+(55, 'The first riddle of the year', 'Solve a riddle in the first hour of the year!(UTC+1)', 'Firework.png', 1, 0, NULL, 'solve', 'first'),
 (56, 'Wax that copper', 'Solve a riddle with only waxed copper guesses except one', 'Wax.png', 1, 1, NULL, 'solve', 'copper');
 
 -- collection

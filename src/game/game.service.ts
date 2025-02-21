@@ -171,7 +171,7 @@ export class GameService {
             await this.prisma.inventories_items.create({
                 data: {
                     game: gameId,
-                    item: item.dbId
+                    item: item.id
                 }
             })
         })

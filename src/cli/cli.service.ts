@@ -154,7 +154,7 @@ export class CliService {
                 return await this.prisma.users_collections.create({
                     data: {
                         user: user.id,
-                        collection: collection.id
+                        collection: collection.item_id
                     }
                 });
             case 'profileBorder':
@@ -205,7 +205,7 @@ export class CliService {
                 return await this.prisma.users_collections.deleteMany({
                     where: {
                         user: user.id,
-                        collection: collection.id
+                        collection: collection.item_id
                     }
                 });
             case 'profileBorder':
