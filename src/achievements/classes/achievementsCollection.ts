@@ -8,6 +8,7 @@ import { Recipe } from 'src/recipes/classes/recipe.class';
 import { CacheService } from 'src/cache/cache.service';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
+import { formatDate, getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 export class AchievementsCollection {
 
@@ -39,9 +40,40 @@ export class AchievementsCollection {
     }
 
     async watchSpecialSolveCases(game: Game, userId: number): Promise<string[]> {
-        let additionalTargets = []
+        let additionalTargets = [];
+        
+        // Ellenőrizzük, hogy az év első órájában történt-e a megoldás
+        const solvedAt = getCurrentDate();
+        if (solvedAt.getHours() === 0 && solvedAt.getDate() === 1 && solvedAt.getMonth() === 0) {
+            additionalTargets.push("first");
+        }
+
+        if(game.riddle.gamemode == 3) {
+            const today = getCurrentDate();
+            const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+            const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+            
+            const firstGame = await this.prisma.games.findFirst({
+                where: {
+                    is_solved: true,
+                    type: 3,
+                    date: {
+                        gte: startOfDay,
+                        lte: endOfDay,
+                    },
+                },
+                orderBy: {
+                    date: 'asc',
+                },
+            });
+            console.log(firstGame)
+            if(firstGame?.player === userId){
+                additionalTargets.push("number1");
+            };
+        }
+    
         if (Number(game.riddle.gamemode) == 6) {
-            const foods = ["cake0", "cookie0", "goldenApple0", "goldenCarrot0", "pumpkinPie0", "mushroomStew0", "rabbitStew0", "beetrootSoup0", "suspiciousStew0"]
+            const foods = ["cake0", "cookie0", "goldenApple0", "goldenCarrot0", "pumpkinPie0", "mushroomStew0", "rabbitStew0", "beetrootSoup0", "suspiciousStew0"];
             if (foods.includes(game.riddle.recipeGroup)) {
                 additionalTargets.push("food");
             }
@@ -53,28 +85,33 @@ export class AchievementsCollection {
         if (game.riddle.numberOfGuesses == 1) {
             additionalTargets.push("zero");
         }
+        
         let chickenMaterialsCount = 0;
-        const chickenMaterials = ["egg", "feather"]
+        const chickenMaterials = ["egg", "feather"];
         let notWaxedRecipesCount = 0;
+        
         game.riddle.tips.forEach(tip => {
             if (!tip.item.id.includes("waxed")) {
                 notWaxedRecipesCount++;
             }
-            for(const slot of tip.table){
-                if(slot && chickenMaterials.includes(slot.item)){
+            for (const slot of tip.table) {
+                if (slot && chickenMaterials.includes(slot.item)) {
                     chickenMaterialsCount++;
                     break;
                 }
             }
         });
+        
         if (chickenMaterialsCount >= 5) {
-            additionalTargets.push("chicken")
+            additionalTargets.push("chicken");
         }
         if (notWaxedRecipesCount <= 1 && game.riddle.numberOfGuesses > 1) {
-            additionalTargets.push("copper")
+            additionalTargets.push("copper");
         }
+        
         return additionalTargets;
     }
+    
 
     watchSpecialCraftCases(tip: ITip): string[] {
         let additionalTargets = []

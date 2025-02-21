@@ -118,9 +118,9 @@ model hints {
 model inventories_items {
   id    Int   @id @default(autoincrement())
   game  Int
-  item  Int
+  item  String
   games games @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "inventories_items_ibfk_1")
-  items items @relation(fields: [item], references: [id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
+  items items @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
 
   @@index([game], map: "game")
   @@index([item], map: "item")
@@ -256,9 +256,9 @@ model users_achievements {
 model users_collections {
   id          Int         @id @default(autoincrement())
   user        Int
-  collection  Int
+  collection  String
   users       users       @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_1")
-  collections collections @relation(fields: [collection], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_2")
+  collections collections @relation(fields: [collection], references: [item_id], onUpdate: Restrict, map: "users_collections_ibfk_2")
 
   @@index([collection], map: "collection")
   @@index([user], map: "user")
