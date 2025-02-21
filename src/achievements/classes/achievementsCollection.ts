@@ -133,8 +133,8 @@ export class AchievementsCollection {
             }
 
             // Várjuk meg az összes updateAchievementProgress lefutását!
-            await Promise.all(events.flatMap(event =>
-                event.targets.map((target) => this.updateAchievementProgress(user.id, event.name, target))
+            await Promise.all(events.flatMap(event =>{
+                event.targets.map((target) => this.updateAchievementProgress(user.id, event.name, target))}
             ));
         }
     }
