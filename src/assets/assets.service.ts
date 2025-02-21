@@ -3,8 +3,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { TokenService } from 'src/token/token.service';
 import { ProfileAssetsDataDto } from './dtos/profileAssets.dto';
 import { IItem } from 'src/sharedComponents/interfaces/item.interface';
-import { AchievementsGateway } from 'src/achievements/achievements.gateway';
-import { getUserById } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
 
 @Injectable()
@@ -16,9 +14,33 @@ export class AssetsService {
 
     //######################################################### BASIC FUNCTIONS #########################################################
 
+    async getAchievementByReward(rewards: { id: number, name: string, src: string }[], rewardType: string) {
+        return Promise.all(rewards.map(async (picture) => {
+            const reward = await this.prisma.rewards.findFirst({
+                where: {
+                    reward: picture.id,
+                    reward_types: {
+                        name: rewardType
+                    }
+                },
+            });
+            if (!reward) return { ...picture, unlock: null };
+
+            const achievement = await this.prisma.achievements.findUniqueOrThrow({
+                where: { id: reward.achievement }
+            });
+
+            return {
+                ...picture,
+                unlock: achievement.is_secret ? "???" : `"${achievement.title}" achievement`
+            };
+        }));
+    }
+
     async getAllProfilePictures() {
         try {
-            return await this.prisma.profile_pictures.findMany();
+            const profile_pictures = await this.prisma.profile_pictures.findMany();
+            return this.getAchievementByReward(profile_pictures, "profile_pictures");
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -26,7 +48,8 @@ export class AssetsService {
 
     async getAllProfileBorders() {
         try {
-            return await this.prisma.profile_borders.findMany();
+            const profile_borders = await this.prisma.profile_borders.findMany();
+            return this.getAchievementByReward(profile_borders, "profile_borders");
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -40,9 +63,20 @@ export class AssetsService {
         }
     }
 
-    getAllAchievements() {
+    async getAllAchievements() {
         try {
-            return this.prisma.achievements.findMany();
+            return await this.prisma.achievements.findMany({
+                select: {
+                    id: true,
+                    icon: true,
+                    title: true,
+                    description: true,
+                    goal: true,
+                    is_secret: true,
+                    child_achievement: true,
+                    paren_achievement: true
+                }
+            });
         } catch (error) {
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -110,7 +144,8 @@ export class AssetsService {
                     name: picture.name,
                     src: picture.src,
                     collected: !!owned,
-                    active: owned?.is_set
+                    active: owned?.is_set,
+                    unlock: picture.unlock
                 }
             })
                 .sort((a, b) => {
@@ -168,7 +203,8 @@ export class AssetsService {
                     name: border.name,
                     src: border.src,
                     collected: !!owned,
-                    active: owned?.is_set
+                    active: owned?.is_set,
+                    unlock: border.unlock
                 }
             })
                 .sort((a, b) => {
@@ -280,47 +316,53 @@ export class AssetsService {
             const ownedAchievements = await this.getUsersAchievements(userId);
             return allAchievements
                 .map(achievement => {
-                    const owned = ownedAchievements.find(owned => owned.achievements.id === achievement.id);
-                    const progress = owned?.progress || 0;
-
-                    // Ha titkos az achievement, helyettesítő adatokat állítunk be
-                    if (achievement.is_secret && achievement.goal > progress) {
+                    const ownedAchievement = ownedAchievements.find(owned => owned.achievements.id === achievement.id);
+                    if((
+                        !ownedAchievement && achievement.paren_achievement
+                    ) || (
+                        achievement.child_achievement && achievement.goal <= ownedAchievement?.progress
+                    ) || (
+                        achievement.paren_achievement && achievement.paren_achievement.goal > ownedAchievements.find(owned => owned.achievements.id === achievement.paren_achievement.id)?.progress
+                    )) return null;
+                    if(achievement.paren_achievement){
+                        achievement.title = achievement.paren_achievement.title
+                    }
+                    if(achievement.is_secret && (achievement.goal > ownedAchievement?.progress || !ownedAchievement)){
                         return {
-                            id: achievement.id,
+                            id: null,
                             icon: "achievements/Secret.png",
                             title: "???",
                             description: "???",
                             goal: null,
-                            progress: null,
                             rarity: 2,
-                            collected: false,
-                        };
+                            progress: null,
+                            collected: false
+                        }
                     }
-
                     return {
                         id: achievement.id,
                         icon: `achievements/${achievement.icon}`,
                         title: achievement.title,
                         description: achievement.description,
                         goal: achievement.goal,
-                        progress: progress > achievement.goal ? achievement.goal : progress,
                         rarity: achievement.is_secret ? 2 : 1,
-                        collected: owned ? true : false,
-                    };
-                })
-                .sort((a, b) => {
-                    // Titkos achievementek kerüljenek a lista végére
-                    if (a.rarity === 2 && b.rarity === 2 && !a.collected && !b.collected) return 0; // Mindkettő titkos
-                    if (a.rarity === 2 && !a.collected) return 1; // `a` titkos, tehát mögé kerül
-                    if (b.rarity === 2 && !b.collected) return -1; // `b` titkos, tehát elé kerül
-
-                    // Normál achievementeknél a progress alapján rendezünk
+                        progress: ownedAchievement?.progress || 0,
+                        collected: !!achievement.paren_achievement || achievement.goal <= ownedAchievement?.progress
+                    }
+                }).filter(Boolean).sort((a, b) => {
+                    if (a.rarity === 2 && !a.collected) return 1;
+                    if (b.rarity === 2 && !b.collected) return -1;
+                
+                    if (a.collected && !b.collected) return -1;
+                    if (b.collected && !a.collected) return 1;
+                
                     const aProgress = a.goal ? (a.progress / a.goal) : 0;
                     const bProgress = b.goal ? (b.progress / b.goal) : 0;
-                    return bProgress - aProgress; // Csökkenő sorrendben
+                
+                    return bProgress - aProgress;
                 });
-
         } catch (error) {
+            console.log(error);
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

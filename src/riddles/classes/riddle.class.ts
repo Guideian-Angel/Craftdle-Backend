@@ -73,6 +73,7 @@ export class Riddle {
         this.inventory = Number(this.gamemode) === 6 ? this.createResourceInventory(recipes, items) : items;
         this.hints = Number(this.gamemode) !== 7 ? this.generateHints(recipes) : null;
 
+        await this.gameService.deleteUnnecessaryGamesDataByUser(game.user.id, Number(gamemode))
         game.id = await this.gameService.saveGame(game);
     }
 

@@ -7,6 +7,9 @@ import { WebSocketGateway, OnGatewayInit, OnGatewayConnection, OnGatewayDisconne
 import { Logger } from '@nestjs/common';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RecipesService } from 'src/recipes/recipes.service';
+import { CacheService } from 'src/cache/cache.service';
+import { GameService } from 'src/game/game.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -23,6 +26,9 @@ export class SocketGateway
     private readonly maintenanceService: Maintenance,
     private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService,
+    private readonly recipesService: RecipesService,
+    private readonly gameService: GameService
   ) { }
 
   afterInit(server: Server) {
@@ -63,7 +69,7 @@ export class SocketGateway
     // Socket ID társítása a UsersService-ben
     this.usersService.associateSocketId(token, client.id);
     if (!user.isGuest) {
-      const achievementsCollection = new AchievementsCollection(this.prisma)
+      const achievementsCollection = new AchievementsCollection(this.prisma);
       await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
       await this.achievementGateway.emitAchievements(client.id, achievementsCollection.achievementList)
     }
@@ -85,12 +91,16 @@ export class SocketGateway
   }
 
   // Kliens lecsatlakozása
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     // Felhasználó eltávolítása socket ID alapján
     const user = this.usersService.getUserBySocketId(client.id);
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
-      // Opció: törölheted a socketIdToUser map-ből, ha szükséges
+      this.usersService.removeUserBySocketId(client.id);
+      if(await this.usersService.deleteUnnecessaryGuestsData(user)){
+        console.log("Guest data deleted");
+        this.gameService.deleteAllUnnecessaryGamesDataByUser(user.id);
+      }
     } else {
       this.logger.log(`Client disconnected: ${client.id} (No associated user found)`);
     }
