@@ -19,7 +19,7 @@ export class EmailService {
     }
 
     // Email küldése
-    async sendVerifyEmail(email: string, context: { name:string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
+    async sendVerifyEmail(email: string, context: { name: string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
         const html = await ejs.renderFile(
             path.resolve('./views/passwordResetEmail.ejs'),
             context
