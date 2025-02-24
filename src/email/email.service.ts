@@ -7,6 +7,7 @@ import * as path from 'path';
 @Injectable()
 export class EmailService {
     private transporter;
+    private readonly supportName = `Craftdle Support <${process.env.GMAILADDRESS}>`;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
@@ -26,7 +27,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Password reset',
             html: html,
@@ -47,7 +48,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Admin verification',
             html: html,
