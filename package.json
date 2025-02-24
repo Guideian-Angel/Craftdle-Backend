@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "seed": "ts-node seed.ts",
-    "build": "tsc && cp -r src/views dist/views",
+    "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
