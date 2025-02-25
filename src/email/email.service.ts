@@ -3,11 +3,13 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import { Request } from 'express';
 
 @Injectable()
 export class EmailService {
     private transporter;
     private readonly supportName = `Craftdle Support <${process.env.GMAILADDRESS}>`;
+    private readonly backendUrl = process.env.BACKENDURL;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
@@ -23,7 +25,10 @@ export class EmailService {
     async sendVerifyEmail(email: string, context: { name: string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
         const html = await ejs.renderFile(
             path.resolve('./views/passwordResetEmail.ejs'),
-            context
+            {
+                ...context,
+                backendUrl: this.backendUrl
+            }
         );
 
         const mailOptions = {
