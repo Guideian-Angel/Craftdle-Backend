@@ -15,6 +15,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AssetsService } from 'src/assets/assets.service';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { RiddlesService } from 'src/riddles/riddles.service';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 @WebSocketGateway({ cors: true })
 export class GameGateway {
@@ -42,7 +43,7 @@ export class GameGateway {
     const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
     const user = this.usersService.getUserBySocketId(client.id);
     const game = new Game(riddle, user);
-    if (!payload.newGame && payload.gamemode != 3) {
+    if (!payload.newGame && payload.gamemode != 3 && !user.isGuest) {
       const loadedGame = await this.gameService.loadLastGame(this.usersService.getUserBySocketId(client.id), payload.gamemode);
       if (loadedGame.is_solved) {
         await riddle.initializeNewGame(payload.gamemode, game);
@@ -50,7 +51,7 @@ export class GameGateway {
         game.id = await riddle.initializeExistingGame(loadedGame)
       }
     } else {
-      await riddle.initializeNewGame(payload.gamemode, game);
+      game.id = await riddle.initializeNewGame(payload.gamemode, game);
     }
     SocketGateway.gameToClient.set(client.id, game);
 
@@ -76,7 +77,7 @@ export class GameGateway {
                 src: baseRecipe.src
               },
               table: result.result,
-              date: new Date()
+              date: getCurrentDate()
             }
             game.riddle.tips.push(tip);
             await this.gameService.saveTip(tip, game.id);
