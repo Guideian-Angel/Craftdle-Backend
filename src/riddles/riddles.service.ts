@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 @Injectable()
 export class RiddlesService {
@@ -9,7 +10,7 @@ export class RiddlesService {
     ){}
 
     async findPlayersDailyGameToday(playerId){
-        const today = new Date();
+        const today = getCurrentDate();
         today.setHours(0, 0, 0, 0); // Dátumot nullázzuk, hogy csak a nap számítson
 
         let dailyGame = await this.findDailyGameToday(playerId, today);

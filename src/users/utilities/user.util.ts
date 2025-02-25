@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
+import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
 
 export async function getUserById(userId: number, prisma: PrismaService) {
     try {
@@ -30,15 +31,17 @@ export async function getStreak(userId: number, prisma: PrismaService) {
     let streak = 0;
     const uniqueDates = new Set<number>();
     let lastDate = new Date(playedDailyGames[0]?.date);
-    lastDate.setHours(0, 0, 0, 0);
-    const yesterday = new Date();
+    lastDate.setHours(1, 0, 0, 0);
+    const yesterday = getCurrentDate();
     yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setHours(1, 0, 0, 0);
+
+    console.log(playedDailyGames);
     
-    if (lastDate.getTime() > yesterday.getTime()) {
+    if (lastDate.getTime() >= yesterday.getTime()) {
         for (let game of playedDailyGames) {
             const gameDate = new Date(game.date);
-            gameDate.setHours(0, 0, 0, 0);
+            gameDate.setHours(1, 0, 0, 0);
             if (uniqueDates.has(gameDate.getTime())) {
                 continue;
             }
