@@ -7,26 +7,27 @@ import * as path from 'path';
 @Injectable()
 export class EmailService {
     private transporter;
+    private readonly supportName = `Craftdle Support <${process.env.GMAILADDRESS}>`;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GmailUser,
-                pass: process.env.GmailPassword
+                user: process.env.GMAILADDRESS,
+                pass: process.env.GMAILPASSWORD
             },
         });
     }
 
     // Email küldése
-    async sendVerifyEmail(email: string, context: { name:string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
+    async sendVerifyEmail(email: string, context: { name: string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
         const html = await ejs.renderFile(
             path.resolve('./views/passwordResetEmail.ejs'),
             context
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Password reset',
             html: html,
@@ -47,7 +48,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Admin verification',
             html: html,
