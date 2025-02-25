@@ -1,0 +1,239 @@
+{
+    "data": [
+        {
+            "title": "Creators",
+            "credits": [
+                {
+                    "credit": "Creator team",
+                    "members": [
+                        "Guideian Angel"
+                    ]
+                },
+                {
+                    "credit": "Idea",
+                    "members": [
+                        "Horváth Máté"
+                    ]
+                },
+                {
+                    "credit": "Backend",
+                    "members": [
+                        "Horváth Máté",
+                        "Fazekas Márton"
+                    ]
+                },
+                {
+                    "credit": "Database",
+                    "members": [
+                        "Horváth Máté",
+                        "Fazekas Márton"
+                    ]
+                },
+                {
+                    "credit": "Design",
+                    "members": [
+                        "Fazekas Márton"
+                    ]
+                },
+                {
+                    "credit": "Animations",
+                    "members": [
+                        "Fazekas Márton"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Guideian Angel team",
+            "credits": [
+                {
+                    "credit": "CEO",
+                    "members": [
+                        "Fazekas Márton"
+                    ]
+                },
+                {
+                    "credit": "CTO",
+                    "members": [
+                        "Horváth Máté"
+                    ]
+                },
+                {
+                    "credit": "Pentester",
+                    "members": [
+                        "Papp-Lukácsi Benjámin Illés"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Source",
+            "credits": [
+                {
+                    "credit": "Images",
+                    "members": [
+                        "Minecraft"
+                    ]
+                },
+                {
+                    "credit": "Sound effects",
+                    "members": [
+                        "Minecraft"
+                    ]
+                },
+                {
+                    "credit": "Font family",
+                    "members": [
+                        "Minecraft"
+                    ]
+                },
+                {
+                    "credit": "Crafting recipes",
+                    "members": [
+                        "Minecraft"
+                    ]
+                },
+                {
+                    "credit": "Inspiration",
+                    "members": [
+                        "Minecraft"
+                    ]
+                },
+                {
+                    "credit": "Logo",
+                    "members": [
+                        "blockbench.net"
+                    ]
+                },
+                {
+                    "credit": "Background images",
+                    "members": [
+                        "minecraft.fandom.com"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Special thanks",
+            "credits": [
+                {
+                    "title": "Beta testers",
+                    "credits": [
+                        {
+                            "members": [
+                                "Simon Máté"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Simon Máté's younger brother"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Haász Bence"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Fazekas Kristóf"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Palócz-Medla András"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Kendiii"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "title": "Others",
+                    "credits": [
+                        {
+                            "members": [
+                                "Mojang for not suing us yet"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "Our moms"
+                            ]
+                        },
+                        {
+                            "members": [
+                                "That one web development teacher"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Fun facts",
+            "credits": [
+                {
+                    "members": [
+                        "No creepers were harmed during the making of this project"
+                    ]
+                },
+                {
+                    "members": [
+                        "It was originally a school project"
+                    ]
+                },
+                {
+                    "members": [
+                        "Four of the first six hints were super useless"
+                    ]
+                },
+                {
+                    "members": [
+                        "The beta version used a highly flawed, outdated, and incomplete database"
+                    ]
+                },
+                {
+                    "members": [
+                        "The first gamemode was the All in One"
+                    ]
+                },
+                {
+                    "members": [
+                        "When our team plays Minecraft, Máté speedruns the game throughout"
+                    ]
+                },
+                {
+                    "members": [
+                        "Best commit names in Craftdle's GitHub repo: 'got to continue on laptop bc of ipban or idk' and 'bugfixes after git fucked up my code'"
+                    ]
+                },
+                {
+                    "members": [
+                        "The most hated blocks in our team are the Copper Blocks"
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Contact",
+            "credits": [
+                {
+                    "credit": "Guideian Angel team",
+                    "members": [
+                        "guideianangel@gmail.com"
+                    ]
+                },
+                {
+                    "credit": "Craftdle project",
+                    "members": [
+                        "guideianangelcraftdle@gmail.com"
+                    ]
+                }
+            ]
+        }
+    ]
+}

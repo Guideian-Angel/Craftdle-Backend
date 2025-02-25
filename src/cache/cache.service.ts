@@ -17,7 +17,7 @@ export class CacheService implements OnModuleInit {
     ) { }
 
     async onModuleInit() {
-        const recipesFilePath = path.join(__dirname, '../../../recipes.json');
+        const recipesFilePath = path.join(__dirname, '../../../localData/recipes.json');
         const recipesData = await this.loadJsonFile(recipesFilePath);
 
         const convertedRecipes = this.convertRecipe(recipesData.data);
@@ -29,7 +29,7 @@ export class CacheService implements OnModuleInit {
         console.log('JSON és adatbázis adatok sikeresen cachelve');
     }
 
-    private async loadJsonFile(filePath: string): Promise<any> {
+    async loadJsonFile(filePath: string): Promise<any> {
         return new Promise((resolve, reject) => {
             fs.readFile(filePath, 'utf8', (err, data) => {
                 if (err) {
