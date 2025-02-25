@@ -95,25 +95,10 @@ export class AdminService {
 
   async getAllAdmins(authHeader: string) {
     try {
-      const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const users = await this.getAllUsers(authHeader);
+      const admins = users.filter(user => user.rights.length != 0)
 
-      if (!user?.adminVerification?.verified) {
-        throw new Error('You are not verified');
-      }
-
-      return this.prisma.users.findMany({
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          admin_right: true
-        },
-        where: {
-          admin_right: {
-            not: null
-          }
-        }
-      })
+      return admins
     } catch (err) {
       throw new Error(err.message);
     }
@@ -161,25 +146,32 @@ export class AdminService {
     try {
       const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
 
-      if (!user?.adminVerification?.verified) {
-        throw new Error('You are not verified');
-      }
+      // if (!user?.adminVerification?.verified) {
+      //   throw new Error('You are not verified');
+      // }
 
       const userDatas = await this.prisma.users.findMany({
         select: {
           id: true,
           username: true,
-          users_rights: true
         }
       })
 
-      return userDatas.map(userData => {
-        return {
-          ...userData,
-          streak: getStreak(userData.id, this.prisma),
-          lastPlayed: this.gameService.getLastGameDate(userData.id),
+      return Promise.all(userDatas.map(async userData => {
+        const rights = await this.usersService.getAdminRights(userData.id);
+        const formatedRigths = Object.keys(rights).filter(rightName => rights[rightName]);
+        const formatedUserData = {
+          id: userData.id,
+          username: userData.username? userData.username : 'Guest',
+          rights: formatedRigths
         }
-      })
+
+        return {
+          ...formatedUserData,
+          streak: await getStreak(userData.id, this.prisma),
+          lastplayed: await this.gameService.getLastGameDate(userData.id),
+        }
+      }))
     } catch (err) {
       throw new Error(err.message);
     }

@@ -333,7 +333,7 @@ export class GameService {
                 date: 'desc'
             }
         });
-        return lastGame.date;
+        return lastGame? lastGame.date: "This player did not play any games yet.";
     }
 
     async getFavoriteGamemode(userId: number) {

@@ -1,0 +1,139 @@
+{
+    "data": [
+        {
+            "version": "Alpha",
+            "date": "Apr 27, 2024",
+            "changes": [
+                "Main game {{new|finished}}",
+                "Mobile version {{new|added}}",
+                "Hints {{new|added}}"
+            ]
+        },
+        {
+            "version": "Beta",
+            "date": "Jun 4, 2024",
+            "changes": [
+                [
+                    "{{new|New}} gamemodes added",
+                    [
+                        "Classic",
+                        "All in One"
+                    ]
+                ],
+                "Hints {{change|changed}}",
+                [
+                    "{{new|New}} pages added",
+                    [
+                        "Main Menu",
+                        "How to Play"
+                    ]
+                ]
+            ]
+        },
+        {
+            "version": "1.0.0",
+            "date": "Aug 21, 2024",
+            "changes": [
+                [
+                    "{{new|New}} gamemode added",
+                    [
+                        "Pocket"
+                    ]
+                ],
+                "Hints {{change|changed}}",
+                "4th hint {{new|added}}",
+                [
+                    "{{new|New}} pages added",
+                    [
+                        "Credits",
+                        "Patch Notes"
+                    ]
+                ],
+                "Crafting recipes {{change|updated}} for Minecraft 1.21.1"
+            ]
+        },
+        {
+            "version": "1.1.0",
+            "date": "Sep 5, 2024",
+            "changes": [
+                [
+                    "{{new|New}} gamemode added",
+                    [
+                        "Resource"
+                    ]
+                ],
+                [
+                    "{{new|New}} control/game mechanics added",
+                    [
+                        "Instant Place",
+                        "Knowledge Book"
+                    ]
+                ],
+                [
+                    "Bug {{change|fixes}}",
+                    [
+                        "Database",
+                        "Maintenance Notice",
+                        "Loading Screen"
+                    ]
+                ],
+                [
+                    "Visual {{change|updates}}",
+                    [
+                        "Item's icons' size"
+                    ]
+                ]
+            ]
+        },
+        {
+            "version": "1.1.1",
+            "date": "Sep 6, 2024",
+            "changes": [
+                [
+                    "Bug {{change|fixes}}",
+                    [
+                        "Shapeless items check",
+                        "Loading Screen visual"
+                    ]
+                ]
+            ]
+        },
+        {
+            "version": "1.1.2",
+            "date": "Sep 7, 2024",
+            "changes": [
+                "Small bug {{change|fixes}}",
+                "Gamemodes {{change|sorted}} by difficulty"
+            ]
+        },
+        {
+            "version": "1.2.0",
+            "date": "MMM DD, YYYY",
+            "changes": [
+                [
+                    "{{new|New}} gamemodes added",
+                    [
+                        "Tutorial",
+                        "Daily",
+                        "Hardcore"
+                    ]
+                ],
+                "Account creation {{new|added}}",
+                "Statistic page {{new|added}}",
+                [
+                    "Collection {{new|added}}",
+                    [
+                        "Achievements",
+                        "Inventory",
+                        "Profile Borders",
+                        "Profile Pictures"
+                    ]
+                ],
+                "Settings {{new|added}}",
+                "Control/game mechanics {{change|reworked}}",
+                "Continue feature {{new|added}} for unfinished games",
+                "Loading Screen {{remove|removed}}"
+            ]
+        }
+    ]
+}
