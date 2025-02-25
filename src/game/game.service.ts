@@ -8,7 +8,7 @@ import { ICheckedTip } from 'src/tip/interfaces/tip.interface';
 import { Game } from './classes/game.class';
 import { Riddle } from 'src/riddles/classes/riddle.class';
 import { UsersService } from 'src/users/users.service';
-import { formatDate } from 'src/sharedComponents/utilities/date.util';
+import { formatDate, getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 @Injectable()
 export class GameService {
@@ -177,7 +177,7 @@ export class GameService {
                 type: Number(game.riddle.gamemode),
                 player: game.user.id,
                 riddle: game.riddle.recipeGroup,
-                date: new Date(),
+                date: getCurrentDate(),
                 is_solved: game.riddle.solved,
             },
         });
@@ -217,7 +217,7 @@ export class GameService {
         const tipRecord = await this.prisma.tips.create({
             data: {
                 game: gameId,
-                date: new Date(),
+                date: getCurrentDate(),
                 item: tip.item.id
             }
         });
