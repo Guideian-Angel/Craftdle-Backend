@@ -9,7 +9,7 @@ import { LoginDataDto } from 'src/users/dtos/login.dto';
 import { CreateMaintenanceDto } from './dto/createMaintenance.dto';
 import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
 
-@Controller('admins')
+@Controller('admin')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -92,7 +92,7 @@ export class AdminController {
     }
   }
 
-  @Get("admin")
+  @Get("admins")
   async getAdmins(@Headers('authorization') authHeader: string) {
     try {
       return await this.adminService.getAllAdmins(authHeader);

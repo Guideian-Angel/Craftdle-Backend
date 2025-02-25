@@ -51,14 +51,17 @@ export class Maintenance {
         try {
             const token = authHeader.replace('Bearer ', '');
             const user = await this.usersService.getUserByToken(token);
-            if (!user) {
-                throw new Error('Invalid token');
-            }
+            // if (!user) {
+            //     throw new Error('Invalid token');
+            // }
 
             const maintenances = await this.prisma.maintenance.findMany({
                 orderBy: {
                     start: 'asc'
                 },
+                include: {
+                    
+                }
             });
 
             return maintenances.map(maintenance => {
