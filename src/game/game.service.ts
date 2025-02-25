@@ -273,7 +273,7 @@ export class GameService {
                 acc[game.type] = { id: game.id, solved: game.is_solved };
             }
             return acc;
-        }, {} as Record<number, {id: number, solved: boolean}>);
+        }, {} as Record<number, { id: number, solved: boolean }>);
     }
 
     async checkSolvedTutorialGame(userId: number) {
@@ -284,7 +284,7 @@ export class GameService {
                 is_solved: true
             }
         });
-        return solvedTutorialGame? true: false;
+        return solvedTutorialGame ? true : false;
     }
 
     async fetchGameModesWithLastUnsolvedGame(
@@ -295,13 +295,13 @@ export class GameService {
                 this.getGamemodes(),
                 this.getLastGameByGamemode(userId)
             ]);
-    
+
             return await Promise.all(
                 gamemodes.map(async (gamemode) => {
-                    const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id] 
-                        ? false 
+                    const lastGameUnsolved = !lastGameStatusByGamemode[gamemode.id]
+                        ? false
                         : lastGameStatusByGamemode[gamemode.id].solved === false;
-    
+
                     return {
                         id: gamemode.id,
                         icon: gamemode.icon,
@@ -312,8 +312,8 @@ export class GameService {
                             color: gamemode.difficulties.color_code
                         },
                         continueGame: lastGameUnsolved,
-                        playedBefore: gamemode.id == 1 
-                            ? await this.checkSolvedTutorialGame(userId) 
+                        playedBefore: gamemode.id == 1
+                            ? await this.checkSolvedTutorialGame(userId)
                             : null
                     };
                 })
@@ -333,7 +333,7 @@ export class GameService {
                 date: 'desc'
             }
         });
-        return lastGame? lastGame.date: "This player did not play any games yet.";
+        return lastGame ? lastGame.date : "This player did not play any games yet.";
     }
 
     async getFavoriteGamemode(userId: number) {
