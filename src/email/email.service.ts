@@ -1,32 +1,37 @@
-// src/email/email.service.ts
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import { Request } from 'express';
 
 @Injectable()
 export class EmailService {
     private transporter;
+    private readonly supportName = `Craftdle Support <${process.env.GMAILADDRESS}>`;
+    private readonly backendUrl = process.env.BACKENDURL;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.GmailUser,
-                pass: process.env.GmailPassword
+                user: process.env.GMAILADDRESS,
+                pass: process.env.GMAILPASSWORD
             },
         });
     }
 
     // Email küldése
-    async sendVerifyEmail(email: string, context: { name:string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
+    async sendVerifyEmail(email: string, context: { name: string, token: string, items: Array<{ id: number, item_id: string, name: string, src: string, isRight: boolean }> } | undefined) {
         const html = await ejs.renderFile(
             path.resolve('./views/passwordResetEmail.ejs'),
-            context
+            {
+                ...context,
+                backendUrl: this.backendUrl
+            }
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Password reset',
             html: html,
@@ -47,7 +52,7 @@ export class EmailService {
         );
 
         const mailOptions = {
-            from: 'Craftdle Support',
+            from: this.supportName,
             to: email,
             subject: 'Admin verification',
             html: html,

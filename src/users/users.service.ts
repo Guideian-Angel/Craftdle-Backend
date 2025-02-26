@@ -394,7 +394,7 @@ export class UsersService {
                 return {
                     items: images,
                     token: verifyToken,
-                    name: user.username
+                    name: (await this.findUserByName({email: email})).username
                 };
             } else {
                 errors.email = ['Email does not exists.'];

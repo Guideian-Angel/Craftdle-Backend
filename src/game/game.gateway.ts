@@ -15,6 +15,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AssetsService } from 'src/assets/assets.service';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { RiddlesService } from 'src/riddles/riddles.service';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 @WebSocketGateway({ cors: true })
 export class GameGateway {
@@ -44,13 +45,13 @@ export class GameGateway {
     const game = new Game(riddle, user);
     if (!payload.newGame && payload.gamemode != 3) {
       const loadedGame = await this.gameService.loadLastGame(this.usersService.getUserBySocketId(client.id), payload.gamemode);
-      if(loadedGame.is_solved){
-        await riddle.initializeNewGame(payload.gamemode, game);
-      } else{
-        game.id = await riddle.initializeExistingGame(game)
+      if (loadedGame == null || loadedGame.is_solved) {
+        game.id = await riddle.initializeNewGame(payload.gamemode, game);
+      } else {
+        game.id = await riddle.initializeExistingGame(loadedGame)
       }
     } else {
-      await riddle.initializeNewGame(payload.gamemode, game);
+      game.id = await riddle.initializeNewGame(payload.gamemode, game);
     }
     SocketGateway.gameToClient.set(client.id, game);
 
@@ -59,14 +60,15 @@ export class GameGateway {
 
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
+    console.log(payload.item)
     const game = SocketGateway.gameToClient.get(client.id);
-    if (game && !game.riddle.guessedRecipes.includes(payload.item.id)) {
+    if (game && !game.riddle.guessedRecipes.includes(payload.item.group + "-" + payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = this.recipesService.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
       if (payload.item.group != "gaLogo0") {
         if ((game.riddle.gamemode == 1 && this.tipService.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
           if (this.recipesService.validateRecipe(tippedMatrix, baseRecipe)) {
-            game.riddle.guessedRecipes.push(payload.item.id);
+            game.riddle.guessedRecipes.push(payload.item.group + "-" + payload.item.id);
             game.riddle.numberOfGuesses++;
             const result = this.recipesService.compareTipWithRiddle(tippedMatrix, game.riddle);
             const tip = {
@@ -76,7 +78,7 @@ export class GameGateway {
                 src: baseRecipe.src
               },
               table: result.result,
-              date: new Date()
+              date: getCurrentDate()
             }
             game.riddle.tips.push(tip);
             await this.gameService.saveTip(tip, game.id);

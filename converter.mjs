@@ -184,7 +184,7 @@ function convertEveryRecipeToArray(data) {
 }
 
 async function main() {
-    const filePath = "./recipes.json";
+    const filePath = "./localData/recipes.json";
     let recipes = await fetchJSONFile(filePath);
     recipes = convertEveryRecipeToArray(recipes.data);
     const analyzedData = analyzeRecipes(recipes);

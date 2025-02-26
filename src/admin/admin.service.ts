@@ -95,25 +95,10 @@ export class AdminService {
 
   async getAllAdmins(authHeader: string) {
     try {
-      const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const users = await this.getAllUsers(authHeader);
+      const admins = users.filter(user => user.rights.length != 0)
 
-      if (!user?.adminVerification?.verified) {
-        throw new Error('You are not verified');
-      }
-
-      return this.prisma.users.findMany({
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          admin_right: true
-        },
-        where: {
-          admin_right: {
-            not: null
-          }
-        }
-      })
+      return admins
     } catch (err) {
       throw new Error(err.message);
     }
@@ -169,17 +154,24 @@ export class AdminService {
         select: {
           id: true,
           username: true,
-          users_rights: true
         }
       })
 
-      return userDatas.map(userData => {
-        return {
-          ...userData,
-          streak: getStreak(userData.id, this.prisma),
-          lastPlayed: this.gameService.getLastGameDate(userData.id),
+      return Promise.all(userDatas.map(async userData => {
+        const rights = await this.usersService.getAdminRights(userData.id);
+        const formatedRigths = Object.keys(rights).filter(rightName => rights[rightName]);
+        const formatedUserData = {
+          id: userData.id,
+          username: userData.username? userData.username : 'Guest',
+          rights: formatedRigths
         }
-      })
+
+        return {
+          ...formatedUserData,
+          streak: await getStreak(userData.id, this.prisma),
+          lastplayed: await this.gameService.getLastGameDate(userData.id),
+        }
+      }))
     } catch (err) {
       throw new Error(err.message);
     }
@@ -204,19 +196,17 @@ export class AdminService {
       const favoriteGamemode = await this.gameService.getFavoriteGamemode(userData.id);
       const statistics = await this.gameService.getUserStatistics(userData.id);
 
-      //const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
-      const collectedAchievements = 5
+      const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
       const totalAchievements = (await this.assetsService.getAllAchievements()).length;
 
       const collectedItems = (await this.assetsService.getInventoryCollection(userData.id)).filter(c => c.collected).length;
       const totalItems = (await this.assetsService.getAllInventoryItems()).length;
-
       return {
         ...userData,
         streak: getStreak(userData.id, this.prisma),
         achievements: { collected: collectedAchievements, total: totalAchievements },
         collection: { collected: collectedItems, total: totalItems },
-        favoriteGamemode: favoriteGamemode.name,
+        favoriteGamemode: favoriteGamemode.gamemodeName,
         playedGamemodes: statistics
       };
     } catch (err) {
