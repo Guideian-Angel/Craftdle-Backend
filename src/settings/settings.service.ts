@@ -119,7 +119,6 @@ export class SettingsService {
      * @param userId A felhasználó azonosítója.
      */
     async createDefaultSettings(userId: number) {
-        console.log("Creating default settings for user: ", userId);
         try {
             await this.prisma.$transaction(async (tx) => {
                 // Settings generálása
