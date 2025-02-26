@@ -62,7 +62,7 @@ export class Riddle {
                 randomGroupKey = this.drawNewRiddle(recipes);
             }
         } else {
-            randomGroupKey = gamemode == 1? "axe0": this.drawNewRiddle(recipes);
+            randomGroupKey = gamemode == 1 ? "axe0" : this.drawNewRiddle(recipes);
         }
         const selectedGroup = recipes[randomGroupKey];
 
@@ -98,7 +98,7 @@ export class Riddle {
         return result;
     }
 
-    private convertGraphToSet(graph: Graph){
+    private convertGraphToSet(graph: Graph) {
         let result = new Set<string>();
         graph.content.forEach(element => {
             result.add(element[Math.floor(Math.random() * element.length)]);
@@ -118,15 +118,17 @@ export class Riddle {
         let graph = this.createSetFromMaterials(this.templateRecipe.required);
         while (graph.size() < 20) {
             for (const group of shuffleArray(Object.keys(recipes))) {
-                for (const recipe of shuffleArray(recipes[group])) {
-                    const mats = recipe.required;
-                    if (this.checkForSameMaterial(graph, mats)) {
-                        this.addMaterialsToSet(graph, mats);
+                if (group !== "gaLogo0") {
+                    for (const recipe of shuffleArray(recipes[group])) {
+                        const mats = recipe.required;
+                        if (this.checkForSameMaterial(graph, mats)) {
+                            this.addMaterialsToSet(graph, mats);
+                            break;
+                        }
+                    };
+                    if (graph.size() >= 20) {
                         break;
                     }
-                };
-                if (graph.size() >= 20) {
-                    break;
                 }
             };
         }
