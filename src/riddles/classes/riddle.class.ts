@@ -73,7 +73,7 @@ export class Riddle {
         this.hints = Number(this.gamemode) !== 7 ? this.generateHints(recipes) : null;
 
         await this.gameService.deleteUnnecessaryGamesDataByUser(game.user.id, Number(gamemode))
-        game.id = await this.gameService.saveGame(game);
+        return await this.gameService.saveGame(game);
     }
 
     private drawNewRiddle(recipes) {
