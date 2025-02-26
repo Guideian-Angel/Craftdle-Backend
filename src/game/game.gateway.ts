@@ -43,10 +43,10 @@ export class GameGateway {
     const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
     const user = this.usersService.getUserBySocketId(client.id);
     const game = new Game(riddle, user);
-    if (!payload.newGame && payload.gamemode != 3 && !user.isGuest) {
+    if (!payload.newGame && payload.gamemode != 3) {
       const loadedGame = await this.gameService.loadLastGame(this.usersService.getUserBySocketId(client.id), payload.gamemode);
-      if (loadedGame.is_solved) {
-        await riddle.initializeNewGame(payload.gamemode, game);
+      if (loadedGame == null || loadedGame.is_solved) {
+        game.id = await riddle.initializeNewGame(payload.gamemode, game);
       } else {
         game.id = await riddle.initializeExistingGame(loadedGame)
       }

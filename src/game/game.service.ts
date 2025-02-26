@@ -42,7 +42,7 @@ export class GameService {
 
     async loadLastGame(user: User, gamemode: number) {
         const lastGames = await this.getLastGameByGamemode(user.id);
-        return await this.getGameById(lastGames[gamemode].id);
+        return lastGames[gamemode] ? await this.getGameById(lastGames[gamemode].id) : null;
     };
 
     async loadInventory(gameId: number): Promise<IItem[]> {
