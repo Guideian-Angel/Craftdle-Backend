@@ -4,11 +4,7 @@ import { Game } from 'src/game/classes/game.class';
 import { ITip } from 'src/tip/interfaces/tip.interface';
 import { getStreak } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
-import { Recipe } from 'src/recipes/classes/recipe.class';
-import { CacheService } from 'src/cache/cache.service';
-import { RecipesService } from 'src/recipes/recipes.service';
-import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
-import { formatDate, getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 export class AchievementsCollection {
 
@@ -135,9 +131,11 @@ export class AchievementsCollection {
             }
 
             // Várjuk meg az összes updateAchievementProgress lefutását!
-            await Promise.all(events.flatMap(event =>
-                event.targets.map((target) => this.updateAchievementProgress(user.id, event.name, target))
-            ));
+            for (const event of events) {
+                for (const target of event.targets) {
+                    await this.updateAchievementProgress(user.id, event.name, target);
+                }
+            }
         }
     }
 
