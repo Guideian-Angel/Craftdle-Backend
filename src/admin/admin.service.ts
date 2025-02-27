@@ -146,9 +146,9 @@ export class AdminService {
     try {
       const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
 
-      // if (!user?.adminVerification?.verified) {
-      //   throw new Error('You are not verified');
-      // }
+      if (!user?.adminVerification?.verified) {
+        throw new Error('You are not verified');
+      }
 
       const userDatas = await this.prisma.users.findMany({
         select: {
@@ -196,19 +196,17 @@ export class AdminService {
       const favoriteGamemode = await this.gameService.getFavoriteGamemode(userData.id);
       const statistics = await this.gameService.getUserStatistics(userData.id);
 
-      //const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
-      const collectedAchievements = 5
+      const collectedAchievements = (await this.assetsService.getAchievements(userData.id)).filter(a => a.collected).length;
       const totalAchievements = (await this.assetsService.getAllAchievements()).length;
 
       const collectedItems = (await this.assetsService.getInventoryCollection(userData.id)).filter(c => c.collected).length;
       const totalItems = (await this.assetsService.getAllInventoryItems()).length;
-
       return {
         ...userData,
         streak: getStreak(userData.id, this.prisma),
         achievements: { collected: collectedAchievements, total: totalAchievements },
         collection: { collected: collectedItems, total: totalItems },
-        favoriteGamemode: favoriteGamemode.name,
+        favoriteGamemode: favoriteGamemode.gamemodeName,
         playedGamemodes: statistics
       };
     } catch (err) {
