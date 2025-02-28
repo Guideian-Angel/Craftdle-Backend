@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from './cache/cache.service';
 import * as path from 'path';
+import { version, snapshot, minecraftVersion, minecraftVersionName } from "../package.json";
 
 @Injectable()
 export class AppService {
@@ -13,8 +14,12 @@ export class AppService {
   }
 
   async getVersion(){
-    const filePath = path.join(__dirname, '../../localData/version.json');
-    return await this.cacheService.loadJsonFile(filePath)
+    return {
+      version: version,
+      snapshot: snapshot,
+      minecraftVersion: minecraftVersion,
+      minecraftVersionName: minecraftVersionName
+    }
   }
 
   async getPatchNotes(){
