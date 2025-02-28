@@ -1,139 +1,206 @@
 {
     "data": [
         {
-            "version": "Alpha",
             "date": "Apr 27, 2024",
-            "changes": [
-                "Main game {{new|finished}}",
-                "Mobile version {{new|added}}",
-                "Hints {{new|added}}"
-            ]
+            "updates": {
+                "server": {
+                    "version": "Alpha",
+                    "changes": [
+                        "Main game {{new|finished}}",
+                        "Hints {{new|added}}"
+                    ]
+                },
+                "reactEdition": {
+                    "version": "Alpha",
+                    "changes": [
+                        "Mobile version {{new|added}}",
+                        "Hints {{new|added}}"
+                    ]
+                }
+            }
         },
         {
-            "version": "Beta",
             "date": "Jun 4, 2024",
-            "changes": [
-                [
-                    "{{new|New}} gamemodes added",
-                    [
-                        "Classic",
-                        "All in One"
+            "updates": {
+                "server": {
+                    "version": "Beta",
+                    "changes": [
+                        [
+                            "{{new|New}} gamemodes added",
+                            [
+                                "Classic",
+                                "All in One"
+                            ]
+                        ],
+                        "Hints {{change|changed}}"
                     ]
-                ],
-                "Hints {{change|changed}}",
-                [
-                    "{{new|New}} pages added",
-                    [
-                        "Main Menu",
-                        "How to Play"
+                },
+                "reactEdition": {
+                    "version": "Beta",
+                    "changes": [
+                        [
+                            "{{new|New}} pages added",
+                            [
+                                "Main Menu",
+                                "How to Play"
+                            ]
+                        ]
                     ]
-                ]
-            ]
+                }
+            }
         },
         {
-            "version": "1.0.0",
             "date": "Aug 21, 2024",
-            "changes": [
-                [
-                    "{{new|New}} gamemode added",
-                    [
-                        "Pocket"
+            "updates": {
+                "server": {
+                    "version": "1.0.0",
+                    "changes": [
+                        [
+                            "{{new|New}} gamemode added",
+                            [
+                                "Pocket"
+                            ]
+                        ],
+                        "Hints {{change|changed}}",
+                        "Crafting recipes {{change|updated}} for Minecraft 1.21.1"
                     ]
-                ],
-                "Hints {{change|changed}}",
-                "4th hint {{new|added}}",
-                [
-                    "{{new|New}} pages added",
-                    [
-                        "Credits",
-                        "Patch Notes"
+                },
+                "reactEdition": {
+                    "version": "1.0.0",
+                    "changes": [
+                        "4th hint {{new|added}}",
+                        [
+                            "{{new|New}} pages added",
+                            [
+                                "Credits",
+                                "Patch Notes"
+                            ]
+                        ]
                     ]
-                ],
-                "Crafting recipes {{change|updated}} for Minecraft 1.21.1"
-            ]
+                }
+            }
         },
         {
-            "version": "1.1.0",
             "date": "Sep 5, 2024",
-            "changes": [
-                [
-                    "{{new|New}} gamemode added",
-                    [
-                        "Resource"
+            "updates": {
+                "server": {
+                    "version": "1.1.0",
+                    "changes": [
+                        [
+                            "{{new|New}} gamemode added",
+                            [
+                                "Resource"
+                            ]
+                        ],
+                        [
+                            "Bug {{change|fixes}}",
+                            [
+                                "Database",
+                                "Maintenance Notice"
+                            ]
+                        ]
                     ]
-                ],
-                [
-                    "{{new|New}} control/game mechanics added",
-                    [
-                        "Instant Place",
-                        "Knowledge Book"
+                },
+                "reactEdition": {
+                    "version": "1.1.0",
+                    "changes": [
+                        [
+                            "{{new|New}} control/game mechanics added",
+                            [
+                                "Instant Place",
+                                "Knowledge Book"
+                            ]
+                        ],
+                        [
+                            "Bug {{change|fixes}}",
+                            [
+                                "Maintenance Notice",
+                                "Loading Screen"
+                            ]
+                        ],
+                        [
+                            "Visual {{change|updates}}",
+                            [
+                                "Item's icons' size"
+                            ]
+                        ]
                     ]
-                ],
-                [
-                    "Bug {{change|fixes}}",
-                    [
-                        "Database",
-                        "Maintenance Notice",
-                        "Loading Screen"
-                    ]
-                ],
-                [
-                    "Visual {{change|updates}}",
-                    [
-                        "Item's icons' size"
-                    ]
-                ]
-            ]
+                }
+            }
         },
         {
-            "version": "1.1.1",
             "date": "Sep 6, 2024",
-            "changes": [
-                [
-                    "Bug {{change|fixes}}",
-                    [
-                        "Shapeless items check",
-                        "Loading Screen visual"
+            "updates": {
+                "reactEdition": {
+                    "version": "1.1.1",
+                    "changes": [
+                        [
+                            "Bug {{change|fixes}}",
+                            [
+                                "Shapeless items check",
+                                "Loading Screen visual"
+                            ]
+                        ]
                     ]
-                ]
-            ]
+                }
+            }
         },
         {
-            "version": "1.1.2",
             "date": "Sep 7, 2024",
-            "changes": [
-                "Small bug {{change|fixes}}",
-                "Gamemodes {{change|sorted}} by difficulty"
-            ]
+            "updates": {
+                "reactEdition": {
+                    "version": "1.1.2",
+                    "changes": [
+                        "Small bug {{change|fixes}}",
+                        "Gamemodes {{change|sorted}} by difficulty"
+                    ]
+                }
+            }
         },
         {
-            "version": "1.2.0",
             "date": "MMM DD, YYYY",
-            "changes": [
-                [
-                    "{{new|New}} gamemodes added",
-                    [
-                        "Tutorial",
-                        "Daily",
-                        "Hardcore"
+            "updates": {
+                "server": {
+                    "version": "1.2.0",
+                    "changes": [
+                        [
+                            "{{new|New}} gamemodes added",
+                            [
+                                "Tutorial",
+                                "Daily",
+                                "Hardcore"
+                            ]
+                        ],
+                        "Account creation {{new|added}}",
+                        [
+                            "Collection {{new|added}}",
+                            [
+                                "Achievements",
+                                "Inventory",
+                                "Profile Borders",
+                                "Profile Pictures"
+                            ]
+                        ],
+                        "Settings {{new|added}}",
+                        "Continue feature {{new|added}} for unfinished games"
                     ]
-                ],
-                "Account creation {{new|added}}",
-                "Statistic page {{new|added}}",
-                [
-                    "Collection {{new|added}}",
-                    [
-                        "Achievements",
-                        "Inventory",
-                        "Profile Borders",
-                        "Profile Pictures"
+                },
+                "reactEdition": {
+                    "version": "1.2.0",
+                    "changes": [
+                        [
+                            "{{new|New}} pages added",
+                            [
+                                "Settings",
+                                "Statistics",
+                                "Collection"
+                            ]
+                        ],
+                        "Control/game mechanics {{change|reworked}}",
+                        "Loading Screen {{remove|removed}}"
                     ]
-                ],
-                "Settings {{new|added}}",
-                "Control/game mechanics {{change|reworked}}",
-                "Continue feature {{new|added}} for unfinished games",
-                "Loading Screen {{remove|removed}}"
-            ]
+                }
+            }
         }
     ]
 }
