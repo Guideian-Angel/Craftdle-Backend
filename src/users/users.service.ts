@@ -363,7 +363,10 @@ export class UsersService {
             })
             return user ? true : false;
         } catch (error) {
-            return { message: error.message };
+            throw new HttpException(
+                { errors: { email: ["Email does not registraed!"] } },
+                HttpStatus.BAD_REQUEST
+            );
         }
     }
 
@@ -375,12 +378,11 @@ export class UsersService {
      * @throws HttpException - Ha hiba történik az adatlekérdezés során.
      */
     async requestPasswordReset(authHeader: string, email: string) {
-        const errors: { email?: string[] } = {};
         try {
             const token = authHeader.replace('Bearer ', '');
             const verifyToken = uuidv4()
-            const images = await this.RandomizePasswordResetImages();
             if (await this.findEmail(email)) {
+                const images = await this.RandomizePasswordResetImages();
                 const paswordReset: PasswordReset = {
                     token: verifyToken,
                     expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
@@ -397,11 +399,16 @@ export class UsersService {
                     name: (await this.findUserByName({email: email})).username
                 };
             } else {
-                errors.email = ['Email does not exists.'];
-                return { message: errors };
+                throw new HttpException(
+                    { errors: { email: ["Email does not registrated!"] } },
+                    HttpStatus.BAD_REQUEST
+                );
             }
         } catch (error) {
-            return { message: error.message };
+            throw new HttpException(
+                { errors: error.response?.errors },
+                HttpStatus.BAD_REQUEST
+            );
         }
     }
 
