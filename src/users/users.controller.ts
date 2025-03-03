@@ -200,7 +200,10 @@ export class UsersController {
             this.emailService.sendVerifyEmail(body.email, {name: result.name, token: result.token, items: result.items });
             return { data: { item: item } };
         } catch (err) {
-            return { message: err.message };
+            throw new HttpException(
+                { message: err.response},
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
