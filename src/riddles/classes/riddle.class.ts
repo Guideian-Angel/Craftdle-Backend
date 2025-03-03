@@ -77,7 +77,6 @@ export class Riddle {
     }
 
     private drawNewRiddle(recipes) {
-        return "axe0";
         const validGroups = this.getValidGroups(recipes);
 
         if (validGroups.length === 0) {
