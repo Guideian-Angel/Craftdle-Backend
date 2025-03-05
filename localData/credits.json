@@ -151,6 +151,21 @@
                     ]
                 },
                 {
+                    "title": "Patreon supporters",
+                    "credits": [
+                        {
+                            "title": "Free tier",
+                            "credits": [
+                                {
+                                    "members": [
+                                        "Vágó Katalin Viktória"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
                     "title": "Others",
                     "credits": [
                         {
@@ -207,7 +222,7 @@
                 },
                 {
                     "members": [
-                        "Best commit names in Craftdle's GitHub repo: ''got to continue on laptop bc of ipban or idk'' and ''bugfixes after git fucked up my code''"
+                        "Best commit names in Craftdle's GitHub repo: \"got to continue on laptop bc of ipban or idk\" and \"bugfixes after git fucked up my code\""
                     ]
                 },
                 {
@@ -217,9 +232,9 @@
                 },
                 {
                     "members": [
-                        "''It's not a bug, it's an opportunity'' - Horváth Máté"
+                      "\"It's not a bug, it's an opportunity\" - Horváth Máté"
                     ]
-                }
+                  }                  
             ]
         },
         {
