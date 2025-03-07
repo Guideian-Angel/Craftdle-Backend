@@ -225,7 +225,6 @@ model users {
   email                  String?                  @unique(map: "email") @db.VarChar(255)
   registration_date      DateTime                 @db.DateTime(0)
   is_guest               Boolean
-  socket_id              String?                  @db.VarChar(255)
   games                  games[]
   maintenance            maintenance[]
   settings               settings[]

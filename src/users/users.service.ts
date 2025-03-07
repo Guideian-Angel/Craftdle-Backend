@@ -16,9 +16,9 @@ import { GameService } from 'src/game/game.service';
 
 @Injectable()
 export class UsersService {
-    private static tokenToUser: Map<string, User> = new Map();
-    private static socketIdToUser: Map<string, User> = new Map();
-    private static passwordChangeTokenToUser: Map<string, User> = new Map();
+    private tokenToUser: Map<string, User> = new Map();
+    private socketIdToUser: Map<string, User> = new Map();
+    private passwordChangeTokenToUser: Map<string, User> = new Map();
 
     constructor(
         private readonly prisma: PrismaService,
@@ -29,9 +29,11 @@ export class UsersService {
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
+            const currentUser = this.tokenToUser.get(newUser.loginToken);
+            const socketId = currentUser ? currentUser.socketId : undefined;
             await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
             const admin_rights = await this.getAdminRights(newUser.id);
-            UsersService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights));
+            this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
             //console.error("Hiba a createNewUser-ben:", error);
@@ -45,10 +47,10 @@ export class UsersService {
      * @param socketId - A socket ID.
      */
     associateSocketId(token: string, socketId: string) {
-        const user = UsersService.tokenToUser.get(token);
+        const user = this.tokenToUser.get(token);
         if (user) {
             user.socketId = socketId;
-            UsersService.socketIdToUser.set(socketId, user);
+            this.socketIdToUser.set(socketId, user);
         };
     };
 
@@ -57,10 +59,16 @@ export class UsersService {
      * @param socketId - A socket ID.
      */
     removeUserBySocketId(socketId: string): void {
-        const user = UsersService.socketIdToUser.get(socketId);
-        if (user) {
-            UsersService.tokenToUser.delete(user.token);
-            UsersService.socketIdToUser.delete(socketId);
+        const currentUser = this.socketIdToUser.get(socketId);
+        const newUser = this.tokenToUser.get(currentUser.token);
+        console.log("currentUser: ", currentUser);
+        console.log("newUser: ", newUser);
+        
+        if (currentUser) {
+            if(newUser.socketId === socketId){
+                this.tokenToUser.delete(currentUser.token);
+            }
+            this.socketIdToUser.delete(socketId);
         };
     };
 
@@ -70,7 +78,7 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserByToken(token: string): User | undefined {
-        return UsersService.tokenToUser.get(token);
+        return this.tokenToUser.get(token);
     }
 
     /**
@@ -79,11 +87,11 @@ export class UsersService {
      * @returns A felhasználó objektum, vagy undefined, ha nem található.
      */
     getUserBySocketId(socketId: string): User | undefined {
-        return UsersService.socketIdToUser.get(socketId);
+        return this.socketIdToUser.get(socketId);
     }
 
     getUserByPasswordResetToken(token: string): User | undefined {
-        return UsersService.passwordChangeTokenToUser.get(token);
+        return this.passwordChangeTokenToUser.get(token);
     }
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
@@ -271,7 +279,7 @@ export class UsersService {
         }
     }
 
-     //######################################################### USER DATABASE MODIFY FUNCTIONS #########################################################
+    //######################################################### USER DATABASE MODIFY FUNCTIONS #########################################################
 
     async createAccount(
         prisma: PrismaService,
@@ -280,12 +288,12 @@ export class UsersService {
         try {
             // Döntés: vendég vagy normál felhasználó
             const isGuest = !accountData || !accountData.username || !accountData.email || !accountData.password;
-    
+
             let userData;
-    
+
             if (isGuest) {
                 // Vendég felhasználó adatai
-                userData = { 
+                userData = {
                     is_guest: true,
                     registration_date: getCurrentDate(),
                 };
@@ -300,12 +308,12 @@ export class UsersService {
                     registration_date: getCurrentDate(),
                 };
             }
-    
+
             // Felhasználó létrehozása
             const createdUser = await prisma.users.create({
                 data: userData
             });
-    
+
             await prisma.users_profile_pictures.create({
                 data: {
                     user: createdUser.id,
@@ -313,7 +321,7 @@ export class UsersService {
                     is_set: true
                 }
             })
-    
+
             await prisma.users_profile_borders.create({
                 data: {
                     user: createdUser.id,
@@ -321,7 +329,7 @@ export class UsersService {
                     is_set: true
                 }
             })
-    
+
             // Törzsadatok generálása
             return {
                 id: createdUser.id,
@@ -392,11 +400,11 @@ export class UsersService {
                 }
                 const user = this.getUserByToken(token);
                 user.passwordReset = paswordReset;
-                UsersService.passwordChangeTokenToUser.set(verifyToken, user);
+                this.passwordChangeTokenToUser.set(verifyToken, user);
                 return {
                     items: images,
                     token: verifyToken,
-                    name: (await this.findUserByName({email: email})).username
+                    name: (await this.findUserByName({ email: email })).username
                 };
             } else {
                 throw new HttpException(
@@ -456,7 +464,7 @@ export class UsersService {
                         };
                     } else {
                         user.passwordReset = undefined;
-                        UsersService.passwordChangeTokenToUser.delete(token);
+                        this.passwordChangeTokenToUser.delete(token);
                         return {
                             userId: user.socketId,
                             success: false,
@@ -467,7 +475,7 @@ export class UsersService {
                     }
                 } else {
                     user.passwordReset = undefined;
-                    UsersService.passwordChangeTokenToUser.delete(token);
+                    this.passwordChangeTokenToUser.delete(token);
                     return {
                         userId: user.socketId,
                         success: false,
@@ -510,7 +518,7 @@ export class UsersService {
                         }
                     })
                     user.passwordReset = undefined;
-                    UsersService.passwordChangeTokenToUser.delete(body.token);
+                    this.passwordChangeTokenToUser.delete(body.token);
                     return {}
                 } else {
                     return { message: "User not verified" };
@@ -616,7 +624,7 @@ export class UsersService {
         return Object.keys(games).sort().map(key => games[key]);
     }
 
-        async getAdminRights(id: number) {
+    async getAdminRights(id: number) {
         try {
             const adminRights = (await this.prisma.users_rights.findMany({
                 where: {
@@ -647,7 +655,7 @@ export class UsersService {
                     player: user.id
                 }
             })
-            if(games.length === 0){
+            if (games.length === 0) {
                 await this.prisma.users.delete({
                     where: {
                         id: user.id
