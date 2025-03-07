@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { CacheService } from 'src/cache/cache.service';
 import { GameService } from 'src/game/game.service';
+import { TokenService } from 'src/token/token.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -28,7 +29,8 @@ export class SocketGateway
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
     private readonly recipesService: RecipesService,
-    private readonly gameService: GameService
+    private readonly gameService: GameService,
+    private readonly tokenService: TokenService
   ) { }
 
   afterInit(server: Server) {
@@ -102,6 +104,9 @@ export class SocketGateway
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
       this.usersService.removeUserBySocketId(client.id);
+      if(user.isGuest){
+        this.tokenService.deleteToken(user.id);
+      }
       if(await this.usersService.deleteUnnecessaryGuestsData(user)){
         console.log("Guest data deleted");
         this.gameService.deleteAllUnnecessaryGamesDataByUser(user.id);
