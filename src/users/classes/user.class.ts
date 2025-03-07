@@ -34,12 +34,12 @@ export class User{
     adminRights?: AdminRights
     adminVerification?: AdminVerification
 
-    constructor(id: number, username: string, isGuest: boolean, token: string, adminRights: AdminRights){
+    constructor(id: number, username: string, isGuest: boolean, token: string, adminRights: AdminRights, socketId: string | undefined){
         this.id = id;
         this.username = username;
         this.isGuest = isGuest;
         this.token = token;
-        this.socketId = undefined;
+        this.socketId = socketId;
         this.passwordReset = undefined;
         this.adminRights = adminRights;
         this.adminVerification = undefined;

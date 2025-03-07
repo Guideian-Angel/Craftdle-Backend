@@ -58,7 +58,6 @@ export class SocketGateway
 
     // Token validáció a UsersService-en keresztül
     const user = this.usersService.getUserByToken(token);
-    //console.log(user);
 
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
@@ -66,8 +65,14 @@ export class SocketGateway
       return;
     }
 
-    // Socket ID társítása a UsersService-ben
+    const oldSocketId = user.socketId;
     this.usersService.associateSocketId(token, client.id);
+
+    if(oldSocketId){
+      this.server.to(oldSocketId).disconnectSockets(true);
+    }
+    
+    // Socket ID társítása a UsersService-ben
     if (!user.isGuest) {
       const achievementsCollection = new AchievementsCollection(this.prisma);
       await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
