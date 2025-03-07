@@ -89,20 +89,16 @@ export class TokenService {
                 where: { user: userId },
             });
 
-            if (existingToken) { // Ha van már tokenje, töröljük a tokent az adatbázisból
-                await this.prisma.tokens.delete({
-                    where: { user: userId },
+            if (!existingToken) {
+                await this.prisma.tokens.create({
+                    data: {
+                        user: userId,
+                        login_token: this.encryptUuid(token),
+                        is_expire: isExpire,
+                    },
                 });
             }
 
-            // Új token párosítása a felhasználóhoz
-            await this.prisma.tokens.create({
-                data: {
-                    user: userId,
-                    login_token: this.encryptUuid(token),
-                    is_expire: isExpire,
-                },
-            });
         } catch (error) {
             console.error('Token párosítása nem sikerült:', error);
             throw new Error('Adatbázis hiba: Token párosítása nem sikerült.');
