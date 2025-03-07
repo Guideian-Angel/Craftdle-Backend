@@ -14,7 +14,6 @@ export class TokenService {
     constructor(
         private readonly prisma: PrismaService
     ) {
-        // Az ENCRYPTION_KEY csak egyszer, a konstruktorban kerül betöltésre
         this.ENCRYPTION_KEY = Buffer.from(process.env.ENCRYPTION_KEY!, 'hex');
     }
 
@@ -82,7 +81,7 @@ export class TokenService {
         userId: number,
         token: string,
         isExpire: boolean
-    ): Promise<void> {
+    ): Promise<string> {
         try {
             // Ellenőrizzük, hogy van-e már meglévő token a felhasználónál
             const existingToken = await this.prisma.tokens.findFirst({
@@ -99,6 +98,7 @@ export class TokenService {
                 });
             }
 
+            return existingToken? this.decryptUuid(existingToken.login_token): token;
         } catch (error) {
             console.error('Token párosítása nem sikerült:', error);
             throw new Error('Adatbázis hiba: Token párosítása nem sikerült.');
@@ -188,12 +188,7 @@ export class TokenService {
 
     //######################################################### TOKEN ENCRYPT&DECODE FUNCTIONS #########################################################
 
-    /**
-     * IV (Initialization Vector) lekérése UUID-ból AES titkosításhoz.
-     * @param uuid - Az UUID, amelyből az IV-t generáljuk.
-     * @returns 16 bájtos IV.
-     */
-    getIVFromUuid(uuid: string): Buffer {
+    private getIVFromUuid(uuid: string): Buffer {
         return crypto.createHash('sha256').update(uuid).digest().slice(0, 16);
     }
 
@@ -207,7 +202,7 @@ export class TokenService {
         const cipher = crypto.createCipheriv('aes-256-cbc', this.ENCRYPTION_KEY, iv);
         let encrypted = cipher.update(uuid, 'utf8', 'hex');
         encrypted += cipher.final('hex');
-        return encrypted;
+        return `${iv.toString('hex')}:${encrypted}`;
     }
 
     /**
@@ -216,10 +211,14 @@ export class TokenService {
      * @param uuid - Az UUID, amelyhez a titkosított adat tartozik.
      * @returns Visszafejtett UUID.
      */
-    decryptUuid(encryptedUuid: string, uuid: string): string {
-        const iv = this.getIVFromUuid(uuid);
+    decryptUuid(encryptedUuid: string): string {
+        const [ivHex, encryptedData] = encryptedUuid.split(':');
+        if (!ivHex || !encryptedData) {
+            throw new Error('Invalid encrypted UUID format');
+        }
+        const iv = Buffer.from(ivHex, 'hex');
         const decipher = crypto.createDecipheriv('aes-256-cbc', this.ENCRYPTION_KEY, iv);
-        let decrypted = decipher.update(encryptedUuid, 'hex', 'utf8');
+        let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
         decrypted += decipher.final('utf8');
         return decrypted;
     }
