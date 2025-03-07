@@ -31,7 +31,7 @@ export class UsersService {
         try {
             const currentUser = this.tokenToUser.get(newUser.loginToken);
             const socketId = currentUser ? currentUser.socketId : undefined;
-            await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
+            newUser.loginToken = await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
             const admin_rights = await this.getAdminRights(newUser.id);
             this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
@@ -63,7 +63,7 @@ export class UsersService {
         const newUser = this.tokenToUser.get(currentUser.token);
         console.log("currentUser: ", currentUser);
         console.log("newUser: ", newUser);
-        
+
         if (currentUser) {
             if(newUser.socketId === socketId){
                 this.tokenToUser.delete(currentUser.token);
@@ -209,8 +209,8 @@ export class UsersService {
                     HttpStatus.BAD_REQUEST
                 );
             }
-            const newToken = await this.tokenService.createToken();
-            await this.tokenService.pairTokenWithUser(user.id, newToken, !userData.stayLoggedIn);
+            let newToken = await this.tokenService.createToken();
+            newToken = await this.tokenService.pairTokenWithUser(user.id, newToken, !userData.stayLoggedIn);
             const formatedUser = await this.generateLoginResponse(user, newToken, userData.stayLoggedIn);
             await this.createNewUser(formatedUser, userData.stayLoggedIn);
             return formatedUser;
