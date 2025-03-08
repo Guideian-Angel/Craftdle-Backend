@@ -1,12 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
 import { GameService } from 'src/game/game.service';
 import { AssetsService } from 'src/assets/assets.service';
 import { LoginDataDto } from 'src/users/dtos/login.dto';
-import { AdminVerification } from 'src/users/classes/user.class';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
-import { UpdateAdminRightsDto } from './dto/update-admin-rights.dto';
+import { UpdateAdminRightsDto } from './dto/updateAdminRights.dto';
 import { getStreak } from 'src/users/utilities/user.util';
 
 @Injectable()
@@ -16,44 +15,39 @@ export class AdminService {
     private readonly usersService: UsersService,
     private readonly gameService: GameService,
     private readonly assetsService: AssetsService
-  ) { }
+  ) {}
 
   generateVerificationCode() {
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += Math.floor(Math.random() * 10); // Generál egy véletlen számjegyet (0–9)
-    }
-    return code;
+    return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
   }
 
   async login(loginDataDto: LoginDataDto) {
     try {
       if (!await this.usersService.findEmail(loginDataDto.usernameOrEmail)) {
-        throw new Error('User not found with this email');
+        throw new HttpException('User not found with this email', HttpStatus.NOT_FOUND);
       }
       const user = await this.usersService.handleBodyLogin({
         ...loginDataDto,
         stayLoggedIn: false
       });
       if (!('id' in user)) {
-        throw new Error('User does not have an id property');
+        throw new HttpException('User does not have an id property', HttpStatus.BAD_REQUEST);
       }
       const admin = await this.usersService.getUserByToken(user.loginToken);
       const code = this.generateVerificationCode();
-      const adminVerification: AdminVerification = {
-        code: code,
+      admin.adminVerification = {
+        code,
         expiration: new Date(getCurrentDate().setMinutes(getCurrentDate().getMinutes() + 10)),
         verified: false,
-      }
-      admin.adminVerification = adminVerification;
+      };
       return {
         token: admin.token,
         name: admin.username,
         email: loginDataDto.usernameOrEmail,
-        code: code,
+        code,
       };
     } catch (err) {
-      throw err;
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -61,15 +55,15 @@ export class AdminService {
     try {
       const admin = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
       if (admin.adminVerification?.code !== code) {
-        throw new Error('Invalid code');
+        throw new HttpException('Invalid code', HttpStatus.BAD_REQUEST);
       }
       if (admin.adminVerification?.expiration < getCurrentDate()) {
-        throw new Error('Code expired');
+        throw new HttpException('Code expired', HttpStatus.GONE);
       }
       admin.adminVerification.verified = true;
-      return admin
+      return admin;
     } catch (err) {
-      throw new Error(err.message);
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -77,16 +71,16 @@ export class AdminService {
     try {
       return this.usersService.logoutUser(authHeader);
     } catch (err) {
-      throw new Error(err.message);
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
-  convertAdminRights(adminRights: UpdateAdminRightsDto) {
+  async convertAdminRights(adminRights: UpdateAdminRightsDto) {
     const result: string[] = [];
 
     Object.keys(adminRights).forEach(key => {
       if (adminRights[key]) {
-        result.push(key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '));
+        result.push(key);
       }
     })
 
@@ -96,34 +90,40 @@ export class AdminService {
   async getAllAdmins(authHeader: string) {
     try {
       const users = await this.getAllUsers(authHeader);
-      const admins = users.filter(user => user.rights.length != 0)
-
-      return admins
+      const filtered = users.filter(user => user.rights.length !== 0);
+      return filtered
     } catch (err) {
-      throw new Error(err.message);
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async updateAdmin(userId: number, authHeader: string, body: UpdateAdminRightsDto) {
     try {
       const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
-
       if (!user?.adminVerification?.verified) {
-        throw new Error('You are not verified');
+        throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
       }
-
       if (!user.adminRights?.modifyAdmins) {
-        throw new Error('You do not have permission to modify admins');
+        throw new HttpException('You do not have permission to modify admins', HttpStatus.FORBIDDEN);
       }
-
-      const adminRightsNames = this.convertAdminRights(body);
+      if (user.id == userId) {
+        throw new HttpException('You cannot modify yourself', HttpStatus.BAD_REQUEST);
+      }
+      
+      const adminRightsNames = await this.convertAdminRights(body);
 
       const adminRights = (await this.prisma.rights.findMany({ where: { name: { in: adminRightsNames } } })).map(right => right.id);
+
+      const rights = await this.prisma.users_rights.findMany({
+        where: {
+          user: userId
+        }
+      });
 
       await this.prisma.users_rights.deleteMany({
         where: {
           right: {
-            notIn: adminRights
+            notIn: adminRights.filter(right => !rights.map(r => !adminRights.includes(r.right)))
           },
           user: userId
         }
@@ -131,14 +131,16 @@ export class AdminService {
 
       await this.prisma.users_rights.createMany({
         data: adminRights.map(right => {
+          console.log(userId, right)
           return {
             user: userId,
-            right
+            right: right
           }
         })
       })
     } catch (err) {
-      throw new Error(err.message);
+      console.log(err)
+      throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -173,7 +175,7 @@ export class AdminService {
         }
       }))
     } catch (err) {
-      throw new Error(err.message);
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

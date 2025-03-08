@@ -40,8 +40,6 @@ export class AchievementsCollection {
         
         // Ellenőrizzük, hogy az év első órájában történt-e a megoldás
         const solvedAt = getCurrentDate();
-        console.log(solvedAt)
-        console.log(solvedAt.getHours(), solvedAt.getDate(), solvedAt.getMonth())
         if (solvedAt.getHours() === 1 && solvedAt.getDate() === 1 && solvedAt.getMonth() === 0) {
             additionalTargets.push("first");
         }
@@ -64,7 +62,6 @@ export class AchievementsCollection {
                     date: 'asc',
                 },
             });
-            console.log(firstGame)
             if(firstGame?.player === userId){
                 additionalTargets.push("number1");
             };

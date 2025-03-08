@@ -3,13 +3,13 @@ import { IsBoolean, IsDefined } from "class-validator";
 export class AddAdminRightsDto {
     @IsDefined()
     @IsBoolean()
-    modify_maintenance: boolean;
+    modifyMaintenance: boolean;
 
     @IsDefined()
     @IsBoolean()
-    modify_users: boolean;
+    modifyUsers: boolean;
 
     @IsDefined()
     @IsBoolean()
-    modify_admins: boolean;
+    modifyAdmins: boolean;
 }

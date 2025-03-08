@@ -60,7 +60,6 @@ export class GameGateway {
 
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
-    console.log(payload.item)
     const game = SocketGateway.gameToClient.get(client.id);
     if (game && !game.riddle.guessedRecipes.includes(payload.item.group + "-" + payload.item.id)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
