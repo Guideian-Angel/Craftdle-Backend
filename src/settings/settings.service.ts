@@ -119,36 +119,40 @@ export class SettingsService {
      * @param userId A felhasználó azonosítója.
      */
     async createDefaultSettings(userId: number) {
-        await this.prisma.$transaction(async (tx) => {
-            // Settings generálása
-            const settingsRecords = await this.generateRecords(tx.settings, [0, 1, 2], (isSetIndex) => ({
-                user: userId,
-                volume: 50,
-                image_size: 50,
-                is_set: isSetIndex === 0,
-            }));
-
-            // Controls generálása
-            const controlsRecords = await this.generateRecords(tx.controls, settingsRecords, (settings) => ({
-                settings: settings.id,
-                copy: "LMB",
-                remove: "RMB",
-                is_tap_mode: false,
-            }));
-
-            // TableMappings generálása
-            await this.generateRecords(
-                tx.table_mappings,
-                controlsRecords.flatMap((control) =>
-                    Array.from({ length: 9 }, (_, index) => ({
-                        control: control.id,
-                        slot: index,
-                        hot_key: (index + 1).toString(),
-                    }))
-                ),
-                (mappingData) => mappingData
-            );
-        });
+        try {
+            await this.prisma.$transaction(async (tx) => {
+                // Settings generálása
+                const settingsRecords = await this.generateRecords(tx.settings, [0, 1, 2], (isSetIndex) => ({
+                    user: userId,
+                    volume: 50,
+                    image_size: 50,
+                    is_set: isSetIndex === 0,
+                }));
+    
+                // Controls generálása
+                const controlsRecords = await this.generateRecords(tx.controls, settingsRecords, (settings) => ({
+                    settings: settings.id,
+                    copy: "LMB",
+                    remove: "RMB",
+                    is_tap_mode: false,
+                }));
+    
+                // TableMappings generálása
+                await this.generateRecords(
+                    tx.table_mappings,
+                    controlsRecords.flatMap((control) =>
+                        Array.from({ length: 9 }, (_, index) => ({
+                            control: control.id,
+                            slot: index,
+                            hot_key: (index + 1).toString(),
+                        }))
+                    ),
+                    (mappingData) => mappingData
+                );
+            });
+        } catch (error) {
+            console.error("Error while creating default settings: ", error);
+        }
     }
 
     /**

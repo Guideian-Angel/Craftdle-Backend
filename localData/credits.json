@@ -57,12 +57,6 @@
                     "members": [
                         "Horváth Máté"
                     ]
-                },
-                {
-                    "credit": "Pentester",
-                    "members": [
-                        "Papp-Lukácsi Benjámin Illés"
-                    ]
                 }
             ]
         },
@@ -121,6 +115,11 @@
                     "credits": [
                         {
                             "members": [
+                                "Papp-Lukácsi Benjamin Illés"
+                            ]
+                        },
+                        {
+                            "members": [
                                 "Simon Máté"
                             ]
                         },
@@ -147,6 +146,21 @@
                         {
                             "members": [
                                 "Kendiii"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "title": "Patreon supporters",
+                    "credits": [
+                        {
+                            "title": "Free tier",
+                            "credits": [
+                                {
+                                    "members": [
+                                        "Vágó Katalin Viktória"
+                                    ]
+                                }
                             ]
                         }
                     ]
@@ -208,14 +222,19 @@
                 },
                 {
                     "members": [
-                        "Best commit names in Craftdle's GitHub repo: 'got to continue on laptop bc of ipban or idk' and 'bugfixes after git fucked up my code'"
+                        "Best commit names in Craftdle's GitHub repo: \"got to continue on laptop bc of ipban or idk\" and \"bugfixes after git fucked up my code\""
                     ]
                 },
                 {
                     "members": [
                         "The most hated blocks in our team are the Copper Blocks"
                     ]
-                }
+                },
+                {
+                    "members": [
+                      "\"It's not a bug, it's an opportunity\" - Horváth Máté"
+                    ]
+                  }                  
             ]
         },
         {

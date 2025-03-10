@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { CacheService } from 'src/cache/cache.service';
 import { GameService } from 'src/game/game.service';
+import { TokenService } from 'src/token/token.service';
 
 @WebSocketGateway({ cors: true })
 export class SocketGateway
@@ -28,7 +29,8 @@ export class SocketGateway
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
     private readonly recipesService: RecipesService,
-    private readonly gameService: GameService
+    private readonly gameService: GameService,
+    private readonly tokenService: TokenService
   ) { }
 
   afterInit(server: Server) {
@@ -58,7 +60,6 @@ export class SocketGateway
 
     // Token validáció a UsersService-en keresztül
     const user = this.usersService.getUserByToken(token);
-    //console.log(user);
 
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
@@ -66,8 +67,14 @@ export class SocketGateway
       return;
     }
 
-    // Socket ID társítása a UsersService-ben
+    const oldSocketId = user.socketId;
     this.usersService.associateSocketId(token, client.id);
+
+    if(oldSocketId){
+      this.server.to(oldSocketId).disconnectSockets(true);
+    }
+    
+    // Socket ID társítása a UsersService-ben
     if (!user.isGuest) {
       const achievementsCollection = new AchievementsCollection(this.prisma);
       await achievementsCollection.achievementEventListener(user, [{ name: "regist", targets: ["regist"] }]);
@@ -97,6 +104,9 @@ export class SocketGateway
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
       this.usersService.removeUserBySocketId(client.id);
+      if(user.isGuest){
+        this.tokenService.deleteToken(user.id);
+      }
       if(await this.usersService.deleteUnnecessaryGuestsData(user)){
         console.log("Guest data deleted");
         this.gameService.deleteAllUnnecessaryGamesDataByUser(user.id);

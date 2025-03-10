@@ -113,7 +113,7 @@ export class UsersController {
             const result = await this.settingsService.collectSettings(authorization);
             return { data: result }; 
         } catch (err) {
-            return { message: err.message };
+            throw new UnauthorizedException();
         }
     }
 
@@ -131,7 +131,7 @@ export class UsersController {
             await this.settingsService.modifySettings(settingsId, authorization, updateSettingsData);
             return { message: "Settings successfully changed" }
         } catch (err) {
-            return { message: err.message }
+            throw new UnauthorizedException();
         }
     }
 
@@ -149,7 +149,7 @@ export class UsersController {
             const result = await this.assetsService.getCollection(authorization);
             return { data: result };
         } catch (err) {
-            return { message: err.message };
+            throw new UnauthorizedException();
         }
     }
 
@@ -165,7 +165,7 @@ export class UsersController {
             const result = await this.assetsService.updateProfile(authorization, body);
             return { data: result };
         } catch (err) {
-            return { message: err.message };
+            throw new UnauthorizedException();
         }
     }
 
@@ -180,7 +180,7 @@ export class UsersController {
             const result = await this.usersService.getStats(authorization)
             return { data: result }
         } catch (err) {
-            return { message: err.message }
+            throw new UnauthorizedException();
         }
     }
 
@@ -200,7 +200,10 @@ export class UsersController {
             this.emailService.sendVerifyEmail(body.email, {name: result.name, token: result.token, items: result.items });
             return { data: { item: item } };
         } catch (err) {
-            return { message: err.message };
+            throw new HttpException(
+                { message: err.response},
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 

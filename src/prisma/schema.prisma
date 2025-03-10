@@ -17,7 +17,7 @@ model achievements {
   parent             Int?                 @unique(map: "parentId")
   event              String?              @db.VarChar(255)
   target             String?              @db.VarChar(255)
-  parent_achievement  achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
+  parent_achievement achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
   child_achievement  achievements?        @relation("achievementsToachievements")
   rewards            rewards[]
   users_achievements users_achievements[]
@@ -116,11 +116,11 @@ model hints {
 }
 
 model inventories_items {
-  id    Int   @id @default(autoincrement())
+  id    Int    @id @default(autoincrement())
   game  Int
   item  String
-  games games @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "inventories_items_ibfk_1")
-  items items @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
+  games games  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "inventories_items_ibfk_1")
+  items items  @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
 
   @@index([game], map: "game")
   @@index([item], map: "item")
@@ -225,8 +225,6 @@ model users {
   email                  String?                  @unique(map: "email") @db.VarChar(255)
   registration_date      DateTime                 @db.DateTime(0)
   is_guest               Boolean
-  socket_id              String?                  @db.VarChar(255)
-  admin_right            Int?
   games                  games[]
   maintenance            maintenance[]
   settings               settings[]
@@ -236,8 +234,6 @@ model users {
   users_profile_borders  users_profile_borders[]
   users_profile_pictures users_profile_pictures[]
   users_rights           users_rights[]
-
-  @@index([admin_right], map: "admin_right")
 }
 
 model users_achievements {
@@ -290,6 +286,7 @@ model users_profile_pictures {
 }
 
 model users_rights {
+  id     Int    @id @default(autoincrement())
   user   Int
   right  Int
   users  users  @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_1")

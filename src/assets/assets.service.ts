@@ -324,7 +324,7 @@ export class AssetsService {
                     ) || (
                         achievement.parent_achievement && achievement.parent_achievement.goal > ownedAchievements.find(owned => owned.achievements.id === achievement.parent_achievement.id)?.progress
                     )) return null;
-                    if(achievement.parent_achievement){
+                    if(achievement.parent_achievement && achievement.child_achievement && achievement.child_achievement.goal > ownedAchievements.find(owned => owned.achievements.id === achievement.child_achievement.id)?.progress){
                         achievement.title = achievement.parent_achievement.title
                     }
                     if(achievement.is_secret && (achievement.goal > ownedAchievement?.progress || !ownedAchievement)){

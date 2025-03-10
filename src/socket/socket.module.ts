@@ -7,6 +7,7 @@ import { Maintenance } from 'src/admin/classes/Maintenance';
 import { AchievementsModule } from 'src/achievements/achievements.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { RecipesModule } from 'src/recipes/recipes.module';
+import { TokenModule } from 'src/token/token.module';
 
 @Module({
     imports: [
@@ -16,7 +17,8 @@ import { RecipesModule } from 'src/recipes/recipes.module';
         AchievementsModule,
         PrismaModule,
         CacheModule,
-        RecipesModule
+        RecipesModule,
+        TokenModule
     ],
     providers: [SocketGateway, Maintenance],
     exports: [SocketGateway],
