@@ -205,7 +205,7 @@ export class AdminService {
       const totalItems = (await this.assetsService.getAllInventoryItems()).length;
       return {
         ...userData,
-        streak: getStreak(userData.id, this.prisma),
+        streak: await getStreak(userData.id, this.prisma),
         achievements: { collected: collectedAchievements, total: totalAchievements },
         collection: { collected: collectedItems, total: totalItems },
         favoriteGamemode: favoriteGamemode.gamemodeName,

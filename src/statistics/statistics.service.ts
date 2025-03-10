@@ -39,6 +39,7 @@ export class StatisticsService {
                 registrationsByDate: await this.getRegistrationsByDate()
             }
         } catch (err) {
+            console.log(err)
             return { error: err.message }
         }
     }
@@ -115,17 +116,19 @@ export class StatisticsService {
         const gamemodes: { [key: string]: { [key: string]: number } } = {};
 
         games.forEach(game => {
-            const date = game.tips[0].date.toLocaleDateString();
-            const gamemodeName = game.gamemodes.name;
-            if (date in gamemodes) {
-                if (gamemodeName in gamemodes[date]) {
-                    gamemodes[date][gamemodeName]++;
+            if(game.tips. length > 0){
+                const date = game.tips[0].date.toLocaleDateString();
+                const gamemodeName = game.gamemodes.name;
+                if (date in gamemodes) {
+                    if (gamemodeName in gamemodes[date]) {
+                        gamemodes[date][gamemodeName]++;
+                    } else {
+                        gamemodes[date][gamemodeName] = 1;
+                    }
                 } else {
-                    gamemodes[date][gamemodeName] = 1;
-                }
-            } else {
-                gamemodes[date] = {
-                    [gamemodeName]: 1
+                    gamemodes[date] = {
+                        [gamemodeName]: 1
+                    }
                 }
             }
         });
