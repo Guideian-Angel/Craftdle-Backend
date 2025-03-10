@@ -2,6 +2,32 @@ import readline from 'node:readline';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+class Graph {
+    content = [];
+
+    get(){
+        return this.content;
+    }
+
+    size(){
+        return this.content.length;
+    }
+
+    add(element){
+        let notIncluded = true;
+        element.forEach(e => {
+            this.content.forEach(c => {
+                if(c.includes(e)){
+                    notIncluded = false;
+                }
+            })
+        })
+        if(notIncluded){
+            this.content.push(element);
+        }
+    }
+}
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -57,24 +83,10 @@ function processMaterials(materials, callback) {
     return callback ? callback(result) : result;
 }
 
-function addMaterialsToSet(set, mats) {
-    const processedMaterials = processMaterials(mats);
-    processedMaterials.forEach(mat => set.add(mat));
-    return set;
-}
-
 function getMaterialsForRecipe(recipe) {
     return recipe.shapeless
         ? recipe.recipe.required
         : processMaterials(recipe.recipe);
-}
-
-function checkForSameMaterial(set, mats) {
-    return mats.some(mat =>
-        Array.isArray(mat)
-            ? mat.some(element => set.has(element))
-            : set.has(mat)
-    );
 }
 
 function countDifferentMaterials(materials){
@@ -86,27 +98,6 @@ function countDifferentMaterials(materials){
         }
     });
     return result.size > 1;
-}
-
-function collectMaterialsForGraph(materials, recipes) {
-    let graph = new Set(materials);
-    let elementAdded = true;
-    while (elementAdded && graph.size < 20) {
-        elementAdded = false;
-        Object.keys(recipes).forEach(group => {
-            recipes[group].forEach(recipe => {
-                const mats = recipe.shapeless ? recipe.recipe.required : recipe.recipe;
-                if (checkForSameMaterial(graph, mats)) {
-                    let tempGraph = addMaterialsToSet(graph, mats);
-                    if (tempGraph.size > graph.size) {
-                        elementAdded = true;
-                    }
-                    graph = tempGraph;
-                }
-            });
-        });
-    }
-    return graph.size >= 20;
 }
 
 function converRecipeGridToMatrix(grid) {
@@ -125,9 +116,58 @@ function checkRightGridSizeOfRecipe(recipe) {
     return matrix.length < 3 && matrix.every(row => row.length < 3);
 }
 
+function createResourceInventory(recipes, mats) {
+    let graph = createSetFromMaterials(mats);
+    while (graph.size() < 20) {
+        for (const group of shuffleArray(Object.keys(recipes))) {
+            if (group !== "gaLogo0") {
+                for (const recipe of shuffleArray(recipes[group])) {
+                    const mats = recipe.required;
+                    if (checkForSameMaterial(graph, mats)) {
+                        addMaterialsToSet(graph, mats);
+                        break;
+                    }
+                };
+                if (graph.size() >= 20) {
+                    break;
+                }
+            }
+        };
+    }
+    return graph.size() >= 20;
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    };
+    return array;
+};
+
+function checkForSameMaterial(set, mats) {
+    return mats.some(mat =>
+        mat.some(element => set.content.some(row => row.includes(element)))
+    );
+}
+
+function addMaterialsToSet(set, materials) {
+    materials.forEach(material => {
+        set.add(material);
+    })
+}
+
+function createSetFromMaterials(materials) {
+    let result = new Graph();
+    materials.forEach(material => {
+        result.add(material);
+    });
+    return result;
+}
+
 function geatherDataAboutRecipe(recipes, recipe) {
     const materialsOfRecipe = getMaterialsForRecipe(recipe);
-    const hasGraphScore20 = collectMaterialsForGraph(materialsOfRecipe, recipes);
+    const hasGraphScore20 = createResourceInventory(materialsOfRecipe, recipes);
     const validMatrixForPocketMode = checkRightGridSizeOfRecipe(recipe);
     const hasMoreThanOneTypeOfMaterial = countDifferentMaterials(recipe.shapeless ? recipe.recipe.required : recipe.recipe);
     const isSelfCraftRecipe = materialsOfRecipe.includes(recipe.id);

@@ -256,6 +256,7 @@ model users_collections {
   users       users       @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_1")
   collections collections @relation(fields: [collection], references: [item_id], onUpdate: Restrict, map: "users_collections_ibfk_2")
 
+  @@unique([user, collection], name: "user_achievement")
   @@index([collection], map: "collection")
   @@index([user], map: "user")
 }

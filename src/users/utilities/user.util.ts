@@ -35,8 +35,6 @@ export async function getStreak(userId: number, prisma: PrismaService) {
     const yesterday = getCurrentDate();
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(1, 0, 0, 0);
-
-    console.log(playedDailyGames);
     
     if (lastDate.getTime() >= yesterday.getTime()) {
         for (let game of playedDailyGames) {

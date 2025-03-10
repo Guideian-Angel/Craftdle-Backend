@@ -440,8 +440,7 @@ export class AssetsService {
                 return { added: !!addedItem, event: event };
             }
         } catch (error) {
-            console.log(error);
-            throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+            console.log("Már megszerzett tárgy!");
         }
     }
 }
