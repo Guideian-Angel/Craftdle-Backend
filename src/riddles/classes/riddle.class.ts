@@ -40,6 +40,7 @@ export class Riddle {
         this.tips = await this.gameService.loadTips(game.id);
         this.guessedRecipes = this.tips.map(tip => `${tip.group}-${tip.item.id}`);
         this.numberOfGuesses = this.guessedRecipes.length;
+        this.solved = game.is_solved;
 
         return game.id;
     }
