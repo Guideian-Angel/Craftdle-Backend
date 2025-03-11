@@ -38,7 +38,7 @@ export class Riddle {
         this.inventory = Number(this.gamemode) === 6 ? await this.gameService.loadInventory(game.id) : items;
         this.hints = Number(this.gamemode) !== 7 ? await this.gameService.loadHints(game.id) : null;
         this.tips = await this.gameService.loadTips(game.id);
-        this.guessedRecipes = this.tips.map(tip => tip.item.id);
+        this.guessedRecipes = this.tips.map(tip => `${tip.group}-${tip.item.id}`);
         this.numberOfGuesses = this.guessedRecipes.length;
 
         return game.id;

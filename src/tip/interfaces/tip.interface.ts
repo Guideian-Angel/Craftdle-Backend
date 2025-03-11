@@ -4,6 +4,7 @@ export interface ICheckedTip{
     item: IItem
     table: Array<{item: string, status: string}>
     date: Date;
+    group: string;
 }
 
 export interface ITip {

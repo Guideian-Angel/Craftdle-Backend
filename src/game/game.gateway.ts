@@ -16,6 +16,7 @@ import { AssetsService } from 'src/assets/assets.service';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { RiddlesService } from 'src/riddles/riddles.service';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { group } from 'console';
 
 @WebSocketGateway({ cors: true })
 export class GameGateway {
@@ -76,6 +77,7 @@ export class GameGateway {
                 name: baseRecipe.name,
                 src: baseRecipe.src
               },
+              group: payload.item.group,
               table: result.result,
               date: getCurrentDate()
             }

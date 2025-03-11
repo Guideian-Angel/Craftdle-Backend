@@ -202,6 +202,7 @@ model tips {
   id                   Int                    @id @default(autoincrement())
   game                 Int
   date                 DateTime               @db.DateTime(0)
+  group                String                 @db.VarChar(255) @default("unknown")
   item                 String                 @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
   games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "tips_ibfk_1")

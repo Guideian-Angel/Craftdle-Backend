@@ -117,7 +117,8 @@ export class GameService {
                     src: tip.collections.src
                 },
                 table: table,  // A 9 elemű table, ami már tartalmazza a pozíciókat
-                date: tip.date
+                date: tip.date,
+                group: tip.group
             };
         });
     }
@@ -218,7 +219,8 @@ export class GameService {
             data: {
                 game: gameId,
                 date: getCurrentDate(),
-                item: tip.item.id
+                item: tip.item.id,
+                group: tip.group
             }
         });
         await this.saveCraftingTableContent(tip, tipRecord.id);
