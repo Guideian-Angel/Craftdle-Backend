@@ -4,6 +4,8 @@ import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import * as express from 'express';
 import { resolve } from 'path';
+import { version } from '../package.json';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function init() {
   const server = express();
@@ -40,6 +42,16 @@ async function init() {
   app.useStaticAssets(resolve('./public'));
   app.setBaseViewsDir(resolve('./views'));
   app.setViewEngine('ejs');
+
+  const config = new DocumentBuilder()
+    .setTitle('Craftdle API')
+    .setDescription('Craftdle API documentation')
+    .setVersion(`v${version}`)
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
   console.log('Server is running on http://localhost:3000');

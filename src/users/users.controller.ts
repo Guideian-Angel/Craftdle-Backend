@@ -6,9 +6,16 @@ import { EmailService } from 'src/email/email.service';
 import { EmailGateway } from 'src/email/email.gateway';
 import { SettingsService } from 'src/settings/settings.service';
 import { AssetsService } from 'src/assets/assets.service';
-import { ApiResponse } from 'src/sharedComponents/interfaces/response.interface';
+import { ApiResponse as IApiResponse } from 'src/sharedComponents/interfaces/response.interface';
 import { UpdateSettingsDto } from 'src/settings/dtos/settings.dto';
 import { ProfileAssetsDataDto } from 'src/assets/dtos/profileAssets.dto';
+import { ApiBody, ApiHeader, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { UserDataDto } from './dtos/userData.dto';
+import { CollectionDataDto } from 'src/assets/dtos/collection.dto';
+import { UserStatsDto } from './dtos/userStats.dto';
+import { PasswordResetDto, PasswordResetResponseDto } from './dtos/passwordReset.dto';
+import { PasswordResetMessageDto } from './dtos/passwordResetMessage.dto';
+import { PasswordChangeDto } from './dtos/passwordChange.dto';
 
 @Controller('users')
 export class UsersController {
@@ -28,7 +35,10 @@ export class UsersController {
      * @returns API válasz: siker esetén az új felhasználó adatai, hiba esetén az üzenet.
      */
     @Post('register')
-    async register(@Body() userDto: RegistDataDto): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Register a new User' })
+    @ApiBody({ type: RegistDataDto })
+    @ApiResponse({ status: 200, description: 'Return the new User data', type: UserDataDto })
+    async register(@Body() userDto: RegistDataDto): Promise<IApiResponse> {
         try {
             const result = await this.usersService.register(userDto);
             if (!('loginToken' in result)) {
@@ -45,10 +55,12 @@ export class UsersController {
 
     /**
      * Guest account létrehozása olyan felhasználók számára, akik nem rendelkeznek állandó fiókkal.
-     * @returns {Promise<ApiResponse>} Guest account adatai vagy hibaüzenet.
+     * @returns {Promise<IApiResponse>} Guest account adatai vagy hibaüzenet.
      */
     @Get('login')
-    async createGuestAccount(): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Create a Guest Account' })
+    @ApiResponse({ status: 200, description: 'Return the Guest Account data', type: UserDataDto})
+    async createGuestAccount(): Promise<IApiResponse> {
         try {
             const result = await this.usersService.loginWithGuestAccount();
             return { data: result };
@@ -68,6 +80,10 @@ export class UsersController {
      * @throws UnauthorizedException ha hibás a bejelentkezés.
      */
     @Post('login')
+    @ApiOperation({ summary: 'Login a User' })
+    @ApiHeader({ name: 'authorization', required: false })
+    @ApiBody({ type: LoginDataDto, required: false })
+    @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
     async login(@Headers('authorization') authorization: string, @Body() body: LoginDataDto) {
         try {
             const result = await this.usersService.loginUser(authorization, body);
@@ -88,7 +104,10 @@ export class UsersController {
      * @returns Üzenet a kijelentkezési folyamat eredményéről.
      */
     @Delete('login')
-    async logoutUser(@Headers('authorization') authHeader: string): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Logout a User' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiResponse({ status: 200, description: 'Return a message about the logout' })
+    async logoutUser(@Headers('authorization') authHeader: string): Promise<IApiResponse> {
         try {
             await this.usersService.logoutUser(authHeader);
             return { message: 'Logout successful' };
@@ -105,10 +124,13 @@ export class UsersController {
     /**
      * Felhasználó beállításainak lekérdezése (settings).
      * @param {string} authorization - A Bearer token azonosításhoz az Authorization fejlécben.
-     * @returns {Promise<ApiResponse>} - A felhasználó beállításai vagy hibaüzenet.
+     * @returns {Promise<IApiResponse>} - A felhasználó beállításai vagy hibaüzenet.
      */
     @Get('settings')
-    async getSettings(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Get the User Settings' })
+    @ApiHeader({ name: 'authorization'})
+    @ApiResponse({ status: 200, description: 'Return the User Settings', type: UpdateSettingsDto })
+    async getSettings(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.settingsService.collectSettings(authorization);
             return { data: result }; 
@@ -122,10 +144,14 @@ export class UsersController {
      * @param {number} settingsId - A módosítandó beállítások egyedi azonosítója.
      * @param {string} authorization - Az autentikációs fejléc, amely tartalmazza a Bearer tokent.
      * @param {UpdateSettingsDto} updateSettingsData - Az új beállításokat tartalmazó adatok.
-     * @returns {ApiResponse} - A sikeres művelet után egy üzenetet tartalmazó válasz.
+     * @returns {IApiResponse} - A sikeres művelet után egy üzenetet tartalmazó válasz.
      * @throws {HttpException} - Ha a token érvénytelen, vagy ha valamilyen hiba történik a beállítások módosítása során.
      */
     @Put('settings/:id')
+    @ApiOperation({ summary: 'Update the User Settings' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiBody({ type: UpdateSettingsDto })
+    @ApiResponse({ status: 200, description: 'Return a message about the settings update' })
     async updateSettings(@Param('id') settingsId: number, @Headers('authorization') authorization: string, @Body() updateSettingsData: UpdateSettingsDto) {
         try {
             await this.settingsService.modifySettings(settingsId, authorization, updateSettingsData);
@@ -144,7 +170,10 @@ export class UsersController {
      * @returns A felhasználó gyűjteménye.
      */
     @Get('collection')
-    async getCollection(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Get the User Collection' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiResponse({ status: 200, description: 'Return the User Collection', type: CollectionDataDto })
+    async getCollection(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.assetsService.getCollection(authorization);
             return { data: result };
@@ -160,7 +189,10 @@ export class UsersController {
      * @returns A frissített profil adatai.
      */
     @Put('profile')
-    async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileAssetsDataDto): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Update the User Profile' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiBody({ type: ProfileAssetsDataDto })
+    async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileAssetsDataDto): Promise<IApiResponse> {
         try {
             const result = await this.assetsService.updateProfile(authorization, body);
             return { data: result };
@@ -175,7 +207,10 @@ export class UsersController {
      * @returns A felhasználó statisztikái.
      */
     @Get('stats')
-    async getStats(@Headers('authorization') authorization: string): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Get the User Stats' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiResponse({ status: 200, description: 'Return the User Stats', type: UserStatsDto })
+    async getStats(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.usersService.getStats(authorization)
             return { data: result }
@@ -193,7 +228,11 @@ export class UsersController {
      * @returns A jelszó visszaállítási információ.
      */
     @Post('password')
-    async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Request a Password Reset' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiBody({ type: PasswordResetDto })
+    @ApiResponse({ status: 200, description: 'Return the Password Reset information', type: PasswordResetResponseDto })
+    async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<IApiResponse> {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
             const item = result.items.find(image => image.isRight)
@@ -215,6 +254,10 @@ export class UsersController {
      */
     @Get('userVerify')
     @Render('passwordResetResponse')
+    @ApiOperation({ summary: 'Verify the User for Password Reset' })
+    @ApiQuery({ name: 'token', required: true })
+    @ApiQuery({ name: 'id', required: true })
+    @ApiResponse({ status: 200, description: 'Return the User Verification message', type: PasswordResetMessageDto })
     async verifyUser(@Query('token') token: string, @Query('id') id: string) {
         try {
             const result = await this.usersService.verifyUser(token, id);
@@ -235,7 +278,10 @@ export class UsersController {
      * @returns A sikeres jelszó változtatásról szóló üzenet.
      */
     @Put('password')
-    async resetPassword(@Headers('authorization') authorization: string, @Body() body: { token: string, password: string }): Promise<ApiResponse> {
+    @ApiOperation({ summary: 'Reset the User Password' })
+    @ApiHeader({ name: 'authorization' })
+    @ApiBody({ type: PasswordResetDto })
+    async resetPassword(@Headers('authorization') authorization: string, @Body() body: PasswordChangeDto): Promise<IApiResponse> {
         try {
             console.log("Reset password", body);
             return await this.usersService.resetPassword(authorization, body);
