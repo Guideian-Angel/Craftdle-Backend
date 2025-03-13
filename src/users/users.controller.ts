@@ -283,7 +283,6 @@ export class UsersController {
     @ApiBody({ type: PasswordResetDto })
     async resetPassword(@Headers('authorization') authorization: string, @Body() body: PasswordChangeDto): Promise<IApiResponse> {
         try {
-            console.log("Reset password", body);
             return await this.usersService.resetPassword(authorization, body);
         } catch (err) {
             return { message: err.message };
