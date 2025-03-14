@@ -62,13 +62,13 @@ export class GameGateway {
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
-    if (game && !game.riddle.guessedRecipes.includes(payload.item.group + "-" + payload.item.id)) {
+    if (game && !game.riddle.guessedRecipes.includes(payload.item.group)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = this.recipesService.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
       if (payload.item.group != "gaLogo0") {
         if ((game.riddle.gamemode == 1 && this.tipService.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
           if (this.recipesService.validateRecipe(tippedMatrix, baseRecipe)) {
-            game.riddle.guessedRecipes.push(payload.item.group + "-" + payload.item.id);
+            game.riddle.guessedRecipes.push(payload.item.group);
             game.riddle.numberOfGuesses++;
             const result = this.recipesService.compareTipWithRiddle(tippedMatrix, game.riddle);
             const tip = {
