@@ -4,6 +4,8 @@ import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import * as express from 'express';
 import { resolve } from 'path';
+import { version } from '../package.json';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function init() {
   const server = express();
@@ -11,7 +13,14 @@ async function init() {
 
   // CORS engedélyezése
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://craftdle.hu', 'https://admin.craftdle.hu', 'https://test.craftdle.hu'], // Csak erről a domainről érkező kéréseket engedélyezzük
+    origin: [
+      'http://localhost:5173', 
+      'https://craftdle.hu', 
+      'https://admin.craftdle.hu', 
+      'http://test.localhost:5173', 
+      'https://test.craftdle.hu',
+      'https://admin.test.craftdle.hu',
+    ], // Csak erről a domainről érkező kéréseket engedélyezzük
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Engedélyezett HTTP metódusok
     allowedHeaders: 'Content-Type, Authorization', // Engedélyezett fejléc típusok
   });
@@ -40,6 +49,16 @@ async function init() {
   app.useStaticAssets(resolve('./public'));
   app.setBaseViewsDir(resolve('./views'));
   app.setViewEngine('ejs');
+
+  const config = new DocumentBuilder()
+    .setTitle('Craftdle API')
+    .setDescription('Craftdle API documentation')
+    .setVersion(`v${version}`)
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT ?? 3000);
   console.log('Server is running on http://localhost:3000');

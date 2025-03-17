@@ -516,7 +516,7 @@ export class UsersService {
                     })
                     user.passwordReset = undefined;
                     this.passwordChangeTokenToUser.delete(body.token);
-                    return {}
+                    return { message: "Password reset successful" };
                 } else {
                     return { message: "User not verified" };
                 }

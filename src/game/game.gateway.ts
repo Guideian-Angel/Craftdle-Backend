@@ -16,6 +16,7 @@ import { AssetsService } from 'src/assets/assets.service';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { RiddlesService } from 'src/riddles/riddles.service';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { group } from 'console';
 
 @WebSocketGateway({ cors: true })
 export class GameGateway {
@@ -61,13 +62,13 @@ export class GameGateway {
   @SubscribeMessage('guess')
   async handleGuess(client: Socket, payload: ITip) {
     const game = SocketGateway.gameToClient.get(client.id);
-    if (game && !game.riddle.guessedRecipes.includes(payload.item.group + "-" + payload.item.id)) {
+    if (game && !game.riddle.guessedRecipes.includes(payload.item.group)) {
       const tippedMatrix = createMatrixFromArray(payload.table);
       const baseRecipe = this.recipesService.getRecipeById(payload.item.group, payload.item.id, this.cacheService);
       if (payload.item.group != "gaLogo0") {
         if ((game.riddle.gamemode == 1 && this.tipService.checkTutorialScript(payload.item.group, game.riddle.numberOfGuesses)) || game.riddle.gamemode != 1) {
           if (this.recipesService.validateRecipe(tippedMatrix, baseRecipe)) {
-            game.riddle.guessedRecipes.push(payload.item.group + "-" + payload.item.id);
+            game.riddle.guessedRecipes.push(payload.item.group);
             game.riddle.numberOfGuesses++;
             const result = this.recipesService.compareTipWithRiddle(tippedMatrix, game.riddle);
             const tip = {
@@ -76,6 +77,7 @@ export class GameGateway {
                 name: baseRecipe.name,
                 src: baseRecipe.src
               },
+              group: payload.item.group,
               table: result.result,
               date: getCurrentDate()
             }
