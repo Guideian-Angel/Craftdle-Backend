@@ -9,8 +9,10 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "seed": "ts-node seed.ts",
-    "build": "tsc",
+    "prisma:generate": "npx prisma generate",
+    "prisma:push": "npx prisma db push",
+    "seed": "ts-node ./src/prisma/seed.ts",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -63,6 +65,7 @@
     "schema": "./src/prisma/schema.prisma"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@nestjs/cli": "^10.4.7",
     "@types/jest": "^29.5.14",
     "@types/mocha": "^10.0.10",
@@ -71,6 +74,7 @@
     "mocha": "^11.1.0",
     "prisma": "^5.22.0",
     "supertest": "^7.0.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   }
 }
