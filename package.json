@@ -8,6 +8,7 @@
   "author": "Guideian Angel",
   "private": true,
   "license": "UNLICENSED",
+  "main": "src/server",
   "scripts": {
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
