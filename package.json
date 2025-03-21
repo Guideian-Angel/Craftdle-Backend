@@ -9,16 +9,17 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prisma:generate": "npx prisma generate",
-    "prisma:push": "npx prisma db push",
-    "seed": "ts-node ./src/prisma/seed.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "seed": "prisma db seed",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/server",
-    "lint": "npx eslint",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -34,7 +35,6 @@
     "@nestjs/testing": "^11.0.11",
     "@nestjs/websockets": "^11.0.11",
     "@prisma/client": "^5.22.0",
-    "@types/node": "^20.17.24",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -42,7 +42,7 @@
     "ejs": "^3.1.10",
     "node-cache": "^5.1.2",
     "nodemailer": "^6.10.0",
-    "ts-jest": "^29.2.6",
+    "prisma": "^5.22.0",
     "uuid": "^11.1.0"
   },
   "jest": {
@@ -53,7 +53,7 @@
     ],
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/src/$1"
-    },  
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -65,18 +65,26 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "schema": "./src/prisma/schema.prisma"
+    "schema": "./src/prisma/schema.prisma",
+    "prisma": "ts-node .src/prisma/seed.ts"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.6.0",
     "@nestjs/cli": "^10.4.7",
     "@types/jest": "^29.5.14",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^22.13.11",
     "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.27.0",
+    "@typescript-eslint/parser": "^8.27.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "jest": "^29.7.0",
     "mocha": "^11.1.0",
-    "prisma": "^5.22.0",
+    "prettier": "^3.5.3",
     "supertest": "^7.0.0",
+    "ts-jest": "^29.2.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   }
