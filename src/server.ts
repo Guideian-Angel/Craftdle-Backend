@@ -15,6 +15,7 @@ async function init() {
   app.enableCors({
     origin: [
       'http://localhost:5173', 
+      'http://localhost:5174', 
       'https://craftdle.hu', 
       'https://admin.craftdle.hu', 
       'http://test.localhost:5173', 
