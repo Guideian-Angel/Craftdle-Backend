@@ -1,11 +1,11 @@
 import { PrismaService } from "src/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
 import { UsersService } from "src/users/users.service";
-import { CreateMaintenanceDto } from "../dto/createMaintenance.dto";
+import { CreateMaintenanceDto } from "./dto/createMaintenance.dto";
 import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
 
 @Injectable()
-export class Maintenance {
+export class MaintenanceService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly usersService: UsersService,
@@ -150,5 +150,22 @@ export class Maintenance {
         } catch (err) {
             throw new Error(err.message);
         }
+    }
+
+    async getMaintenanceDates(): Promise<Set<number>> {
+        const maintenances = await this.prisma.maintenance.findMany();
+        const dates = new Set<number>();
+    
+        maintenances.forEach(maintenance => {
+            let date = new Date(maintenance.start);
+            date.setHours(1, 0, 0, 0);
+    
+            while (date <= maintenance.end) {
+                dates.add(date.getTime());
+                date.setDate(date.getDate() + 1);
+            }
+        });
+    
+        return dates;
     }
 }
