@@ -151,21 +151,4 @@ export class MaintenanceService {
             throw new Error(err.message);
         }
     }
-
-    async getMaintenanceDates(): Promise<Set<number>> {
-        const maintenances = await this.prisma.maintenance.findMany();
-        const dates = new Set<number>();
-    
-        maintenances.forEach(maintenance => {
-            let date = new Date(maintenance.start);
-            date.setHours(1, 0, 0, 0);
-    
-            while (date <= maintenance.end) {
-                dates.add(date.getTime());
-                date.setDate(date.getDate() + 1);
-            }
-        });
-    
-        return dates;
-    }
 }
