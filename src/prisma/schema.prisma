@@ -3,37 +3,37 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model achievements {
   id                 Int                  @id @default(autoincrement())
-  title              String               @unique(map: "title") @db.VarChar(255)
+  title              String               @unique @db.VarChar(255)
   description        String               @db.VarChar(255)
   icon               String               @db.VarChar(255)
   goal               Int
   is_secret          Boolean
-  parent             Int?                 @unique(map: "parentId")
+  parent             Int?                 @unique
   event              String?              @db.VarChar(255)
   target             String?              @db.VarChar(255)
-  parent_achievement achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "achievements_ibfk_1")
+  parent_achievement achievements?        @relation("achievementsToachievements", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict)
   child_achievement  achievements?        @relation("achievementsToachievements")
   rewards            rewards[]
   users_achievements users_achievements[]
 
-  @@index([parent], map: "parent")
+  @@index([parent])
 }
 
 model rights {
   id           Int            @id @default(autoincrement())
-  name         String         @unique(map: "admin") @db.VarChar(255)
+  name         String         @unique @db.VarChar(255)
   users_rights users_rights[]
 }
 
 model collections {
   id                Int                 @id @default(autoincrement())
-  item_id           String              @unique(map: "item_id") @db.VarChar(255)
+  item_id           String              @unique @db.VarChar(255)
   name              String              @db.VarChar(255)
   src               String              @db.VarChar(255)
   users_collections users_collections[]
@@ -42,11 +42,11 @@ model collections {
 
 model controls {
   id                                   Int              @id @default(autoincrement())
-  settings                             Int              @unique(map: "settings")
+  settings                             Int              @unique
   is_tap_mode                          Boolean          @default(false)
   copy                                 String           @default("LMB") @db.VarChar(3)
   remove                               String           @default("RMB") @db.VarChar(3)
-  settings_controls_settingsTosettings settings         @relation("controls_settingsTosettings", fields: [settings], references: [id], onUpdate: Restrict, map: "controls_ibfk_1")
+  settings_controls_settingsTosettings settings         @relation("controls_settingsTosettings", fields: [settings], references: [id], onUpdate: Restrict)
   table_mappings                       table_mappings[]
 }
 
@@ -56,30 +56,30 @@ model crafting_table_slots {
   position    Int
   content     String      @db.VarChar(255)
   status      Int
-  tips        tips        @relation(fields: [tip], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "crafting_table_slots_ibfk_1")
-  guess_types guess_types @relation(fields: [status], references: [id], onUpdate: Restrict, map: "crafting_table_slots_ibfk_2")
+  tips        tips        @relation(fields: [tip], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  guess_types guess_types @relation(fields: [status], references: [id], onUpdate: Restrict)
 
-  @@index([status], map: "status")
-  @@index([tip], map: "tip")
+  @@index([status])
+  @@index([tip])
 }
 
 model difficulties {
   id         Int         @id @default(autoincrement())
-  name       String      @unique(map: "name") @db.VarChar(255)
-  color_code String      @unique(map: "color_code") @db.VarChar(6)
+  name       String      @unique @db.VarChar(255)
+  color_code String      @unique @db.VarChar(6)
   gamemodes  gamemodes[]
 }
 
 model gamemodes {
   id           Int          @id @default(autoincrement())
   icon         String       @db.VarChar(255)
-  name         String       @unique(map: "name") @db.VarChar(255)
+  name         String       @unique @db.VarChar(255)
   description  String       @db.VarChar(255)
   difficulty   Int
-  difficulties difficulties @relation(fields: [difficulty], references: [id], onUpdate: Restrict, map: "gamemodes_ibfk_1")
+  difficulties difficulties @relation(fields: [difficulty], references: [id], onUpdate: Restrict)
   games        games[]
 
-  @@index([difficulty], map: "difficulty")
+  @@index([difficulty])
 }
 
 model games {
@@ -87,21 +87,21 @@ model games {
   type              Int
   player            Int
   riddle            String              @db.VarChar(255)
-  date              DateTime            @db.DateTime(0)
+  date              DateTime
   is_solved         Boolean
-  gamemodes         gamemodes           @relation(fields: [type], references: [id], onUpdate: Restrict, map: "games_ibfk_1")
-  users             users               @relation(fields: [player], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "games_ibfk_2")
+  gamemodes         gamemodes           @relation(fields: [type], references: [id], onUpdate: Restrict)
+  users             users               @relation(fields: [player], references: [id], onUpdate: Restrict, onDelete: Cascade)
   hints             hints[]
   inventories_items inventories_items[]
   tips              tips[]
 
-  @@index([player], map: "player")
-  @@index([type], map: "type")
+  @@index([player])
+  @@index([type])
 }
 
 model guess_types {
   id                   Int                    @id @default(autoincrement())
-  type                 String                 @unique(map: "type") @db.VarChar(255)
+  type                 String                 @unique @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
 }
 
@@ -110,25 +110,25 @@ model hints {
   game    Int
   number  Int
   content String? @db.VarChar(255)
-  games   games   @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "hints_ibfk_1")
+  games   games   @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade)
 
-  @@index([game], map: "game")
+  @@index([game])
 }
 
 model inventories_items {
   id    Int    @id @default(autoincrement())
   game  Int
   item  String
-  games games  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "inventories_items_ibfk_1")
-  items items  @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "inventories_items_ibfk_2")
+  games games  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  items items  @relation(fields: [item], references: [item_id], onUpdate: Restrict)
 
-  @@index([game], map: "game")
-  @@index([item], map: "item")
+  @@index([game])
+  @@index([item])
 }
 
 model items {
   id                Int                 @id @default(autoincrement())
-  item_id           String              @unique(map: "item_id") @db.VarChar(255)
+  item_id           String              @unique @db.VarChar(255)
   name              String              @db.VarChar(255)
   src               String              @db.VarChar(255)
   inventories_items inventories_items[]
@@ -137,11 +137,11 @@ model items {
 model maintenance {
   id    Int      @id @default(autoincrement())
   user  Int
-  start DateTime @db.DateTime(0)
-  end   DateTime @db.DateTime(0)
-  users users    @relation(fields: [user], references: [id], onUpdate: Restrict, map: "maintenance_ibfk_1")
+  start DateTime
+  end   DateTime
+  users users    @relation(fields: [user], references: [id], onUpdate: Restrict)
 
-  @@index([user], map: "user")
+  @@index([user])
 }
 
 model profile_borders {
@@ -169,11 +169,11 @@ model rewards {
   achievement  Int
   reward       Int
   reward_type  Int
-  achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "rewards_ibfk_1")
-  reward_types reward_types @relation(fields: [reward_type], references: [id], onUpdate: Restrict, map: "rewards_ibfk_2")
+  achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict)
+  reward_types reward_types @relation(fields: [reward_type], references: [id], onUpdate: Restrict)
 
-  @@index([achievement], map: "achievement")
-  @@index([reward_type], map: "reward_type")
+  @@index([achievement])
+  @@index([reward_type])
 }
 
 model settings {
@@ -183,9 +183,9 @@ model settings {
   image_size                           Int       @default(50)
   is_set                               Boolean
   controls_controls_settingsTosettings controls? @relation("controls_settingsTosettings")
-  users                                users     @relation(fields: [user], references: [id], onUpdate: Restrict, map: "settings_ibfk_1")
+  users                                users     @relation(fields: [user], references: [id], onUpdate: Restrict)
 
-  @@index([user], map: "user")
+  @@index([user])
 }
 
 model table_mappings {
@@ -193,38 +193,38 @@ model table_mappings {
   control  Int
   slot     Int
   hot_key  String?  @db.VarChar(1)
-  controls controls @relation(fields: [control], references: [id], onUpdate: Restrict, map: "table_mappings_ibfk_1")
+  controls controls @relation(fields: [control], references: [id], onUpdate: Restrict)
 
-  @@index([control], map: "control")
+  @@index([control])
 }
 
 model tips {
   id                   Int                    @id @default(autoincrement())
   game                 Int
-  date                 DateTime               @db.DateTime(0)
+  date                 DateTime
   group                String                 @db.VarChar(255)
   item                 String                 @db.VarChar(255)
   crafting_table_slots crafting_table_slots[]
-  games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "tips_ibfk_1")
-  collections          collections            @relation(fields: [item], references: [item_id], onUpdate: Restrict, map: "tips_ibfk_2")
+  games                games                  @relation(fields: [game], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  collections          collections            @relation(fields: [item], references: [item_id], onUpdate: Restrict)
 
-  @@index([game], map: "game")
+  @@index([game])
 }
 
 model tokens {
   id          Int     @id @default(autoincrement())
-  user        Int     @unique(map: "user")
-  login_token String  @unique(map: "login_token") @db.VarChar(255)
+  user        Int     @unique
+  login_token String  @unique @db.VarChar(255)
   is_expire   Boolean
-  users       users   @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "tokens_ibfk_1")
+  users       users   @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade)
 }
 
 model users {
   id                     Int                      @id @default(autoincrement())
-  username               String?                  @unique(map: "username") @db.VarChar(16)
+  username               String?                  @unique @db.VarChar(16)
   password               String?                  @db.VarChar(255)
-  email                  String?                  @unique(map: "email") @db.VarChar(255)
-  registration_date      DateTime                 @db.DateTime(0)
+  email                  String?                  @unique @db.VarChar(255)
+  registration_date      DateTime
   is_guest               Boolean
   games                  games[]
   maintenance            maintenance[]
@@ -242,24 +242,24 @@ model users_achievements {
   user         Int
   achievement  Int
   progress     Int
-  achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_1")
-  users        users        @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_achievements_ibfk_2")
+  achievements achievements @relation(fields: [achievement], references: [id], onUpdate: Restrict)
+  users        users        @relation(fields: [user], references: [id], onUpdate: Restrict)
 
   @@unique([user, achievement], name: "user_achievement")
-  @@index([achievement], map: "achievement")
-  @@index([user], map: "user")
+  @@index([achievement])
+  @@index([user])
 }
 
 model users_collections {
   id          Int         @id @default(autoincrement())
   user        Int
   collection  String
-  users       users       @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_collections_ibfk_1")
-  collections collections @relation(fields: [collection], references: [item_id], onUpdate: Restrict, map: "users_collections_ibfk_2")
+  users       users       @relation(fields: [user], references: [id], onUpdate: Restrict)
+  collections collections @relation(fields: [collection], references: [item_id], onUpdate: Restrict)
 
   @@unique([user, collection], name: "user_achievement")
-  @@index([collection], map: "collection")
-  @@index([user], map: "user")
+  @@index([collection])
+  @@index([user])
 }
 
 model users_profile_borders {
@@ -267,11 +267,11 @@ model users_profile_borders {
   user            Int
   profile_border  Int
   is_set          Boolean
-  users           users           @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "users_profile_borders_ibfk_1")
-  profile_borders profile_borders @relation(fields: [profile_border], references: [id], onUpdate: Restrict, map: "users_profile_borders_ibfk_2")
+  users           users           @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  profile_borders profile_borders @relation(fields: [profile_border], references: [id], onUpdate: Restrict)
 
-  @@index([profile_border], map: "profile_border")
-  @@index([user], map: "user")
+  @@index([profile_border])
+  @@index([user])
 }
 
 model users_profile_pictures {
@@ -279,21 +279,21 @@ model users_profile_pictures {
   user             Int
   profile_picture  Int
   is_set           Boolean
-  users            users            @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade, map: "users_profile_pictures_ibfk_1")
-  profile_pictures profile_pictures @relation(fields: [profile_picture], references: [id], onUpdate: Restrict, map: "users_profile_pictures_ibfk_2")
+  users            users            @relation(fields: [user], references: [id], onUpdate: Restrict, onDelete: Cascade)
+  profile_pictures profile_pictures @relation(fields: [profile_picture], references: [id], onUpdate: Restrict)
 
-  @@index([profile_picture], map: "profile_picture")
-  @@index([user], map: "user")
+  @@index([profile_picture])
+  @@index([user])
 }
 
 model users_rights {
   id     Int    @id @default(autoincrement())
   user   Int
   right  Int
-  users  users  @relation(fields: [user], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_1")
-  rights rights @relation(fields: [right], references: [id], onUpdate: Restrict, map: "users_rights_ibfk_2")
+  users  users  @relation(fields: [user], references: [id], onUpdate: Restrict)
+  rights rights @relation(fields: [right], references: [id], onUpdate: Restrict)
 
   @@unique([user, right])
-  @@index([right], map: "right")
-  @@index([user], map: "user")
+  @@index([right])
+  @@index([user])
 }
