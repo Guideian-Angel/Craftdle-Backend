@@ -5,9 +5,9 @@ SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE rights;
 
 INSERT INTO rights ( id, name ) VALUES
-(1, 'Modify Users'),
-(2, 'Modify Admins'),
-(3, 'Modify Maintenance');
+(1, 'modifyUsers'),
+(2, 'modifyAdmins'),
+(3, 'modifyMaintenance');
 
 -- difficulties
 

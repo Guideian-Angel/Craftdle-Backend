@@ -54,6 +54,7 @@ export class SocketGateway
     const token = client.handshake.auth?.token;
     if (!token) {
       this.logger.error('Connection rejected: No token provided.');
+      client.emit("error", 'UnauthorizedError');
       client.disconnect();
       return;
     }
@@ -63,6 +64,7 @@ export class SocketGateway
 
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
+      client.emit("error", 'UnauthorizedError');
       client.disconnect();
       return;
     }
@@ -71,7 +73,7 @@ export class SocketGateway
     this.usersService.associateSocketId(token, client.id);
 
     if(oldSocketId){
-      this.server.to(oldSocketId).disconnectSockets(true);
+      this.server.to(oldSocketId).disconnectSockets();
     }
     
     // Socket ID társítása a UsersService-ben

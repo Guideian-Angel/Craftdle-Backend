@@ -4,11 +4,7 @@ import { Game } from 'src/game/classes/game.class';
 import { ITip } from 'src/tip/interfaces/tip.interface';
 import { getStreak } from 'src/users/utilities/user.util';
 import { User } from 'src/users/classes/user.class';
-import { Recipe } from 'src/recipes/classes/recipe.class';
-import { CacheService } from 'src/cache/cache.service';
-import { RecipesService } from 'src/recipes/recipes.service';
-import { createMatrixFromArray } from 'src/sharedComponents/utilities/array.util';
-import { formatDate, getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 
 export class AchievementsCollection {
 
@@ -44,8 +40,6 @@ export class AchievementsCollection {
         
         // Ellenőrizzük, hogy az év első órájában történt-e a megoldás
         const solvedAt = getCurrentDate();
-        console.log(solvedAt)
-        console.log(solvedAt.getHours(), solvedAt.getDate(), solvedAt.getMonth())
         if (solvedAt.getHours() === 1 && solvedAt.getDate() === 1 && solvedAt.getMonth() === 0) {
             additionalTargets.push("first");
         }
@@ -68,7 +62,6 @@ export class AchievementsCollection {
                     date: 'asc',
                 },
             });
-            console.log(firstGame)
             if(firstGame?.player === userId){
                 additionalTargets.push("number1");
             };
@@ -135,9 +128,11 @@ export class AchievementsCollection {
             }
 
             // Várjuk meg az összes updateAchievementProgress lefutását!
-            await Promise.all(events.flatMap(event =>
-                event.targets.map((target) => this.updateAchievementProgress(user.id, event.name, target))
-            ));
+            for (const event of events) {
+                for (const target of event.targets) {
+                    await this.updateAchievementProgress(user.id, event.name, target);
+                }
+            }
         }
     }
 

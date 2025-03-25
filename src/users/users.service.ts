@@ -11,8 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
-import { GameService } from 'src/game/game.service';
-
 
 @Injectable()
 export class UsersService {
@@ -146,7 +144,6 @@ export class UsersService {
             );
         }
     }
-
 
     /**
      * Bejelentkezési folyamat kezelése Bearer tokennel vagy felhasználónév/jelszó párossal.
@@ -519,7 +516,7 @@ export class UsersService {
                     })
                     user.passwordReset = undefined;
                     this.passwordChangeTokenToUser.delete(body.token);
-                    return {}
+                    return { message: "Password reset successful" };
                 } else {
                     return { message: "User not verified" };
                 }
@@ -639,9 +636,9 @@ export class UsersService {
                 }
             })).map(right => right.rights.name);
             return {
-                modifyUsers: adminRights.includes('Modify Users'),
-                modifyMaintenance: adminRights.includes('Modify Maintenance'),
-                modifyAdmins: adminRights.includes('Modify Admins'),
+                modifyUsers: adminRights.includes('modifyUsers'),
+                modifyMaintenance: adminRights.includes('modifyMaintenance'),
+                modifyAdmins: adminRights.includes('modifyAdmins'),
             }
         } catch (error) {
             return null;
