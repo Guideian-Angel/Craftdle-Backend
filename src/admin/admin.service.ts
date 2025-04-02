@@ -7,6 +7,7 @@ import { LoginDataDto } from 'src/users/dtos/login.dto';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { UpdateAdminRightsDto } from './dto/updateAdminRights.dto';
 import { getStreak } from 'src/users/utilities/user.util';
+import { AuthorizationService } from 'src/authorization/authorization.service';
 
 @Injectable()
 export class AdminService {
@@ -14,7 +15,8 @@ export class AdminService {
     private prisma: PrismaService,
     private readonly usersService: UsersService,
     private readonly gameService: GameService,
-    private readonly assetsService: AssetsService
+    private readonly assetsService: AssetsService,
+    private readonly authorizationService: AuthorizationService
   ) {}
 
   generateVerificationCode() {
@@ -26,7 +28,7 @@ export class AdminService {
       if (!await this.usersService.findEmail(loginDataDto.usernameOrEmail)) {
         throw new HttpException('User not found with this email', HttpStatus.NOT_FOUND);
       }
-      const user = await this.usersService.handleBodyLogin({
+      const user = await this.usersService.loginUser({
         ...loginDataDto,
         stayLoggedIn: false
       });
@@ -160,7 +162,7 @@ export class AdminService {
       })
 
       return Promise.all(userDatas.map(async userData => {
-        const rights = await this.usersService.getAdminRights(userData.id);
+        const rights = await this.authorizationService.getAdminRights(userData.id);
         const formatedRigths = Object.keys(rights).filter(rightName => rights[rightName]);
         const formatedUserData = {
           id: userData.id,

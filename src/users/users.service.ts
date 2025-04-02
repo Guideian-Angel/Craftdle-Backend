@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
+import { AuthorizationService } from 'src/authorization/authorization.service';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +23,8 @@ export class UsersService {
         private readonly prisma: PrismaService,
         private readonly assetsService: AssetsService,
         private readonly tokenService: TokenService,
-        private readonly settingsService: SettingsService
+        private readonly settingsService: SettingsService,
+        private readonly authorizationService: AuthorizationService
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
@@ -30,7 +32,7 @@ export class UsersService {
             const currentUser = this.tokenToUser.get(newUser.loginToken);
             const socketId = currentUser ? currentUser.socketId : undefined;
             newUser.loginToken = await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
-            const admin_rights = await this.getAdminRights(newUser.id);
+            const admin_rights = await this.authorizationService.getAdminRights(newUser.id);
             this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
@@ -63,7 +65,7 @@ export class UsersService {
         console.log("newUser: ", newUser);
 
         if (currentUser) {
-            if(newUser.socketId === socketId){
+            if (newUser.socketId === socketId) {
                 this.tokenToUser.delete(currentUser.token);
             }
             this.socketIdToUser.delete(socketId);
@@ -150,19 +152,16 @@ export class UsersService {
      * @param authorization - A Bearer token, amely az `authorization` headerből érkezik.
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó bejelentkezési adatait.
      */
-    async loginUser(authorization: string, userData: LoginDataDto) {
+    async autoLogin(authorization: string) {
         try {
-            const user = await this.tokenService.validateBearerToken(authorization, true);
-            if (user) {
-                const formatedUser = await this.generateLoginResponse(
-                    await getUserById(user, this.prisma),
-                    authorization.replace('Bearer ', ''),
-                    true
-                );
-                await this.createNewUser(formatedUser, false);
-                return formatedUser;
-            }
-            return await this.handleBodyLogin(userData);
+            const userId = await this.tokenService.validateBearerToken(authorization);
+            const formatedUser = await this.generateLoginResponse(
+                await getUserById(userId, this.prisma),
+                authorization.replace('Bearer ', ''),
+                true
+            );
+            await this.createNewUser(formatedUser, false);
+            return formatedUser;
         } catch (err) {
             throw new HttpException(
                 { errors: err.response?.errors || { message: [err.message] } },
@@ -187,7 +186,7 @@ export class UsersService {
      * Bejelentkezés felhasználónév/jelszó párossal.
      * @param userData - A `LoginDataDto` objektum, amely tartalmazza a felhasználó adatait.
      */
-    async handleBodyLogin(userData: LoginDataDto) {
+    async loginUser(userData: LoginDataDto) {
         try {
             const user = await this.findUserByName({
                 username: userData.usernameOrEmail,
@@ -619,30 +618,6 @@ export class UsersService {
             }
         });
         return Object.keys(games).sort().map(key => games[key]);
-    }
-
-    async getAdminRights(id: number) {
-        try {
-            const adminRights = (await this.prisma.users_rights.findMany({
-                where: {
-                    user: id
-                },
-                select: {
-                    rights: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            })).map(right => right.rights.name);
-            return {
-                modifyUsers: adminRights.includes('modifyUsers'),
-                modifyMaintenance: adminRights.includes('modifyMaintenance'),
-                modifyAdmins: adminRights.includes('modifyAdmins'),
-            }
-        } catch (error) {
-            return null;
-        }
     }
 
     async deleteUnnecessaryGuestsData(user: User) {

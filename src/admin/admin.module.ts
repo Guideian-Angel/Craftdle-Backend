@@ -10,6 +10,7 @@ import { EmailModule } from 'src/email/email.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { StatisticsModule } from 'src/statistics/statistics.module';
 import { CliModule } from 'src/cli/cli.module';
+import { AuthorizationModule } from 'src/authorization/authorization.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { CliModule } from 'src/cli/cli.module';
     AdminModule,
     PrismaModule,
     StatisticsModule,
-    CliModule
+    CliModule,
+    AuthorizationModule
   ],
   controllers: [AdminController],
   providers: [AdminService, Maintenance],

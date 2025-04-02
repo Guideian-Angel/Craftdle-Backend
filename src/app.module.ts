@@ -17,6 +17,9 @@ import { SettingsModule } from './settings/settings.module';
 import { TipModule } from './tip/tip.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { CliModule } from './cli/cli.module';
+import { APP_GUARD } from '@nestjs/core';
+import { TokenAuthGuard } from './guards/token.guard';
+import { AuthorizationModule } from './authorization/authorization.module';
 
 @Module({
   imports: [
@@ -36,8 +39,15 @@ import { CliModule } from './cli/cli.module';
     TipModule,
     StatisticsModule,
     CliModule,
+    AuthorizationModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: TokenAuthGuard,
+    },
+  ],
 })
 export class AppModule {}
