@@ -61,8 +61,6 @@ export class UsersService {
     removeUserBySocketId(socketId: string): void {
         const currentUser = this.socketIdToUser.get(socketId);
         const newUser = this.tokenToUser.get(currentUser.token);
-        console.log("currentUser: ", currentUser);
-        console.log("newUser: ", newUser);
 
         if (currentUser) {
             if (newUser.socketId === socketId) {

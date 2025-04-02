@@ -61,7 +61,7 @@ export class SocketGateway
 
     // Token validáció a UsersService-en keresztül
     const user = this.usersService.getUserByToken(token);
-
+    console.log(user);
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
       client.emit("error", 'UnauthorizedError');

@@ -30,7 +30,16 @@ async function seedGeneralDatas() {
 
 async function seedAdmin() {
     const username = readlineSync.question('Please enter the admin username: ');
-    const email = readlineSync.question('Please enter the admin email: ');
+
+    let email: string;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    do {
+        email = readlineSync.question('Please enter the admin email: ');
+        if (!emailRegex.test(email)) {
+            console.log('Invalid email format. Please try again.');
+        }
+    } while (!emailRegex.test(email));
+
     const password = readlineSync.questionNewPassword('Please enter the admin password: ');
 
     console.log('Admin user will be seeded with the username:', username);

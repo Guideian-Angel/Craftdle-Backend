@@ -12,7 +12,7 @@ The Craftdle backend powers the game's core functionalities, handling user authe
 
 ## Installation & Running
 
-1. **Obtain the `.env` file** – Request it from an existing developer and place it in the root directory.
+1. **Obtain the `.env` file**
 2. **Install dependencies:**
    ```sh
    npm install
@@ -23,11 +23,11 @@ The Craftdle backend powers the game's core functionalities, handling user authe
    ```
 4. **Apply database migrations:**
    ```sh
-   npm run prisma:push
+   npx prisma db push
    ```
 5. **Load seed data:**
    ```sh
-   npm run seed
+   npx prisma db seed
    ```
 6. **Start the application:**
    - Development mode:
@@ -62,10 +62,16 @@ The following scripts are available in the `package.json`:
 ## Environment Variables
 The application requires the following environment variables to be set in a `.env` file:
 
-- `DATABASE_URL` – Connection string for MySQL database  
-- `BACKENDURL` – Base URL of the backend server  
-- `ENCRYPTION_KEY` – Key used for encryption  
-- `GMAILADDRESS` – Email address for outgoing emails  
-- `GMAILPASSWORD` – Password for Gmail integration  
+- `DATABASE_URL` – Connection string for MySQL database
+- `BACKENDURL` – Base URL of the backend server
+- `ENCRYPTION_KEY` – Key used for encryption
+- `GMAILADDRESS` – Email address for outgoing emails
+- `GMAILPASSWORD` – App password for Gmail
 
-A `.env` file should be obtained from an existing developer.
+#### Obtain Gmail Password
+Follow the instructions at [Google Support](https://support.google.com/mail/answer/185833) to generate an app password for Gmail.
+
+### Note on Password Reset Functionality
+The password reset functionality has limitations when running on `localhost`:
+- Images in the email cannot load because Gmail cannot access `localhost`.
+- The functionality only works if the email is accessed on the same machine where the server is running.
