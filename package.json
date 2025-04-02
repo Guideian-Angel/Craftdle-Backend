@@ -45,6 +45,7 @@
     "node-cache": "^5.1.2",
     "nodemailer": "^6.10.0",
     "prisma": "^5.22.0",
+    "readline-sync": "^1.4.10",
     "uuid": "^11.1.0"
   },
   "jest": {

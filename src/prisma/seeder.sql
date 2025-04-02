@@ -1,6 +1,8 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 -- rights
 
-TRUNCATE TABLE rights CASCADE;
+TRUNCATE TABLE rights;
 
 INSERT INTO rights ( id, name ) VALUES
 (1, 'modifyUsers'),
@@ -9,7 +11,7 @@ INSERT INTO rights ( id, name ) VALUES
 
 -- difficulties
 
-TRUNCATE TABLE difficulties CASCADE;
+TRUNCATE TABLE difficulties;
 
 INSERT INTO difficulties (id, name, color_code) VALUES
 (1, 'Beginner', '55FF55'),
@@ -20,7 +22,7 @@ INSERT INTO difficulties (id, name, color_code) VALUES
 
 -- gamemodes
 
-TRUNCATE TABLE gamemodes CASCADE;
+TRUNCATE TABLE gamemodes;
 
 INSERT INTO gamemodes (id, icon, name, description, difficulty) VALUES 
 (1, 'Tutorial.png', 'Tutorial', 'In this mode, players can learn the game''s mechanics and controls.', 1),
@@ -33,7 +35,7 @@ INSERT INTO gamemodes (id, icon, name, description, difficulty) VALUES
 
 -- achievements
 
-TRUNCATE TABLE achievements CASCADE;
+TRUNCATE TABLE achievements;
 
 INSERT INTO achievements (id, title, description, icon, goal, is_secret, parent, event, target) VALUES
 (1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 'false', NULL, 'regist', 'regist'),
@@ -95,7 +97,7 @@ INSERT INTO achievements (id, title, description, icon, goal, is_secret, parent,
 
 -- collection
 
-TRUNCATE TABLE collections CASCADE;
+TRUNCATE TABLE collections;
 
 INSERT INTO collections (item_id, name, src) VALUES
 ('oak_wood', 'Oak Wood', 'Oak_Wood.png'),
@@ -1000,7 +1002,7 @@ INSERT INTO collections (item_id, name, src) VALUES
 
 -- guess types
 
-TRUNCATE TABLE guess_types CASCADE;
+TRUNCATE TABLE guess_types;
 
 INSERT INTO guess_types (id, type) VALUES
 (1, 'correct'),
@@ -1009,7 +1011,7 @@ INSERT INTO guess_types (id, type) VALUES
 
 -- items
 
-TRUNCATE TABLE items CASCADE;
+TRUNCATE TABLE items;
 
 INSERT INTO items (item_id, name, src) VALUES
 ('oak_log', 'Oak Log', 'Oak_Log.png'),
@@ -1627,7 +1629,7 @@ INSERT INTO items (item_id, name, src) VALUES
 
 -- profile borders
 
-TRUNCATE TABLE profile_borders CASCADE;
+TRUNCATE TABLE profile_borders;
 
 INSERT INTO profile_borders (id, name, src) VALUES
 (1, 'Amethyst', 'Amethyst.png'),
@@ -1653,7 +1655,7 @@ INSERT INTO profile_borders (id, name, src) VALUES
 
 -- profile pictures
 
-TRUNCATE TABLE profile_pictures CASCADE;
+TRUNCATE TABLE profile_pictures;
 
 INSERT INTO profile_pictures (id, name, src) VALUES
 (1, 'Chicken', 'Chicken.png'),
@@ -1770,7 +1772,7 @@ INSERT INTO profile_pictures (id, name, src) VALUES
 
 -- reward type
 
-TRUNCATE TABLE reward_types CASCADE;
+TRUNCATE TABLE reward_types;
 
 INSERT INTO reward_types (id, name) VALUES
 (1, 'profile_pictures'),
@@ -1778,7 +1780,7 @@ INSERT INTO reward_types (id, name) VALUES
 
 -- rewards
 
-TRUNCATE TABLE rewards CASCADE;
+TRUNCATE TABLE rewards;
 
 INSERT INTO rewards (achievement, reward, reward_type, id) VALUES
 (1, 12, 1, 1),
@@ -1912,3 +1914,5 @@ INSERT INTO rewards (achievement, reward, reward_type, id) VALUES
 (35, 10, 2, 129),
 (38, 12, 2, 130),
 (56, 8, 2, 131);
+
+SET FOREIGN_KEY_CHECKS = 1;
