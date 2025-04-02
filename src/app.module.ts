@@ -20,6 +20,7 @@ import { CliModule } from './cli/cli.module';
 import { APP_GUARD } from '@nestjs/core';
 import { TokenAuthGuard } from './guards/token.guard';
 import { AuthorizationModule } from './authorization/authorization.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuthorizationModule } from './authorization/authorization.module';
     StatisticsModule,
     CliModule,
     AuthorizationModule,
+    MaintenanceModule
   ],
   controllers: [AppController],
   providers: [
