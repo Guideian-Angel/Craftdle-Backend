@@ -1,7 +1,8 @@
 import { IAsset } from "src/assets/interfaces/assets.interface";
 import { IUserData } from "../interfaces/user.interface";
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { AssetsDataDto } from "src/assets/dtos/assetsData.dto";
+import { applyDecorators, Type } from "@nestjs/common";
 
 export class UserDataDto implements IUserData {
     @ApiProperty({ example: 'Guest316', description: 'The username of the user' })

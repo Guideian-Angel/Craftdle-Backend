@@ -1,8 +1,6 @@
-SET FOREIGN_KEY_CHECKS = 0;
-
 -- rights
 
-TRUNCATE TABLE rights;
+TRUNCATE TABLE rights CASCADE;
 
 INSERT INTO rights ( id, name ) VALUES
 (1, 'modifyUsers'),
@@ -11,7 +9,7 @@ INSERT INTO rights ( id, name ) VALUES
 
 -- difficulties
 
-TRUNCATE TABLE difficulties;
+TRUNCATE TABLE difficulties CASCADE;
 
 INSERT INTO difficulties (id, name, color_code) VALUES
 (1, 'Beginner', '55FF55'),
@@ -22,10 +20,10 @@ INSERT INTO difficulties (id, name, color_code) VALUES
 
 -- gamemodes
 
-TRUNCATE TABLE gamemodes;
+TRUNCATE TABLE gamemodes CASCADE;
 
 INSERT INTO gamemodes (id, icon, name, description, difficulty) VALUES 
-(1, 'Tutorial.png', 'Tutorial', "In this mode, players can learn the game's mechanics and controls.", 1),
+(1, 'Tutorial.png', 'Tutorial', 'In this mode, players can learn the game''s mechanics and controls.', 1),
 (2, 'Classic.png', 'Classic', 'In this mode, you receive recipes as riddles, but only those that are not made by one type of material. Four different hints are available to help you solve them.', 3),
 (3, 'Daily.png', 'Daily', 'Similar to Classic, but can only be played once per day. Keep your streak going!', 3),
 (4, 'AllInOne.png', 'All in One', 'In this mode, you can receive any recipe as a riddle. Four different hints are available to help you solve it.', 4),
@@ -35,71 +33,71 @@ INSERT INTO gamemodes (id, icon, name, description, difficulty) VALUES
 
 -- achievements
 
-TRUNCATE TABLE achievements;
+TRUNCATE TABLE achievements CASCADE;
 
-INSERT INTO achievements (`id`, `title`, `description`, `icon`, `goal`, `is_secret`, `parent`, `event`, `target`) VALUES
-(1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 0, NULL, 'regist', 'regist'),
-(2, 'The Collector', 'Collect 100 items', 'The_Collector.png', 100, 0, NULL, 'collect', 'any'),
-(3, "Here\'s Johnny!!!", 'Collect all axes', 'Johnny.png', 6, 0, NULL, 'collect', "axe"),
-(4, 'The First of All', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 0, NULL, 'solve', 'number1'),
-(5, 'Still a Beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 1, NULL, 'solve', 'Tutorial'),
-(6, 'The Master Chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 1, NULL, 'solve', 'food'),
-(7, 'Cheater?!', 'Solve a riddle with only one guess', 'Cheat.png', 1, 1, NULL, 'solve', 'zero'),
-(8, 'Wish I Had an Angel', 'Craft the Guideian Angel logo', 'GA.png', 1, 1, NULL, 'guess', "ga"),
-(9, 'Casual Player I', 'Solve 5 Classic games', 'Classic.png', 5, 0, NULL, 'solve', 'Classic'),
-(10, 'Casual Player II', 'Solve 10 Classic games', 'Classic.png', 10, 0, 9, 'solve', 'Classic'),
-(11, 'Casual Player III', 'Solve 25 Classic games', 'Classic.png', 25, 0, 10, 'solve', 'Classic'),
-(12, 'Casual Player IV', 'Solve 50 Classic games', 'Classic.png', 50, 0, 11, 'solve', 'Classic'),
-(13, 'Casual Player V', 'Solve 100 Classic games', 'Classic.png', 100, 0, 12, 'solve', 'Classic'),
-(14, 'Daily Challenger I', 'Complete 5 Daily games', 'Daily.png', 5, 0, NULL, 'solve', 'Daily'),
-(15, 'Daily Challenger II', 'Complete 10 Daily games', 'Daily.png', 10, 0, 14, 'solve', 'Daily'),
-(16, 'Daily Challenger III', 'Complete 25 Daily games', 'Daily.png', 25, 0, 15, 'solve', 'Daily'),
-(17, 'Daily Challenger IV', 'Complete 50 Daily games', 'Daily.png', 50, 0, 16, 'solve', 'Daily'),
-(18, 'Daily Challenger V', 'Complete 100 Daily games', 'Daily.png', 100, 0, 17, 'solve', 'Daily'),
-(19, 'Master of All I', 'Solve 5 All in One games', 'All_in_One.png', 5, 0, NULL, 'solve', 'All in One'),
-(20, 'Master of All II', 'Solve 10 All in One games', 'All_in_One.png', 10, 0, 19, 'solve', 'All in One'),
-(21, 'Master of All III', 'Solve 25 All in One games', 'All_in_One.png', 25, 0, 20, 'solve', 'All in One'),
-(22, 'Master of All IV', 'Solve 50 All in One games', 'All_in_One.png', 50, 0, 21, 'solve', 'All in One'),
-(23, 'Master of All V', 'Solve 100 All in One games', 'All_in_One.png', 100, 0, 22, 'solve', 'All in One'),
-(24, 'Pocket Crafter I', 'Solve 5 Pocket games', 'Pocket.png', 5, 0, NULL, 'solve', 'Pocket'),
-(25, 'Pocket Crafter II', 'Solve 10 Pocket games', 'Pocket.png', 10, 0, 24, 'solve', 'Pocket'),
-(26, 'Pocket Crafter III', 'Solve 25 Pocket games', 'Pocket.png', 25, 0, 25, 'solve', 'Pocket'),
-(27, 'Pocket Crafter IV', 'Solve 50 Pocket games', 'Pocket.png', 50, 0, 26, 'solve', 'Pocket'),
-(28, 'Pocket Crafter V', 'Solve 100 Pocket games', 'Pocket.png', 100, 0, 27, 'solve', 'Pocket'),
-(29, 'Resourceful I', 'Solve 5 Resource games', 'Resource.png', 5, 0, NULL, 'solve', 'Resource'),
-(30, 'Resourceful II', 'Solve 10 Resource games', 'Resource.png', 10, 0, 29, 'solve', 'Resource'),
-(31, 'Resourceful III', 'Solve 25 Resource games', 'Resource.png', 25, 0, 30, 'solve', 'Resource'),
-(32, 'Resourceful IV', 'Solve 50 Resource games', 'Resource.png', 50, 0, 31, 'solve', 'Resource'),
-(33, 'Resourceful V', 'Solve 100 Resource games', 'Resource.png', 100, 0, 32, 'solve', 'Resource'),
-(34, 'Survivor I', 'Solve 5 Hardcore games', 'Hardcore.png', 5, 0, NULL, 'solve', 'Hardcore'),
-(35, 'Survivor II', 'Solve 10 Hardcore games', 'Hardcore.png', 10, 0, 34, 'solve', 'Hardcore'),
-(36, 'Survivor III', 'Solve 25 Hardcore games', 'Hardcore.png', 25, 0, 35, 'solve', 'Hardcore'),
-(37, 'Survivor IV', 'Solve 50 Hardcore games', 'Hardcore.png', 50, 0, 36, 'solve', 'Hardcore'),
-(38, 'Survivor V', 'Solve 100 Hardcore games', 'Hardcore.png', 100, 0, 37, 'solve', 'Hardcore'),
-(39, 'The Armorer', 'Solve a Blast Furnace riddle', 'Blast_Furnace.png', 1, 0, NULL, 'craft', 'blast_furnace'),
-(40, 'The Butcher', 'Solve a Smoker riddle', 'Smoker.png', 1, 0, NULL, 'craft', 'smoker'),
-(41, 'The Cartographer', 'Solve a Cartography Table riddle', 'Cartography_Table.png', 1, 0, NULL, 'craft', 'cartography_table'),
-(42, 'The Cleric', 'Solve a Brewing Stand riddle', 'Brewing_Stand.png', 1, 0, NULL, 'craft', 'brewing_stand'),
-(43, 'The Farmer', 'Solve a Composter riddle', 'Composter.png', 1, 0, NULL, 'craft', 'composter'),
-(44, 'The Fisherman', 'Solve a Barrel riddle', 'Barrel.png', 1, 0, NULL, 'craft', 'barrel'),
-(45, 'The Fletcher', 'Solve a Fletching Table riddle', 'Fletching_Table.png', 1, 0, NULL, 'craft', 'fletching_table'),
-(46, 'The Leatherworker', 'Solve a Cauldron riddle', 'Cauldron.png', 1, 0, NULL, 'craft', 'cauldron'),
-(47, 'The Librarian', 'Solve a Lectern riddle', 'Lectern.png', 1, 0, NULL, 'craft', 'lectern'),
-(48, 'The Mason', 'Solve a Stonecutter riddle', 'Stonecutter.png', 1, 0, NULL, 'craft', 'stonecutter'),
-(49, 'The Shepherd', 'Solve a Loom riddle', 'Loom.png', 1, 0, NULL, 'craft', 'loom'),
-(50, 'The Toolsmith', 'Solve a Smithing Table riddle', 'Smithing_Table.png', 1, 0, NULL, 'craft', 'smithing_table'),
-(51, 'The Weaponsmith', 'Solve a Grindstone riddle', 'Grindstone.png', 1, 0, NULL, 'craft', 'grindstone'),
-(52, 'Birds of a Feather Flock Together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 0, NULL, 'solve', 'chicken'),
-(53, 'End of the Line', 'Watch the credits', 'Eye.png', 1, 1, NULL, 'credits', 'watched'),
-(54, 'A Whole Year', 'Have a 365 day streak', 'Fire.png', 1, 0, NULL, 'solve', '365'),
-(55, 'The First Riddle of the Year', 'Solve a riddle in the first hour of the year!', 'Firework.png', 1, 1, NULL, 'solve', 'first'),
-(56, 'Wax That Copper', 'Solve a riddle with only waxed copper guesses except one', 'Wax.png', 1, 1, NULL, 'solve', 'copper');
+INSERT INTO achievements (id, title, description, icon, goal, is_secret, parent, event, target) VALUES
+(1, 'Welcome to the Database!', 'Create a Craftdle account', 'Welcome.png', 1, 'false', NULL, 'regist', 'regist'),
+(2, 'The Collector', 'Collect 100 items', 'The_Collector.png', 100, 'false', NULL, 'collect', 'any'),
+(3, 'Here''s Johnny!!!', 'Collect all axes', 'Johnny.png', 6, 'false', NULL, 'collect', 'axe'),
+(4, 'The First of All', 'Be the first to solve the daily riddle', 'First_of_All.png', 1, 'false', NULL, 'solve', 'number1'),
+(5, 'Still a Beginner?', 'Play 25 tutorial game', 'Beginner.png', 25, 'true', NULL, 'solve', 'Tutorial'),
+(6, 'The Master Chef', 'Solve a food riddle in resource mode', 'Cook.png', 1, 'true', NULL, 'solve', 'food'),
+(7, 'Cheater?!', 'Solve a riddle with only one guess', 'Cheat.png', 1, 'true', NULL, 'solve', 'zero'),
+(8, 'Wish I Had an Angel', 'Craft the Guideian Angel logo', 'GA.png', 1, 'true', NULL, 'guess', 'ga'),
+(9, 'Casual Player I', 'Solve 5 Classic games', 'Classic.png', 5, 'false', NULL, 'solve', 'Classic'),
+(10, 'Casual Player II', 'Solve 10 Classic games', 'Classic.png', 10, 'false', 9, 'solve', 'Classic'),
+(11, 'Casual Player III', 'Solve 25 Classic games', 'Classic.png', 25, 'false', 10, 'solve', 'Classic'),
+(12, 'Casual Player IV', 'Solve 50 Classic games', 'Classic.png', 50, 'false', 11, 'solve', 'Classic'),
+(13, 'Casual Player V', 'Solve 100 Classic games', 'Classic.png', 100, 'false', 12, 'solve', 'Classic'),
+(14, 'Daily Challenger I', 'Complete 5 Daily games', 'Daily.png', 5, 'false', NULL, 'solve', 'Daily'),
+(15, 'Daily Challenger II', 'Complete 10 Daily games', 'Daily.png', 10, 'false', 14, 'solve', 'Daily'),
+(16, 'Daily Challenger III', 'Complete 25 Daily games', 'Daily.png', 25, 'false', 15, 'solve', 'Daily'),
+(17, 'Daily Challenger IV', 'Complete 50 Daily games', 'Daily.png', 50, 'false', 16, 'solve', 'Daily'),
+(18, 'Daily Challenger V', 'Complete 100 Daily games', 'Daily.png', 100, 'false', 17, 'solve', 'Daily'),
+(19, 'Master of All I', 'Solve 5 All in One games', 'All_in_One.png', 5, 'false', NULL, 'solve', 'All in One'),
+(20, 'Master of All II', 'Solve 10 All in One games', 'All_in_One.png', 10, 'false', 19, 'solve', 'All in One'),
+(21, 'Master of All III', 'Solve 25 All in One games', 'All_in_One.png', 25, 'false', 20, 'solve', 'All in One'),
+(22, 'Master of All IV', 'Solve 50 All in One games', 'All_in_One.png', 50, 'false', 21, 'solve', 'All in One'),
+(23, 'Master of All V', 'Solve 100 All in One games', 'All_in_One.png', 100, 'false', 22, 'solve', 'All in One'),
+(24, 'Pocket Crafter I', 'Solve 5 Pocket games', 'Pocket.png', 5, 'false', NULL, 'solve', 'Pocket'),
+(25, 'Pocket Crafter II', 'Solve 10 Pocket games', 'Pocket.png', 10, 'false', 24, 'solve', 'Pocket'),
+(26, 'Pocket Crafter III', 'Solve 25 Pocket games', 'Pocket.png', 25, 'false', 25, 'solve', 'Pocket'),
+(27, 'Pocket Crafter IV', 'Solve 50 Pocket games', 'Pocket.png', 50, 'false', 26, 'solve', 'Pocket'),
+(28, 'Pocket Crafter V', 'Solve 100 Pocket games', 'Pocket.png', 100, 'false', 27, 'solve', 'Pocket'),
+(29, 'Resourceful I', 'Solve 5 Resource games', 'Resource.png', 5, 'false', NULL, 'solve', 'Resource'),
+(30, 'Resourceful II', 'Solve 10 Resource games', 'Resource.png', 10, 'false', 29, 'solve', 'Resource'),
+(31, 'Resourceful III', 'Solve 25 Resource games', 'Resource.png', 25, 'false', 30, 'solve', 'Resource'),
+(32, 'Resourceful IV', 'Solve 50 Resource games', 'Resource.png', 50, 'false', 31, 'solve', 'Resource'),
+(33, 'Resourceful V', 'Solve 100 Resource games', 'Resource.png', 100, 'false', 32, 'solve', 'Resource'),
+(34, 'Survivor I', 'Solve 5 Hardcore games', 'Hardcore.png', 5, 'false', NULL, 'solve', 'Hardcore'),
+(35, 'Survivor II', 'Solve 10 Hardcore games', 'Hardcore.png', 10, 'false', 34, 'solve', 'Hardcore'),
+(36, 'Survivor III', 'Solve 25 Hardcore games', 'Hardcore.png', 25, 'false', 35, 'solve', 'Hardcore'),
+(37, 'Survivor IV', 'Solve 50 Hardcore games', 'Hardcore.png', 50, 'false', 36, 'solve', 'Hardcore'),
+(38, 'Survivor V', 'Solve 100 Hardcore games', 'Hardcore.png', 100, 'false', 37, 'solve', 'Hardcore'),
+(39, 'The Armorer', 'Solve a Blast Furnace riddle', 'Blast_Furnace.png', 1, 'false', NULL, 'craft', 'blast_furnace'),
+(40, 'The Butcher', 'Solve a Smoker riddle', 'Smoker.png', 1, 'false', NULL, 'craft', 'smoker'),
+(41, 'The Cartographer', 'Solve a Cartography Table riddle', 'Cartography_Table.png', 1, 'false', NULL, 'craft', 'cartography_table'),
+(42, 'The Cleric', 'Solve a Brewing Stand riddle', 'Brewing_Stand.png', 1, 'false', NULL, 'craft', 'brewing_stand'),
+(43, 'The Farmer', 'Solve a Composter riddle', 'Composter.png', 1, 'false', NULL, 'craft', 'composter'),
+(44, 'The Fisherman', 'Solve a Barrel riddle', 'Barrel.png', 1, 'false', NULL, 'craft', 'barrel'),
+(45, 'The Fletcher', 'Solve a Fletching Table riddle', 'Fletching_Table.png', 1, 'false', NULL, 'craft', 'fletching_table'),
+(46, 'The Leatherworker', 'Solve a Cauldron riddle', 'Cauldron.png', 1, 'false', NULL, 'craft', 'cauldron'),
+(47, 'The Librarian', 'Solve a Lectern riddle', 'Lectern.png', 1, 'false', NULL, 'craft', 'lectern'),
+(48, 'The Mason', 'Solve a Stonecutter riddle', 'Stonecutter.png', 1, 'false', NULL, 'craft', 'stonecutter'),
+(49, 'The Shepherd', 'Solve a Loom riddle', 'Loom.png', 1, 'false', NULL, 'craft', 'loom'),
+(50, 'The Toolsmith', 'Solve a Smithing Table riddle', 'Smithing_Table.png', 1, 'false', NULL, 'craft', 'smithing_table'),
+(51, 'The Weaponsmith', 'Solve a Grindstone riddle', 'Grindstone.png', 1, 'false', NULL, 'craft', 'grindstone'),
+(52, 'Birds of a Feather Flock Together', 'Solve a riddle where you guessed 5 items that made of chicken', 'Feather.png', 1, 'false', NULL, 'solve', 'chicken'),
+(53, 'End of the Line', 'Watch the credits', 'Eye.png', 1, 'true', NULL, 'credits', 'watched'),
+(54, 'A Whole Year', 'Have a 365 day streak', 'Fire.png', 1, 'false', NULL, 'solve', '365'),
+(55, 'The First Riddle of the Year', 'Solve a riddle in the first hour of the year!', 'Firework.png', 1, 'true', NULL, 'solve', 'first'),
+(56, 'Wax That Copper', 'Solve a riddle with only waxed copper guesses except one', 'Wax.png', 1, 'true', NULL, 'solve', 'copper');
 
 -- collection
 
-TRUNCATE TABLE collections;
+TRUNCATE TABLE collections CASCADE;
 
-INSERT INTO collections (`item_id`, `name`, `src`) VALUES
+INSERT INTO collections (item_id, name, src) VALUES
 ('oak_wood', 'Oak Wood', 'Oak_Wood.png'),
 ('stripped_oak_wood', 'Stripped Oak Wood', 'Stripped_Oak_Wood.png'),
 ('oak_planks', 'Oak Planks', 'Oak_Planks.png'),
@@ -652,7 +650,7 @@ INSERT INTO collections (`item_id`, `name`, `src`) VALUES
 ('pumpkin_seeds', 'Pumpkin Seeds', 'Pumpkin_Seeds.png'),
 ('dried_kelp_block', 'Dried Kelp Block', 'Dried_Kelp_Block.png'),
 ('melon', 'Melon', 'Melon.png'),
-('jack_olantern', "Jack o\' Lantern", 'Jack_oLantern.png'),
+('jack_olantern', 'Jack o'' Lantern', 'Jack_oLantern.png'),
 ('hay_bale', 'Hay Bale', 'Hay_Bale.png'),
 ('honeycomb_block', 'Honeycomb Block', 'Honeycomb_Block.png'),
 ('slime_block', 'Slime Block', 'Slime_Block.png'),
@@ -1002,18 +1000,18 @@ INSERT INTO collections (`item_id`, `name`, `src`) VALUES
 
 -- guess types
 
-TRUNCATE TABLE guess_types;
+TRUNCATE TABLE guess_types CASCADE;
 
-INSERT INTO guess_types (`id`, `type`) VALUES
+INSERT INTO guess_types (id, type) VALUES
 (1, 'correct'),
 (2, 'semi-correct'),
 (3, 'wrong');
 
 -- items
 
-TRUNCATE TABLE items;
+TRUNCATE TABLE items CASCADE;
 
-INSERT INTO items (`item_id`, `name`, `src`) VALUES
+INSERT INTO items (item_id, name, src) VALUES
 ('oak_log', 'Oak Log', 'Oak_Log.png'),
 ('oak_wood', 'Oak Wood', 'Oak_Wood.png'),
 ('stripped_oak_log', 'Stripped Oak Log', 'Stripped_Oak_Log.png'),
@@ -1629,9 +1627,9 @@ INSERT INTO items (`item_id`, `name`, `src`) VALUES
 
 -- profile borders
 
-TRUNCATE TABLE profile_borders;
+TRUNCATE TABLE profile_borders CASCADE;
 
-INSERT INTO profile_borders (`id`, `name`, `src`) VALUES
+INSERT INTO profile_borders (id, name, src) VALUES
 (1, 'Amethyst', 'Amethyst.png'),
 (2, 'Black Terracotta', 'Black_Terracotta.png'),
 (3, 'Brown Mushroom', 'Brown_Mushroom.png'),
@@ -1655,9 +1653,9 @@ INSERT INTO profile_borders (`id`, `name`, `src`) VALUES
 
 -- profile pictures
 
-TRUNCATE TABLE profile_pictures;
+TRUNCATE TABLE profile_pictures CASCADE;
 
-INSERT INTO profile_pictures (`id`, `name`, `src`) VALUES
+INSERT INTO profile_pictures (id, name, src) VALUES
 (1, 'Chicken', 'Chicken.png'),
 (2, 'Desert Armorer', 'Desert_Armorer.png'),
 (3, 'Desert Butcher', 'Desert_Butcher.png'),
@@ -1772,17 +1770,17 @@ INSERT INTO profile_pictures (`id`, `name`, `src`) VALUES
 
 -- reward type
 
-TRUNCATE TABLE reward_types;
+TRUNCATE TABLE reward_types CASCADE;
 
-INSERT INTO reward_types (`id`, `name`) VALUES
+INSERT INTO reward_types (id, name) VALUES
 (1, 'profile_pictures'),
 (2, 'profile_borders');
 
 -- rewards
 
-TRUNCATE TABLE rewards;
+TRUNCATE TABLE rewards CASCADE;
 
-INSERT INTO rewards (`achievement`, `reward`, `reward_type`, `id`) VALUES
+INSERT INTO rewards (achievement, reward, reward_type, id) VALUES
 (1, 12, 1, 1),
 (1, 15, 1, 2),
 (1, 30, 1, 3),
@@ -1914,5 +1912,3 @@ INSERT INTO rewards (`achievement`, `reward`, `reward_type`, `id`) VALUES
 (35, 10, 2, 129),
 (38, 12, 2, 130),
 (56, 8, 2, 131);
-
-SET FOREIGN_KEY_CHECKS = 1;

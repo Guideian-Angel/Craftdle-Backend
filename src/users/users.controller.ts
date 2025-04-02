@@ -16,6 +16,7 @@ import { UserStatsDto } from './dtos/userStats.dto';
 import { PasswordResetDto, PasswordResetResponseDto } from './dtos/passwordReset.dto';
 import { PasswordResetMessageDto } from './dtos/passwordResetMessage.dto';
 import { PasswordChangeDto } from './dtos/passwordChange.dto';
+import { ApiResponseWrapper } from 'src/sharedComponents/classes/apiResponse.class';
 
 @Controller('users')
 export class UsersController {
@@ -37,7 +38,7 @@ export class UsersController {
     @Post('register')
     @ApiOperation({ summary: 'Register a new User' })
     @ApiBody({ type: RegistDataDto })
-    @ApiResponse({ status: 200, description: 'Return the new User data', type: UserDataDto })
+    @ApiResponseWrapper(UserDataDto)
     async register(@Body() userDto: RegistDataDto): Promise<IApiResponse> {
         try {
             const result = await this.usersService.register(userDto);
@@ -59,7 +60,7 @@ export class UsersController {
      */
     @Get('login')
     @ApiOperation({ summary: 'Create a Guest Account' })
-    @ApiResponse({ status: 200, description: 'Return the Guest Account data', type: UserDataDto})
+    @ApiResponseWrapper(UserDataDto)
     async createGuestAccount(): Promise<IApiResponse> {
         try {
             const result = await this.usersService.loginWithGuestAccount();
@@ -83,7 +84,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Login a User' })
     @ApiHeader({ name: 'authorization', required: false })
     @ApiBody({ type: LoginDataDto, required: false })
-    @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
+    @ApiResponseWrapper(UserDataDto)
     async login(@Headers('authorization') authorization: string, @Body() body: LoginDataDto) {
         try {
             const result = await this.usersService.loginUser(authorization, body);
@@ -129,7 +130,7 @@ export class UsersController {
     @Get('settings')
     @ApiOperation({ summary: 'Get the User Settings' })
     @ApiHeader({ name: 'authorization'})
-    @ApiResponse({ status: 200, description: 'Return the User Settings', type: UpdateSettingsDto })
+    @ApiResponseWrapper(UpdateSettingsDto)
     async getSettings(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.settingsService.collectSettings(authorization);
@@ -172,7 +173,7 @@ export class UsersController {
     @Get('collection')
     @ApiOperation({ summary: 'Get the User Collection' })
     @ApiHeader({ name: 'authorization' })
-    @ApiResponse({ status: 200, description: 'Return the User Collection', type: CollectionDataDto })
+    @ApiResponseWrapper(CollectionDataDto)
     async getCollection(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.assetsService.getCollection(authorization);
@@ -209,7 +210,7 @@ export class UsersController {
     @Get('stats')
     @ApiOperation({ summary: 'Get the User Stats' })
     @ApiHeader({ name: 'authorization' })
-    @ApiResponse({ status: 200, description: 'Return the User Stats', type: UserStatsDto })
+    @ApiResponseWrapper(UserStatsDto)
     async getStats(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.usersService.getStats(authorization)
@@ -231,7 +232,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Request a Password Reset' })
     @ApiHeader({ name: 'authorization' })
     @ApiBody({ type: PasswordResetDto })
-    @ApiResponse({ status: 200, description: 'Return the Password Reset information', type: PasswordResetResponseDto })
+    @ApiResponseWrapper(PasswordResetResponseDto)
     async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<IApiResponse> {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
@@ -257,7 +258,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Verify the User for Password Reset' })
     @ApiQuery({ name: 'token', required: true })
     @ApiQuery({ name: 'id', required: true })
-    @ApiResponse({ status: 200, description: 'Return the User Verification message', type: PasswordResetMessageDto })
+    @ApiResponseWrapper(PasswordResetMessageDto)
     async verifyUser(@Query('token') token: string, @Query('id') id: string) {
         try {
             const result = await this.usersService.verifyUser(token, id);
