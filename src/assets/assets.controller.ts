@@ -4,12 +4,14 @@ import { AssetsService } from './assets.service';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ApiExcludeEndpoint, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller("/assets")
 export class AssetsController {
     constructor(private readonly assetsService: AssetsService) { }
 
     @Get(':type/:src')
+    @Public()
     @ApiExcludeEndpoint()
     async getAssets(
         @Param("type") type: string,

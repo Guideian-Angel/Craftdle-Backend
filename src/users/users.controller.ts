@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, UnauthorizedException, Param, Headers, HttpException, HttpStatus, Render, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UnauthorizedException, Param, Headers, HttpException, HttpStatus, Render, Query, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { LoginDataDto } from './dtos/login.dto';
 import { RegistDataDto } from './dtos/regist.dto';
@@ -16,6 +16,7 @@ import { UserStatsDto } from './dtos/userStats.dto';
 import { PasswordResetDto, PasswordResetResponseDto } from './dtos/passwordReset.dto';
 import { PasswordResetMessageDto } from './dtos/passwordResetMessage.dto';
 import { PasswordChangeDto } from './dtos/passwordChange.dto';
+import { Public } from 'src/decorators/public.decorator';
 import { ApiResponseWrapper } from 'src/sharedComponents/classes/apiResponse.class';
 
 @Controller('users')
@@ -36,6 +37,7 @@ export class UsersController {
      * @returns API válasz: siker esetén az új felhasználó adatai, hiba esetén az üzenet.
      */
     @Post('register')
+    @Public()
     @ApiOperation({ summary: 'Register a new User' })
     @ApiBody({ type: RegistDataDto })
     @ApiResponseWrapper(UserDataDto)
@@ -59,6 +61,7 @@ export class UsersController {
      * @returns {Promise<IApiResponse>} Guest account adatai vagy hibaüzenet.
      */
     @Get('login')
+    @Public()
     @ApiOperation({ summary: 'Create a Guest Account' })
     @ApiResponseWrapper(UserDataDto)
     async createGuestAccount(): Promise<IApiResponse> {
@@ -74,20 +77,42 @@ export class UsersController {
     }
 
     /**
-     * Bejelentkezési végpont, amely vagy Bearer tokent, vagy felhasználónév/jelszó párost fogad.
-     * @param authorization - Az `authorization` header tartalma (opcionális).
+     * Bejelentkezési végpont, amely Bearer tokent fogad.
+     * @param authorization - Az `authorization` header tartalma.
+     * @returns API válasz: sikeres bejelentkezés esetén a felhasználói adatokkal.
+     * @throws UnauthorizedException ha hibás a bejelentkezés.
+     */
+    @Post('autoLogin')
+    @Public()
+    @ApiOperation({ summary: 'Auto Login a User' })
+    @ApiHeader({ name: 'authorization', required: true })
+    @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
+    async autoLogin(@Headers('authorization') authorization: string) {
+        try {
+            const result = await this.usersService.autoLogin(authorization);
+            return { data: result };
+        } catch (err) {
+            throw new HttpException(
+                { message: err.response},
+                err.status || HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    /**
+     * Bejelentkezési végpont, amely felhasználónév/jelszó párost fogad.
      * @param body - A `LoginDataDto` objektum, amely tartalmazza a bejelentkezési adatokat.
      * @returns API válasz: sikeres bejelentkezés esetén a felhasználói adatokkal.
      * @throws UnauthorizedException ha hibás a bejelentkezés.
      */
     @Post('login')
+    @Public()
     @ApiOperation({ summary: 'Login a User' })
-    @ApiHeader({ name: 'authorization', required: false })
-    @ApiBody({ type: LoginDataDto, required: false })
-    @ApiResponseWrapper(UserDataDto)
-    async login(@Headers('authorization') authorization: string, @Body() body: LoginDataDto) {
+    @ApiBody({ type: LoginDataDto, required: true })
+    @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
+    async login(@Body() body: LoginDataDto) {
         try {
-            const result = await this.usersService.loginUser(authorization, body);
+            const result = await this.usersService.loginUser(body);
             return { data: result }; 
         } catch (err) {
             throw new UnauthorizedException(

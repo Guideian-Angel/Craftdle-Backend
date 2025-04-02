@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from './decorators/public.decorator';
 
 @ApiTags('App Infos')
 @Controller()
@@ -8,6 +9,7 @@ export class AppController {
   constructor(private readonly appService: AppService) { }
 
   @Get('version')
+  @Public()
   @ApiOperation({ summary: 'Get the current version of the Application' })
   @ApiResponse({
     status: 200, description: 'Return the current version of the Application', example: {
@@ -22,6 +24,7 @@ export class AppController {
   }
 
   @Get('patchNotes')
+  @Public()
   @ApiOperation({ summary: 'Get the patch notes of the Application' })
   @ApiResponse({
     status: 200, description: 'Return the patch notes of the Application', example: {
@@ -53,6 +56,7 @@ export class AppController {
   }
 
   @Get('credits')
+  @Public()
   @ApiOperation({ summary: 'Get the credits of the Application' })
   @ApiResponse({
     status: 200, description: 'Return the credits of the Application', example: {

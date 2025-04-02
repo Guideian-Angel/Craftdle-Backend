@@ -9,6 +9,7 @@ import { EmailModule } from 'src/email/email.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { StatisticsModule } from 'src/statistics/statistics.module';
 import { CliModule } from 'src/cli/cli.module';
+import { AuthorizationModule } from 'src/authorization/authorization.module';
 import { MaintenanceModule } from 'src/maintenance/maintenance.module';
 
 @Module({
@@ -22,7 +23,8 @@ import { MaintenanceModule } from 'src/maintenance/maintenance.module';
     PrismaModule,
     StatisticsModule,
     CliModule,
-    MaintenanceModule,
+    AuthorizationModule,
+    MaintenanceModule
   ],
   controllers: [AdminController],
   providers: [AdminService],

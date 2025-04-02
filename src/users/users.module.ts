@@ -6,10 +6,10 @@ import { AssetsModule } from 'src/assets/assets.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { TokenModule } from 'src/token/token.module';
 import { EmailModule } from 'src/email/email.module';
-import { GameModule } from 'src/game/game.module';
+import { AuthorizationModule } from 'src/authorization/authorization.module';
 
 @Module({
-  imports: [SettingsModule, AssetsModule, PrismaModule, TokenModule, EmailModule],
+  imports: [SettingsModule, AssetsModule, PrismaModule, TokenModule, EmailModule, AuthorizationModule],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],
