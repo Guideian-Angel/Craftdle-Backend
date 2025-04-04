@@ -29,6 +29,8 @@ The Craftdle backend powers the game's core functionalities, handling user authe
    ```sh
    npx prisma db seed
    ```
+   - During the seeding process, you will be prompted to create an admin user. Follow the instructions to provide the admin's username, email, and password. If you choose not to create an admin, the process will skip this step.
+
 6. **Start the application:**
    - Development mode:
      ```sh
