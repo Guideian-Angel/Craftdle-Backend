@@ -61,6 +61,11 @@ The following scripts are available in the `package.json`:
 - `npm run test:debug` – Debug tests
 - `npm run test:e2e` – Run end-to-end tests
 
+## Access API Documentation
+   The Swagger API documentation is available at: `<backend-url>/api`
+
+   Replace `<backend-url>` with the actual backend URL (e.g., `http://localhost:3000/api` for local development).
+
 ## Environment Variables
 The application requires the following environment variables to be set in a `.env` file:
 
