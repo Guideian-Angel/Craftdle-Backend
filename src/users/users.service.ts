@@ -1,17 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { TokenService } from 'src/token/token.service';
+import { TokenService } from '../token/token.service';
 import { PasswordReset, User } from './classes/user.class';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { AssetsService } from 'src/assets/assets.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { AssetsService } from '../assets/assets.service';
 import { IUser, IUserData } from './interfaces/user.interface';
 import { RegistDataDto } from './dtos/regist.dto';
-import { SettingsService } from 'src/settings/settings.service';
+import { SettingsService } from '../settings/settings.service';
 import { LoginDataDto } from './dtos/login.dto';
 import * as bcrypt from 'bcrypt';
-import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { getCurrentDate } from '../sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
-import { AuthorizationService } from 'src/authorization/authorization.service';
+import { AuthorizationService } from '../authorization/authorization.service';
 
 @Injectable()
 export class UsersService {
@@ -119,7 +119,7 @@ export class UsersService {
             }
         }
 
-        const newUser = await this.createAccount(this.prisma, { username, email, password, stayLoggedIn });
+        const newUser = await this.createAccount({ username, email, password, stayLoggedIn });
         await this.createNewUser(newUser, !stayLoggedIn);
         await this.settingsService.createDefaultSettings(newUser.id);
 
@@ -133,7 +133,7 @@ export class UsersService {
      */
     async loginWithGuestAccount(): Promise<IUserData> {
         try {
-            const newGuest = await this.createAccount(this.prisma);
+            const newGuest = await this.createAccount();
             await this.createNewUser(newGuest, true);
             const { id, ...userData } = newGuest;
             return userData as IUserData;
@@ -276,7 +276,6 @@ export class UsersService {
     //######################################################### USER DATABASE MODIFY FUNCTIONS #########################################################
 
     async createAccount(
-        prisma: PrismaService,
         accountData?: { username?: string; email?: string; password?: string; stayLoggedIn?: boolean }
     ): Promise<IUser> {
         try {
@@ -304,11 +303,11 @@ export class UsersService {
             }
 
             // Felhasználó létrehozása
-            const createdUser = await prisma.users.create({
+            const createdUser = await this.prisma.users.create({
                 data: userData
             });
 
-            await prisma.users_profile_pictures.create({
+            await this.prisma.users_profile_pictures.create({
                 data: {
                     user: createdUser.id,
                     profile_picture: 15,
@@ -316,7 +315,7 @@ export class UsersService {
                 }
             })
 
-            await prisma.users_profile_borders.create({
+            await this.prisma.users_profile_borders.create({
                 data: {
                     user: createdUser.id,
                     profile_border: 7,
