@@ -5,7 +5,6 @@ import { CacheModule } from '../cache/cache.module';
 import { GameModule } from '../game/game.module';
 import { AchievementsModule } from 'src/achievements/achievements.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { RecipesModule } from 'src/recipes/recipes.module';
 import { TokenModule } from 'src/token/token.module';
 import { MaintenanceModule } from 'src/maintenance/maintenance.module';
 
@@ -17,7 +16,6 @@ import { MaintenanceModule } from 'src/maintenance/maintenance.module';
         AchievementsModule,
         PrismaModule,
         CacheModule,
-        RecipesModule,
         TokenModule,
         MaintenanceModule
     ],

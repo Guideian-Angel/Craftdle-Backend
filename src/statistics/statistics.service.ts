@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { CacheService } from 'src/cache/cache.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class StatisticsService {
     constructor(
         private readonly prismaService: PrismaService,
-        private readonly usersService: UsersService
+        private readonly cacheService: CacheService
     ) { }
 
     async getStatistics(authHeader: string) {
         try {
-            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+            const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
             if (!user?.adminVerification?.verified) {
                 throw new Error('You are not verified');
             }

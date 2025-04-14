@@ -3,19 +3,21 @@ import { Injectable } from "@nestjs/common";
 import { UsersService } from "src/users/users.service";
 import { CreateMaintenanceDto } from "./dto/createMaintenance.dto";
 import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
+import { CacheService } from "src/cache/cache.service";
 
 @Injectable()
 export class MaintenanceService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly usersService: UsersService,
+        private readonly cacheService: CacheService,
     ) { }
 
     async createMaintenance(createMaintenanceDto: CreateMaintenanceDto, authHeader: string) {
         try {
             const token = authHeader.replace('Bearer ', '');
 
-            const user = await this.usersService.getUserByToken(token);
+            const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
                 throw new Error('You do not have permission to modify maintenance');
@@ -50,7 +52,7 @@ export class MaintenanceService {
     async getAllMaintenance(authHeader: string) {
         try {
             const token = authHeader.replace('Bearer ', '');
-            const user = await this.usersService.getUserByToken(token);
+            const user = await this.cacheService.getUserByToken(token);
             // if (!user) {
             //     throw new Error('Invalid token');
             // }
@@ -104,7 +106,7 @@ export class MaintenanceService {
         try {
             const token = authHeader.replace('Bearer ', '');
 
-            const user = await this.usersService.getUserByToken(token);
+            const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
                 throw new Error('You do not have permission to modify maintenance');
@@ -132,7 +134,7 @@ export class MaintenanceService {
         try {
             const token = authHeader.replace('Bearer ', '');
 
-            const user = await this.usersService.getUserByToken(token);
+            const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
                 throw new Error('You do not have permission to modify maintenance');

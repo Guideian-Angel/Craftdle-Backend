@@ -8,6 +8,7 @@ import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { UpdateAdminRightsDto } from './dto/updateAdminRights.dto';
 import { getStreak } from 'src/users/utilities/user.util';
 import { AuthorizationService } from 'src/authorization/authorization.service';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class AdminService {
@@ -16,7 +17,8 @@ export class AdminService {
     private readonly usersService: UsersService,
     private readonly gameService: GameService,
     private readonly assetsService: AssetsService,
-    private readonly authorizationService: AuthorizationService
+    private readonly authorizationService: AuthorizationService,
+    private readonly cacheService: CacheService,
   ) {}
 
   generateVerificationCode() {
@@ -35,7 +37,7 @@ export class AdminService {
       if (!('id' in user)) {
         throw new HttpException('User does not have an id property', HttpStatus.BAD_REQUEST);
       }
-      const admin = await this.usersService.getUserByToken(user.loginToken);
+      const admin = await this.cacheService.getUserByToken(user.loginToken);
       const code = this.generateVerificationCode();
       admin.adminVerification = {
         code,
@@ -55,7 +57,7 @@ export class AdminService {
 
   async verifyAdmin(authHeader: string, code: string) {
     try {
-      const admin = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const admin = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
       if (admin.adminVerification?.code !== code) {
         throw new HttpException('Invalid code', HttpStatus.BAD_REQUEST);
       }
@@ -101,7 +103,7 @@ export class AdminService {
 
   async updateAdmin(userId: number, authHeader: string, body: UpdateAdminRightsDto) {
     try {
-      const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
       if (!user?.adminVerification?.verified) {
         throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
       }
@@ -125,7 +127,7 @@ export class AdminService {
       await this.prisma.users_rights.deleteMany({
         where: {
           right: {
-            notIn: adminRights.filter(right => !rights.map(r => !adminRights.includes(r.right)))
+            notIn: adminRights.filter(() => !rights.map(r => !adminRights.includes(r.right)))
           },
           user: userId
         }
@@ -148,7 +150,7 @@ export class AdminService {
 
   async getAllUsers(authHeader: string) {
     try {
-      const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
 
       if (!user?.adminVerification?.verified) {
         throw new Error('You are not verified');
@@ -183,7 +185,7 @@ export class AdminService {
 
   async getUser(userId: number, authHeader: string) {
     try {
-      const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+      const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
       if (!user?.adminVerification?.verified) {
         throw new Error('You are not verified');
       }

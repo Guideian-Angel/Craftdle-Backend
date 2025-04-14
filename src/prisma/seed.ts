@@ -39,7 +39,6 @@ async function seedGeneralDatas() {
 
 async function seedAdmin() {
     try {
-
         const username = readlineSync.question('Please enter the admin username: ');
     
         let email: string;

@@ -6,7 +6,6 @@ import { WebSocketGateway, OnGatewayInit, OnGatewayConnection, OnGatewayDisconne
 import { Logger } from '@nestjs/common';
 import { AchievementsCollection } from 'src/achievements/classes/achievementsCollection';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { RecipesService } from 'src/recipes/recipes.service';
 import { CacheService } from 'src/cache/cache.service';
 import { GameService } from 'src/game/game.service';
 import { TokenService } from 'src/token/token.service';
@@ -28,7 +27,6 @@ export class SocketGateway
     private readonly achievementGateway: AchievementsGateway,
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
-    private readonly recipesService: RecipesService,
     private readonly gameService: GameService,
     private readonly tokenService: TokenService
   ) { }
@@ -60,7 +58,7 @@ export class SocketGateway
     }
 
     // Token validáció a UsersService-en keresztül
-    const user = this.usersService.getUserByToken(token);
+    const user = this.cacheService.getUserByToken(token);
     console.log(user);
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
@@ -70,7 +68,7 @@ export class SocketGateway
     }
 
     const oldSocketId = user.socketId;
-    this.usersService.associateSocketId(token, client.id);
+    this.cacheService.associateSocketId(token, client.id);
 
     if(oldSocketId){
       this.server.to(oldSocketId).disconnectSockets();
@@ -102,10 +100,10 @@ export class SocketGateway
   // Kliens lecsatlakozása
   async handleDisconnect(client: Socket) {
     // Felhasználó eltávolítása socket ID alapján
-    const user = this.usersService.getUserBySocketId(client.id);
+    const user = this.cacheService.getUserBySocketId(client.id);
     if (user) {
       this.logger.log(`Client disconnected: ${client.id} (User: ${user.username})`);
-      this.usersService.removeUserBySocketId(client.id);
+      this.cacheService.removeUserBySocketId(client.id);
       if(user.isGuest){
         this.tokenService.deleteToken(user.id);
       }
@@ -120,7 +118,7 @@ export class SocketGateway
 
   @SubscribeMessage('credits')
   async handleCredits(client: Socket) {
-      const user = this.usersService.getUserBySocketId(client.id);
+      const user = this.cacheService.getUserBySocketId(client.id);
       const achievementsCollection = new AchievementsCollection(this.prisma);
       
       // Várjuk meg, hogy a listener befejezze!

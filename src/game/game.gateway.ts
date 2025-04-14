@@ -23,7 +23,6 @@ export class GameGateway {
   private server: Server;
 
   constructor(
-    private readonly usersService: UsersService,
     private readonly cacheService: CacheService,
     private readonly recipesService: RecipesService,
     private readonly gameService: GameService,
@@ -50,7 +49,7 @@ export class GameGateway {
   @SubscribeMessage('startGame')
   async handleNewGame(client: Socket, payload: { newGame: boolean, gamemode: number }) {
     const riddle = new Riddle(this.cacheService, this.gameService, this.recipesService, this.riddlesService);
-    const user = this.usersService.getUserBySocketId(client.id);
+    const user = this.cacheService.getUserBySocketId(client.id);
     const game = new Game(riddle, user);
 
     if (!payload.newGame && payload.gamemode !== 3) {

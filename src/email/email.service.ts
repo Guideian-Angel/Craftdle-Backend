@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import { Request } from 'express';
 
 @Injectable()
 export class EmailService {
