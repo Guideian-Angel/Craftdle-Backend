@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { getCurrentDate } from '../sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
-import { CacheService } from 'src/cache/cache.service';
+import { CacheService } from '../cache/cache.service';
 import { AuthorizationService } from '../authorization/authorization.service';
 
 @Injectable()

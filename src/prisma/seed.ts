@@ -1,25 +1,28 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as readlineSync from 'readline-sync';
-import * as bcrypt from 'bcrypt';
 import { AssetsService } from './../assets/assets.service';
 import { TokenService } from './../token/token.service';
 import { SettingsService } from './../settings/settings.service';
 import { AuthorizationService } from './../authorization/authorization.service';
 import { PrismaService } from './prisma.service';
 import { UsersService } from './../users/users.service';
+import { CacheService } from '../cache/cache.service';
+import { RecipesService } from '../recipes/recipes.service';
 
 const prisma = new PrismaService();
+const recipesService = new RecipesService();
+const cacheService = new CacheService(prisma, recipesService);
 const tokenService = new TokenService(prisma);
 const assetsService = new AssetsService(prisma, tokenService);
 const settingsService = new SettingsService(prisma, tokenService);
 const authorizationService = new AuthorizationService(prisma);
-const usersService = new UsersService(prisma, assetsService, tokenService, settingsService, authorizationService);
+const usersService = new UsersService(prisma, assetsService, tokenService, settingsService, authorizationService, cacheService);
 
 async function seedGeneralDatas() {
     try {
-        const sqlFilePath = path.join(__dirname, './seeder.sql'); // Cseréld ki a fájl útvonalát
-        const sqlContent = fs.readFileSync(sqlFilePath, 'utf8'); // Fájl beolvasása
+        const sqlFilePath = path.join(__dirname, './seeder.sql');
+        const sqlContent = fs.readFileSync(sqlFilePath, 'utf8');
         
         console.log('Seeding database...');
         const queries = sqlContent.split(';');
@@ -33,7 +36,7 @@ async function seedGeneralDatas() {
     } catch (error) {
         throw new Error('Error during seeding: ' + error);
     } finally {
-        await prisma.$disconnect(); // Prisma kapcsolódás bontása
+        await prisma.$disconnect();
     }
 }
 

@@ -2,11 +2,11 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as NodeCache from 'node-cache';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Recipe } from 'src/recipes/classes/recipe.class';
-import { RecipesService } from 'src/recipes/recipes.service';
-import { IItem } from 'src/sharedComponents/interfaces/item.interface';
-import { User } from 'src/users/classes/user.class';
+import { PrismaService } from '../prisma/prisma.service';
+import { Recipe } from '../recipes/classes/recipe.class';
+import { RecipesService } from '../recipes/recipes.service';
+import { IItem } from '../sharedComponents/interfaces/item.interface';
+import { User } from '../users/classes/user.class';
 
 @Injectable()
 export class CacheService implements OnModuleInit {

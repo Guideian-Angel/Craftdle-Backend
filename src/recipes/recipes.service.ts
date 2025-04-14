@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Recipe } from './classes/recipe.class';
 import { IShapedRecipe, IShapelessRecipe } from './interfaces/recipe.interface';
-import { mergeMatrixRows } from 'src/sharedComponents/utilities/array.util';
-import { CacheService } from 'src/cache/cache.service';
-import { Riddle } from 'src/riddles/classes/riddle.class';
-import { ICheckedMatrixResponse } from 'src/tip/interfaces/checkedMatrix.interface';
+import { mergeMatrixRows } from '../sharedComponents/utilities/array.util';
+import { CacheService } from '../cache/cache.service';
+import { Riddle } from '../riddles/classes/riddle.class';
+import { ICheckedMatrixResponse } from '../tip/interfaces/checkedMatrix.interface';
 
 @Injectable()
 export class RecipesService {

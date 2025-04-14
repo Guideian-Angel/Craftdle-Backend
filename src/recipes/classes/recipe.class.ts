@@ -1,4 +1,4 @@
-import { createMatrixFromArray } from "src/sharedComponents/utilities/array.util";
+import { createMatrixFromArray } from "../../sharedComponents/utilities/array.util";
 import { IShapedRecipe, IShapelessRecipe } from "../interfaces/recipe.interface";
 import { RecipesService } from "../recipes.service";
 

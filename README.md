@@ -37,6 +37,11 @@ The Craftdle backend powers the game's core functionalities, handling user authe
      npm run start:dev
      ```
    - Production mode:
+     First, build the application:
+     ```sh
+     npm run build
+     ```
+     Then, start the application:
      ```sh
      npm run start:prod
      ```
@@ -71,7 +76,7 @@ The application requires the following environment variables to be set in a `.en
 
 - `DATABASE_URL` – Connection string for MySQL database
 - `BACKENDURL` – Base URL of the backend server
-- `ENCRYPTION_KEY` – Key used for encryption
+- `ENCRYPTION_KEY` – Key used for encryption (must be at least 32 characters long)
 - `GMAILADDRESS` – Email address for outgoing emails
 - `GMAILPASSWORD` – App password for Gmail
 
