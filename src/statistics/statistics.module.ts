@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { StatisticsService } from './statistics.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { UsersModule } from 'src/users/users.module';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
     PrismaModule,
-    UsersModule
+    CacheModule
   ],
   providers: [StatisticsService],
   exports: [StatisticsService],

@@ -7,9 +7,10 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { TokenModule } from 'src/token/token.module';
 import { EmailModule } from 'src/email/email.module';
 import { AuthorizationModule } from 'src/authorization/authorization.module';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
-  imports: [SettingsModule, AssetsModule, PrismaModule, TokenModule, EmailModule, AuthorizationModule],
+  imports: [SettingsModule, AssetsModule, PrismaModule, TokenModule, EmailModule, AuthorizationModule, CacheModule],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CacheService } from 'src/cache/cache.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -6,12 +7,13 @@ import { UsersService } from 'src/users/users.service';
 export class CliService {
     constructor(
         private prisma: PrismaService,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly cacheService: CacheService
     ) { }
 
     async getCommands(authHeader: string) {
         try {
-            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+            const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
             if (!user?.adminVerification?.verified) {
                 throw new Error('You are not verified');
             }
@@ -66,7 +68,7 @@ export class CliService {
 
     async executeCommand(authHeader: string, command: string) {
         try {
-            const user = await this.usersService.getUserByToken(authHeader.replace('Bearer ', ''));
+            const user = await this.cacheService.getUserByToken(authHeader.replace('Bearer ', ''));
             if (!user?.adminVerification?.verified) {
                 throw new Error('You are not verified');
             }

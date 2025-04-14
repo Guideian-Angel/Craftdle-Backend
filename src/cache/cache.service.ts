@@ -6,15 +6,22 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Recipe } from 'src/recipes/classes/recipe.class';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { IItem } from 'src/sharedComponents/interfaces/item.interface';
+import { User } from 'src/users/classes/user.class';
 
 @Injectable()
 export class CacheService implements OnModuleInit {
     private cache = new NodeCache();
 
+    public tokenToUser: Map<string, User> = new Map();
+    public socketIdToUser: Map<string, User> = new Map();
+    public passwordChangeTokenToUser: Map<string, User> = new Map();
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly recipesService: RecipesService,
     ) { }
+
+    //######################################################### DATA CACHING FUNCTIONS #########################################################
 
     async onModuleInit() {
         const recipesFilePath = path.join(__dirname, '../../../localData/recipes.json');
@@ -57,7 +64,7 @@ export class CacheService implements OnModuleInit {
     private async getItemsFromDatabase() {
         const items = await this.prisma.items.findMany();
         let convertedItems = [];
-        for(const item of items) {
+        for (const item of items) {
             convertedItems.push({
                 id: item.item_id,
                 dbId: item.id,
@@ -75,5 +82,58 @@ export class CacheService implements OnModuleInit {
 
     getCachedData(key: string): any {
         return this.cache.get(key);
+    }
+
+    //######################################################### USER CACHING FUNCTIONS #########################################################
+
+    /**
+     * Társítja a socket ID-t a felhasználóhoz a token alapján.
+     * @param token - A felhasználói token.
+     * @param socketId - A socket ID.
+     */
+    associateSocketId(token: string, socketId: string) {
+        const user = this.tokenToUser.get(token);
+        if (user) {
+            user.socketId = socketId;
+            this.socketIdToUser.set(socketId, user);
+        };
+    };
+
+    /**
+     * Eltávolítja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     */
+    removeUserBySocketId(socketId: string): void {
+        const currentUser = this.socketIdToUser.get(socketId);
+        const newUser = this.tokenToUser.get(currentUser.token);
+
+        if (currentUser) {
+            if (newUser.socketId === socketId) {
+                this.tokenToUser.delete(currentUser.token);
+            }
+            this.socketIdToUser.delete(socketId);
+        };
+    };
+
+    /**
+     * Visszaadja a felhasználót a token alapján.
+     * @param token - A felhasználói token.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
+    getUserByToken(token: string): User | undefined {
+        return this.tokenToUser.get(token);
+    }
+    
+    /**
+     * Visszaadja a felhasználót a socket ID alapján.
+     * @param socketId - A socket ID.
+     * @returns A felhasználó objektum, vagy undefined, ha nem található.
+     */
+    getUserBySocketId(socketId: string): User | undefined {
+        return this.socketIdToUser.get(socketId);
+    }
+    
+    getUserByPasswordResetToken(token: string): User | undefined {
+        return this.passwordChangeTokenToUser.get(token);
     }
 }

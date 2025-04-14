@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as readlineSync from 'readline-sync';
 import { getCurrentDate } from '../sharedComponents/utilities/date.util';
 import * as bcrypt from 'bcrypt';
+import axios from 'axios';
 
 const prisma = new PrismaClient();
 
@@ -44,13 +45,23 @@ async function seedAdmin() {
 
     console.log('Admin user will be seeded with the username:', username);
 
-    const admin = await prisma.users.create({
-        data: {
-            username: username,
-            email: email,
-            password: await bcrypt.hash(password, 2),
-            is_guest: false,
-            registration_date: getCurrentDate()
+    const response = await axios.post('http://localhost:3000/users/register', {
+        username: username,
+        email: email,
+        password: password,
+        stayLoggedIn: false
+    });
+
+    if(response.status !== 201) {
+        console.error('Error creating admin user:', response.data);
+        return;
+    }
+
+    const admin = await prisma.users.findFirst({
+        where: {
+            OR: [
+                { username: username },
+                { email: email }]
         }
     })
 

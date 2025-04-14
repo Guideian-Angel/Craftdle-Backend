@@ -12,85 +12,33 @@ import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
 import { v4 as uuidv4 } from 'uuid';
 import { getStreak, getUserById } from './utilities/user.util';
 import { AuthorizationService } from 'src/authorization/authorization.service';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UsersService {
-    private tokenToUser: Map<string, User> = new Map();
-    private socketIdToUser: Map<string, User> = new Map();
-    private passwordChangeTokenToUser: Map<string, User> = new Map();
 
     constructor(
         private readonly prisma: PrismaService,
         private readonly assetsService: AssetsService,
         private readonly tokenService: TokenService,
         private readonly settingsService: SettingsService,
-        private readonly authorizationService: AuthorizationService
+        private readonly authorizationService: AuthorizationService,
+        private readonly cacheService: CacheService,
     ) { }
 
     private async createNewUser(newUser: IUser, isExpire: boolean) {
         try {
-            const currentUser = this.tokenToUser.get(newUser.loginToken);
+            const currentUser = this.cacheService.tokenToUser.get(newUser.loginToken);
             const socketId = currentUser ? currentUser.socketId : undefined;
             newUser.loginToken = await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
             const admin_rights = await this.authorizationService.getAdminRights(newUser.id);
-            this.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
+            this.cacheService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
             //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
             //console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
         }
     };
-
-    /**
-     * Társítja a socket ID-t a felhasználóhoz a token alapján.
-     * @param token - A felhasználói token.
-     * @param socketId - A socket ID.
-     */
-    associateSocketId(token: string, socketId: string) {
-        const user = this.tokenToUser.get(token);
-        if (user) {
-            user.socketId = socketId;
-            this.socketIdToUser.set(socketId, user);
-        };
-    };
-
-    /**
-     * Eltávolítja a felhasználót a socket ID alapján.
-     * @param socketId - A socket ID.
-     */
-    removeUserBySocketId(socketId: string): void {
-        const currentUser = this.socketIdToUser.get(socketId);
-        const newUser = this.tokenToUser.get(currentUser.token);
-
-        if (currentUser) {
-            if (newUser.socketId === socketId) {
-                this.tokenToUser.delete(currentUser.token);
-            }
-            this.socketIdToUser.delete(socketId);
-        };
-    };
-
-    /**
-     * Visszaadja a felhasználót a token alapján.
-     * @param token - A felhasználói token.
-     * @returns A felhasználó objektum, vagy undefined, ha nem található.
-     */
-    getUserByToken(token: string): User | undefined {
-        return this.tokenToUser.get(token);
-    }
-
-    /**
-     * Visszaadja a felhasználót a socket ID alapján.
-     * @param socketId - A socket ID.
-     * @returns A felhasználó objektum, vagy undefined, ha nem található.
-     */
-    getUserBySocketId(socketId: string): User | undefined {
-        return this.socketIdToUser.get(socketId);
-    }
-
-    getUserByPasswordResetToken(token: string): User | undefined {
-        return this.passwordChangeTokenToUser.get(token);
-    }
 
     //######################################################### USER LOGIN/REGIST FUNCTIONS #########################################################
 
@@ -392,9 +340,9 @@ export class UsersService {
                     verified: false,
                     email: email
                 }
-                const user = this.getUserByToken(token);
+                const user = this.cacheService.getUserByToken(token);
                 user.passwordReset = paswordReset;
-                this.passwordChangeTokenToUser.set(verifyToken, user);
+                this.cacheService.passwordChangeTokenToUser.set(verifyToken, user);
                 return {
                     items: images,
                     token: verifyToken,
@@ -444,7 +392,7 @@ export class UsersService {
      */
     async verifyUser(token: string, id: string) {
         try {
-            const user = this.getUserByPasswordResetToken(token);
+            const user = this.cacheService.getUserByPasswordResetToken(token);
             if (user) {
                 if (user.passwordReset.expiration > getCurrentDate()) {
                     if (user.passwordReset.images.find(image => image?.id === parseInt(id))?.isRight) {
@@ -458,7 +406,7 @@ export class UsersService {
                         };
                     } else {
                         user.passwordReset = undefined;
-                        this.passwordChangeTokenToUser.delete(token);
+                        this.cacheService.passwordChangeTokenToUser.delete(token);
                         return {
                             userId: user.socketId,
                             success: false,
@@ -469,7 +417,7 @@ export class UsersService {
                     }
                 } else {
                     user.passwordReset = undefined;
-                    this.passwordChangeTokenToUser.delete(token);
+                    this.cacheService.passwordChangeTokenToUser.delete(token);
                     return {
                         userId: user.socketId,
                         success: false,
@@ -500,7 +448,7 @@ export class UsersService {
      */
     async resetPassword(authHeader: string, body: { token: string, password: string }) {
         try {
-            const user = this.getUserByPasswordResetToken(body.token);
+            const user = this.cacheService.getUserByPasswordResetToken(body.token);
             if (user && user.token === authHeader.replace('Bearer ', '')) {
                 if (user.passwordReset.verified) {
                     await this.prisma.users.update({
@@ -512,7 +460,7 @@ export class UsersService {
                         }
                     })
                     user.passwordReset = undefined;
-                    this.passwordChangeTokenToUser.delete(body.token);
+                    this.cacheService.passwordChangeTokenToUser.delete(body.token);
                     return { message: "Password reset successful" };
                 } else {
                     return { message: "User not verified" };
