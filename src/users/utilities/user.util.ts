@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
-import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
+import { PrismaService } from "../../prisma/prisma.service";
+import { getCurrentDate } from "../../sharedComponents/utilities/date.util";
 
 export async function getUserById(userId: number, prisma: PrismaService) {
     try {
