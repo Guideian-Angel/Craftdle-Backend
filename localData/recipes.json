@@ -20913,7 +20913,7 @@
                         "chiseled_stone_bricks"
                     ],
                     [
-                        "netherite_ingot"
+                        "iron_ingot"
                     ],
                     [
                         "chiseled_stone_bricks"
@@ -30132,7 +30132,9 @@
                         "sugar"
                     ],
                     [
-                        "egg"
+                        "egg",
+                        "brown_egg",
+                        "blue_egg"
                     ],
                     [
                         "sugar"
@@ -30164,7 +30166,11 @@
                 "recipe": {
                     "required": [
                         "pumpkin",
-                        "egg",
+                        [
+                            "egg",
+                            "brown_egg",
+                            "blue_egg"
+                        ],
                         "sugar"
                     ]
                 },
@@ -30723,7 +30729,8 @@
                     "required": [
                         [
                             "dandelion",
-                            "sunflower"
+                            "sunflower",
+                            "wildflowers"
                         ]
                     ]
                 },
@@ -30911,7 +30918,8 @@
                         [
                             "pink_petals",
                             "pink_tulip",
-                            "peony"
+                            "peony",
+                            "cactus_flower"
                         ]
                     ]
                 },
