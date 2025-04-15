@@ -107,9 +107,6 @@ export class AdminService {
       if (!user?.adminVerification?.verified) {
         throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
       }
-      if (!user.adminRights?.modifyAdmins) {
-        throw new HttpException('You do not have permission to modify admins', HttpStatus.FORBIDDEN);
-      }
       if (user.id == userId) {
         throw new HttpException('You cannot modify yourself', HttpStatus.BAD_REQUEST);
       }

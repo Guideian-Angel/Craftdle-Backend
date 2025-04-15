@@ -4,7 +4,6 @@ import { SocketGateway } from 'src/socket/socket.gateway';
 import { AchievementsGateway } from 'src/achievements/achievements.gateway';
 import { CacheService } from 'src/cache/cache.service';
 import { Riddle } from 'src/riddles/classes/riddle.class';
-import { UsersService } from 'src/users/users.service';
 import { Game } from './classes/game.class';
 import { RecipesService } from 'src/recipes/recipes.service';
 import { GameService } from './game.service';
@@ -112,7 +111,7 @@ export class GameGateway {
                 { name: 'craft', targets: [game.riddle.recipe[0].id] }
               );
 
-              if (game.riddle.gamemode !== 1) {
+              if (game.riddle.gamemode != 1) {
                 const collectionClaimed = await this.assetsService.addItemToCollection(game.user, game.riddle.tips[game.riddle.tips.length - 1].item);
                 if (collectionClaimed && collectionClaimed.added) {
                   achievementsCollection.addTemporalAchievementToList("New item collected!", tip.item.name, tip.item.src, 0, 3, game.user);

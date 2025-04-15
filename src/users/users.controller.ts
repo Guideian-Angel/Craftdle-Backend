@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, UnauthorizedException, Param, Headers, HttpException, HttpStatus, Render, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UnauthorizedException, Param, Headers, HttpException, HttpStatus, Render, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { LoginDataDto } from './dtos/login.dto';
 import { RegistDataDto } from './dtos/regist.dto';
@@ -41,6 +41,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Register a new User' })
     @ApiBody({ type: RegistDataDto })
     @ApiResponseWrapper(UserDataDto)
+    @ApiResponse({ status: 400, description: 'Bad Request', schema: { example: { errors: 'Validation errors' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async register(@Body() userDto: RegistDataDto): Promise<IApiResponse> {
         try {
             const result = await this.usersService.register(userDto);
@@ -64,6 +66,7 @@ export class UsersController {
     @Public()
     @ApiOperation({ summary: 'Create a Guest Account' })
     @ApiResponseWrapper(UserDataDto)
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async createGuestAccount(): Promise<IApiResponse> {
         try {
             const result = await this.usersService.loginWithGuestAccount();
@@ -87,6 +90,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Auto Login a User' })
     @ApiHeader({ name: 'authorization', required: true })
     @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async autoLogin(@Headers('authorization') authorization: string) {
         try {
             const result = await this.usersService.autoLogin(authorization);
@@ -110,6 +115,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Login a User' })
     @ApiBody({ type: LoginDataDto, required: true })
     @ApiResponse({ status: 200, description: 'Return the User data', type: UserDataDto })
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid credentials' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async login(@Body() body: LoginDataDto) {
         try {
             const result = await this.usersService.loginUser(body);
@@ -133,6 +140,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Logout a User' })
     @ApiHeader({ name: 'authorization' })
     @ApiResponse({ status: 200, description: 'Return a message about the logout' })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async logoutUser(@Headers('authorization') authHeader: string): Promise<IApiResponse> {
         try {
             await this.usersService.logoutUser(authHeader);
@@ -156,6 +164,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Get the User Settings' })
     @ApiHeader({ name: 'authorization'})
     @ApiResponseWrapper(UpdateSettingsDto)
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async getSettings(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.settingsService.collectSettings(authorization);
@@ -178,6 +188,8 @@ export class UsersController {
     @ApiHeader({ name: 'authorization' })
     @ApiBody({ type: UpdateSettingsDto })
     @ApiResponse({ status: 200, description: 'Return a message about the settings update' })
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async updateSettings(@Param('id') settingsId: number, @Headers('authorization') authorization: string, @Body() updateSettingsData: UpdateSettingsDto) {
         try {
             await this.settingsService.modifySettings(settingsId, authorization, updateSettingsData);
@@ -199,6 +211,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Get the User Collection' })
     @ApiHeader({ name: 'authorization' })
     @ApiResponseWrapper(CollectionDataDto)
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async getCollection(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.assetsService.getCollection(authorization);
@@ -218,6 +232,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Update the User Profile' })
     @ApiHeader({ name: 'authorization' })
     @ApiBody({ type: ProfileAssetsDataDto })
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async updateProfile(@Headers('authorization') authorization: string, @Body() body: ProfileAssetsDataDto): Promise<IApiResponse> {
         try {
             const result = await this.assetsService.updateProfile(authorization, body);
@@ -236,6 +252,8 @@ export class UsersController {
     @ApiOperation({ summary: 'Get the User Stats' })
     @ApiHeader({ name: 'authorization' })
     @ApiResponseWrapper(UserStatsDto)
+    @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'Invalid token' } } })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async getStats(@Headers('authorization') authorization: string): Promise<IApiResponse> {
         try {
             const result = await this.usersService.getStats(authorization)
@@ -258,6 +276,7 @@ export class UsersController {
     @ApiHeader({ name: 'authorization' })
     @ApiBody({ type: PasswordResetDto })
     @ApiResponseWrapper(PasswordResetResponseDto)
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async requestPasswordReset(@Headers('authorization') authorization: string, @Body() body: { email: string }): Promise<IApiResponse> {
         try {
             const result = await this.usersService.requestPasswordReset(authorization, body.email);
@@ -284,6 +303,7 @@ export class UsersController {
     @ApiQuery({ name: 'token', required: true })
     @ApiQuery({ name: 'id', required: true })
     @ApiResponseWrapper(PasswordResetMessageDto)
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async verifyUser(@Query('token') token: string, @Query('id') id: string) {
         try {
             const result = await this.usersService.verifyUser(token, id);
@@ -307,6 +327,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Reset the User Password' })
     @ApiHeader({ name: 'authorization' })
     @ApiBody({ type: PasswordResetDto })
+    @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
     async resetPassword(@Headers('authorization') authorization: string, @Body() body: PasswordChangeDto): Promise<IApiResponse> {
         try {
             return await this.usersService.resetPassword(authorization, body);

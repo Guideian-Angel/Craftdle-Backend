@@ -37,7 +37,9 @@ export class AdminController {
   @ApiOperation({ summary: 'Admin login' })
   @ApiBody({ type: LoginDataDto })
   @ApiResponse({ status: 200, description: 'Login successful, returns token.', type: LoginResponseDto })
-  @ApiResponse({ status: 404, description: 'User not found.' })
+  @ApiResponse({ status: 404, description: 'User not found.', schema: { example: { message: 'User not found with this email' } } })
+  @ApiResponse({ status: 400, description: 'Bad Request', schema: { example: { message: 'User does not have an id property' } } })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async login(@Body() loginDataDto: LoginDataDto) {
     const result = await this.adminService.login(loginDataDto);
     await this.emailService.sendAdminVerificationEmail(result.email, { code: result.code, name: result.name });
@@ -49,8 +51,9 @@ export class AdminController {
   @ApiOperation({ summary: 'Verify admin using a code' })
   @ApiBody({ schema: { properties: { code: { type: 'string' } } } })
   @ApiResponse({ status: 200, description: 'Returns logged in user data', type: AdminVerificationResponseDto })
-  @ApiResponse({ status: 400, description: 'Invalid code.' })
-  @ApiResponse({ status: 410, description: 'Code expired.' })
+  @ApiResponse({ status: 400, description: 'Invalid code.', schema: { example: { message: 'Invalid code' } } })
+  @ApiResponse({ status: 410, description: 'Code expired.', schema: { example: { message: 'Code expired' } } })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async verifyAdmin(@Headers('authorization') authHeader: string, @Body() body: { code: string }) {
     return this.adminService.verifyAdmin(authHeader, body.code);
   }
@@ -58,6 +61,7 @@ export class AdminController {
   @Delete("login")
   @ApiOperation({ summary: 'Logout admin' })
   @ApiResponse({ status: 200, description: 'Logout successful.' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   logout(@Headers('authorization') authHeader: string) {
     return this.adminService.logout(authHeader);
   }
@@ -125,6 +129,10 @@ export class AdminController {
   @ApiParam({ name: 'id', type: 'string', description: 'Admin ID' })
   @ApiBody({ type: UpdateAdminRightsDto })
   @ApiResponse({ status: 200, description: 'Admin rights updated.' })
+  @ApiResponse({ status: 400, description: 'Bad Request', schema: { example: { message: 'You cannot modify yourself' } } })
+  @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'You are not verified' } } })
+  @ApiResponse({ status: 403, description: 'Forbidden', schema: { example: { message: 'You do not have permission to modify admins' } } })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async updateAdmin(@Headers('authorization') authHeader: string, @Param('id') id: string, @Body() body: UpdateAdminRightsDto) {
     return this.adminService.updateAdmin(+id, authHeader, body);
   }
@@ -132,7 +140,9 @@ export class AdminController {
   @Get("users")
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users', type: UserListItemDto, isArray: true,})
+  @ApiResponse({ status: 200, description: 'List of users', type: UserListItemDto, isArray: true })
+  @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'You are not verified' } } })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async getUsers(@Headers('authorization') authHeader: string) {
     const data = await this.adminService.getAllUsers(authHeader);
     return data;
@@ -142,8 +152,10 @@ export class AdminController {
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Get user details' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
-  @ApiResponse({ status: 200, description: 'Details of the user', type: UserStatsResponseDto, })
-  
+  @ApiResponse({ status: 200, description: 'Details of the user', type: UserStatsResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found.', schema: { example: { message: 'User not found' } } })
+  @ApiResponse({ status: 401, description: 'Unauthorized', schema: { example: { message: 'You are not verified' } } })
+  @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async getUser(@Headers('authorization') authHeader: string, @Param('id') id: string) {
     const data = await this.adminService.getUser(+id, authHeader);
     return data;
