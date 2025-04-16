@@ -33,9 +33,7 @@ export class UsersService {
             newUser.loginToken = await this.tokenService.pairTokenWithUser(newUser.id, newUser.loginToken, isExpire);
             const admin_rights = await this.authorizationService.getAdminRights(newUser.id);
             this.cacheService.tokenToUser.set(newUser.loginToken, new User(newUser.id, newUser.username, newUser.isGuest, newUser.loginToken, admin_rights, socketId));
-            //console.log("MAP TARTALMA (createNewUser): ", UsersService.tokenToUser);
         } catch (error) {
-            //console.error("Hiba a createNewUser-ben:", error);
             throw new Error("Failed to pair token with user.");
         }
     };

@@ -59,7 +59,6 @@ export class SocketGateway
 
     // Token validáció a UsersService-en keresztül
     const user = this.cacheService.getUserByToken(token);
-    console.log(user);
     if (!user) {
       this.logger.error('Connection rejected: Invalid token.');
       client.emit("error", 'UnauthorizedError');
@@ -133,7 +132,6 @@ export class SocketGateway
     started: boolean,
     countdown: number | null
   }) {
-    console.log(maintenance);
     this.broadcastEvent('maintenance', maintenance);
     if (maintenance.countdown != null) {
       clearTimeout(this.reporter);

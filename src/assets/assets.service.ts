@@ -362,7 +362,6 @@ export class AssetsService {
                     return bProgress - aProgress;
                 });
         } catch (error) {
-            console.log(error);
             throw new HttpException(error.message || 'Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

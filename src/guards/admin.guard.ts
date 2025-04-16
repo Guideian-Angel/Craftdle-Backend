@@ -11,7 +11,6 @@ export class AdminGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const userId = context.switchToHttp().getRequest().user;
         const userRoles = await this.authorizationService.getAdminRights(userId);
-        console.log("User Roles: ", userRoles);
 
         let hasAdminRole = false;
         Object.values(userRoles).forEach(role => {

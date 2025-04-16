@@ -348,6 +348,16 @@ export class GameService {
         const games = await this.usersService.getUsersGames(userId);
         const statistics: { [key: string]: { [key: string]: number } } = {};
 
+        if (games.length > 0) {
+            const startDate = new Date(games[0].date);
+            const endDate = new Date(games[games.length - 1].date);
+
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const formattedDate = formatDate(date);
+                statistics[formattedDate] = {};
+            }
+        }
+
         games.forEach(game => {
             const date = formatDate(game.date);
             if (!statistics[date]) {

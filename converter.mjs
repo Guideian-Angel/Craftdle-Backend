@@ -90,7 +90,6 @@ function getMaterialsForRecipe(recipe) {
 }
 
 function countDifferentMaterials(materials){
-    console.log(materials)
     let result = new Set();
     materials.forEach(material => {
         if(material){

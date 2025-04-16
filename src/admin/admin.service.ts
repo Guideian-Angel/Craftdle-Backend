@@ -9,6 +9,7 @@ import { UpdateAdminRightsDto } from './dto/updateAdminRights.dto';
 import { getStreak } from 'src/users/utilities/user.util';
 import { AuthorizationService } from 'src/authorization/authorization.service';
 import { CacheService } from 'src/cache/cache.service';
+import { User } from 'src/users/classes/user.class';
 
 @Injectable()
 export class AdminService {
@@ -25,6 +26,15 @@ export class AdminService {
     return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
   }
 
+  private isAdmin(user: User) {
+    for (const rightName of Object.keys(user.adminRights)) {
+      if (user.adminRights[rightName]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   async login(loginDataDto: LoginDataDto) {
     try {
       if (!await this.usersService.findEmail(loginDataDto.usernameOrEmail)) {
@@ -38,6 +48,9 @@ export class AdminService {
         throw new HttpException('User does not have an id property', HttpStatus.BAD_REQUEST);
       }
       const admin = await this.cacheService.getUserByToken(user.loginToken);
+      if(!this.isAdmin(admin)){
+        throw new HttpException('You are not an admin', HttpStatus.UNAUTHORIZED);
+      }
       const code = this.generateVerificationCode();
       admin.adminVerification = {
         code,
@@ -63,6 +76,9 @@ export class AdminService {
       }
       if (admin.adminVerification?.expiration < getCurrentDate()) {
         throw new HttpException('Code expired', HttpStatus.GONE);
+      }
+      if(!this.isAdmin(admin)){
+        throw new HttpException('You are not an admin', HttpStatus.UNAUTHORIZED);
       }
       admin.adminVerification.verified = true;
       return admin;
@@ -132,7 +148,6 @@ export class AdminService {
 
       await this.prisma.users_rights.createMany({
         data: adminRights.map(right => {
-          console.log(userId, right)
           return {
             user: userId,
             right: right
@@ -140,7 +155,6 @@ export class AdminService {
         })
       })
     } catch (err) {
-      console.log(err)
       throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -209,11 +223,11 @@ export class AdminService {
         streak: await getStreak(userData.id, this.prisma),
         achievements: { collected: collectedAchievements, total: totalAchievements },
         collection: { collected: collectedItems, total: totalItems },
-        favoriteGamemode: favoriteGamemode.gamemodeName,
+        favoriteGamemode: favoriteGamemode?.gamemodeName || "None",
         playedGamemodes: statistics
       };
     } catch (err) {
-      throw new Error(err.message);
+      throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

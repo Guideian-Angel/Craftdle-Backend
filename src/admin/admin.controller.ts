@@ -72,7 +72,6 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'List of maintenance periods', type: MaintenanceResponseDto, isArray: true,})
   async getMaintenance(@Headers('authorization') authHeader: string) {
     const data = await this.maintenanceService.getAllMaintenance(authHeader);
-    console.log("Fasz: ", data, " fasz")
     return data;
   }
 
@@ -167,7 +166,6 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Rendszer statisztikák', type: SystemStatsResponseDto,})
   async getStatistics(@Headers('authorization') authHeader: string) {
     const data = await this.statisticsService.getStatistics(authHeader);
-    console.log("Stat: ", data, " stat")
     return data;
   }
 

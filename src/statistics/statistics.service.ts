@@ -39,7 +39,6 @@ export class StatisticsService {
                 registrationsByDate: await this.getRegistrationsByDate()
             }
         } catch (err) {
-            console.log(err)
             return { error: err.message }
         }
     }
@@ -94,6 +93,7 @@ export class StatisticsService {
     async getGamemodesSortedByDate() {
         const games = await this.prismaService.games.findMany({
             select: {
+                date: true,
                 gamemodes: {
                     select: {
                         name: true
@@ -115,20 +115,24 @@ export class StatisticsService {
 
         const gamemodes: { [key: string]: { [key: string]: number } } = {};
 
+        if (games.length > 0) {
+            const startDate = new Date(games[0].tips[0]?.date || games[0].date);
+            const endDate = new Date(games[games.length - 1].tips[0]?.date || games[games.length - 1].date);
+
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const formattedDate = date.toLocaleDateString();
+                gamemodes[formattedDate] = {};
+            }
+        }
+
         games.forEach(game => {
-            if(game.tips. length > 0){
+            if (game.tips.length > 0) {
                 const date = game.tips[0].date.toLocaleDateString();
                 const gamemodeName = game.gamemodes.name;
-                if (date in gamemodes) {
-                    if (gamemodeName in gamemodes[date]) {
-                        gamemodes[date][gamemodeName]++;
-                    } else {
-                        gamemodes[date][gamemodeName] = 1;
-                    }
+                if (gamemodeName in gamemodes[date]) {
+                    gamemodes[date][gamemodeName]++;
                 } else {
-                    gamemodes[date] = {
-                        [gamemodeName]: 1
-                    }
+                    gamemodes[date][gamemodeName] = 1;
                 }
             }
         });
@@ -151,13 +155,19 @@ export class StatisticsService {
 
         const registrations: { [key: string]: number } = {};
 
+        if (users.length > 0) {
+            const startDate = new Date(users[0].registration_date);
+            const endDate = new Date(users[users.length - 1].registration_date);
+
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                const formattedDate = date.toLocaleDateString();
+                registrations[formattedDate] = 0;
+            }
+        }
+
         users.forEach(user => {
             const date = user.registration_date.toLocaleDateString();
-            if (date in registrations) {
-                registrations[date]++;
-            } else {
-                registrations[date] = 1;
-            }
+            registrations[date]++;
         });
 
         return registrations;

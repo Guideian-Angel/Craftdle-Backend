@@ -17,14 +17,12 @@ export class TokenAuthGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
         const authHeader = request.headers.authorization;
-        console.log("Auth Header: ", authHeader);
     
         if (!authHeader) {
             throw new UnauthorizedException('Missing authorization header');
         }
     
         const user = await this.tokenService.validateBearerToken(authHeader); 
-        console.log("User: ", user);
     
         if (!user) {
             throw new UnauthorizedException('Invalid or missing token');
