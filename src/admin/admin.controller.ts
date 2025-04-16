@@ -52,7 +52,6 @@ export class AdminController {
   @ApiBody({ schema: { properties: { code: { type: 'string' } } } })
   @ApiResponse({ status: 200, description: 'Returns logged in user data', type: AdminVerificationResponseDto })
   @ApiResponse({ status: 400, description: 'Invalid code.', schema: { example: { message: 'Invalid code' } } })
-  @ApiResponse({ status: 410, description: 'Code expired.', schema: { example: { message: 'Code expired' } } })
   @ApiResponse({ status: 500, description: 'Internal Server Error', schema: { example: { message: 'Unexpected error' } } })
   async verifyAdmin(@Headers('authorization') authHeader: string, @Body() body: { code: string }) {
     return this.adminService.verifyAdmin(authHeader, body.code);

@@ -126,6 +126,17 @@ export class AdminService {
       if (user.id == userId) {
         throw new HttpException('You cannot modify yourself', HttpStatus.BAD_REQUEST);
       }
+
+      const userData = await this.prisma.users.findUnique({
+        where: { id: userId },
+        select: {
+          is_guest: true,
+        }
+      });
+
+      if (userData.is_guest) {
+        throw new HttpException('You cannot modify a guest', HttpStatus.BAD_REQUEST);
+      }
       
       const adminRightsNames = await this.convertAdminRights(body);
 
@@ -206,9 +217,13 @@ export class AdminService {
         select: {
           id: true,
           username: true,
-          registration_date: true
+          registration_date: true,
+          is_guest: true,
         }
       });
+
+      const rights = await this.authorizationService.getAdminRights(userData.id);
+      const formatedRigths = Object.keys(rights).filter(rightName => rights[rightName]);
 
       const favoriteGamemode = await this.gameService.getFavoriteGamemode(userData.id);
       const statistics = await this.gameService.getUserStatistics(userData.id);
@@ -224,7 +239,8 @@ export class AdminService {
         achievements: { collected: collectedAchievements, total: totalAchievements },
         collection: { collected: collectedItems, total: totalItems },
         favoriteGamemode: favoriteGamemode?.gamemodeName || "None",
-        playedGamemodes: statistics
+        playedGamemodes: statistics,
+        rights: userData.is_guest ? [] : formatedRigths, 
       };
     } catch (err) {
       throw new HttpException(err.message, HttpStatus.INTERNAL_SERVER_ERROR);

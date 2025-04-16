@@ -1,6 +1,5 @@
 import { PrismaService } from "src/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
-import { UsersService } from "src/users/users.service";
 import { CreateMaintenanceDto } from "./dto/createMaintenance.dto";
 import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
 import { CacheService } from "src/cache/cache.service";
@@ -9,7 +8,6 @@ import { CacheService } from "src/cache/cache.service";
 export class MaintenanceService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly usersService: UsersService,
         private readonly cacheService: CacheService,
     ) { }
 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from 'src/cache/cache.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { getCurrentDate } from 'src/sharedComponents/utilities/date.util';
+import { startOfDay, endOfDay } from 'date-fns';
 
 @Injectable()
 export class StatisticsService {
@@ -64,16 +65,25 @@ export class StatisticsService {
     }
 
     async getActiveGamesToday() {
+        const todayStart = startOfDay(getCurrentDate());
+        const todayEnd = endOfDay(getCurrentDate());
+
         return await this.prismaService.games.findMany({
             where: {
                 OR: [
                     {
-                        date: getCurrentDate()
+                        date: {
+                            gte: todayStart,
+                            lte: todayEnd
+                        }
                     },
                     {
                         tips: {
                             some: {
-                                date: getCurrentDate()
+                                date: {
+                                    gte: todayStart,
+                                    lte: todayEnd
+                                }
                             }
                         }
                     }
@@ -140,7 +150,7 @@ export class StatisticsService {
         return gamemodes;
     }
 
-    async getRegistrationsByDate(){
+    async getRegistrationsByDate() {
         const users = await this.prismaService.users.findMany({
             select: {
                 registration_date: true
