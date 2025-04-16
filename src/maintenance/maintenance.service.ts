@@ -1,5 +1,6 @@
 import { PrismaService } from "src/prisma/prisma.service";
 import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { CreateMaintenanceDto } from "./dto/createMaintenance.dto";
 import { getCurrentDate } from "src/sharedComponents/utilities/date.util";
 import { CacheService } from "src/cache/cache.service";
@@ -18,11 +19,11 @@ export class MaintenanceService {
             const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
-                throw new Error('You do not have permission to modify maintenance');
+                throw new HttpException('You do not have permission to modify maintenance', HttpStatus.FORBIDDEN);
             }
 
             if (!user?.adminVerification?.verified) {
-                throw new Error('You are not verified');
+                throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
             }
 
             return await this.prisma.maintenance.create({
@@ -32,7 +33,7 @@ export class MaintenanceService {
                 }
             });
         } catch (err) {
-            throw new Error(err.message);
+            throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -51,16 +52,16 @@ export class MaintenanceService {
         try {
             const token = authHeader.replace('Bearer ', '');
             const user = await this.cacheService.getUserByToken(token);
-            // if (!user) {
-            //     throw new Error('Invalid token');
-            // }
+            if (!user) {
+                throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+            }
 
             const maintenances = await this.prisma.maintenance.findMany({
                 orderBy: {
                     start: 'asc'
                 },
                 include: {
-                    
+
                 }
             });
 
@@ -71,7 +72,7 @@ export class MaintenanceService {
                 };
             })
         } catch (err) {
-            throw new Error(err.message);
+            throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -107,11 +108,11 @@ export class MaintenanceService {
             const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
-                throw new Error('You do not have permission to modify maintenance');
+                throw new HttpException('You do not have permission to modify maintenance', HttpStatus.FORBIDDEN);
             }
 
             if (!user?.adminVerification?.verified) {
-                throw new Error('You are not verified');
+                throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
             }
 
             return await this.prisma.maintenance.update({
@@ -124,7 +125,7 @@ export class MaintenanceService {
                 }
             });
         } catch (err) {
-            throw new Error(err.message);
+            throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -135,11 +136,11 @@ export class MaintenanceService {
             const user = await this.cacheService.getUserByToken(token);
 
             if (!user?.adminRights?.modifyMaintenance) {
-                throw new Error('You do not have permission to modify maintenance');
+                throw new HttpException('You do not have permission to modify maintenance', HttpStatus.FORBIDDEN);
             }
 
             if (!user?.adminVerification?.verified) {
-                throw new Error('You are not verified');
+                throw new HttpException('You are not verified', HttpStatus.UNAUTHORIZED);
             }
 
             return await this.prisma.maintenance.delete({
@@ -148,7 +149,7 @@ export class MaintenanceService {
                 }
             });
         } catch (err) {
-            throw new Error(err.message);
+            throw new HttpException(err.message, err.status || HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
